@@ -9,7 +9,7 @@ import '@toast-ui/editor/dist/toastui-editor.css' // editor ui
 import '@toast-ui/editor/dist/toastui-editor-viewer.css' // editor viewer
 
 // 语言包
-import '@toast-ui/editor/dist/i18n/zh-cn';
+import '@toast-ui/editor/dist/i18n/zh-cn'
 
 import Editor from '@toast-ui/editor'
 import defaultOptions from './default-options'
@@ -57,7 +57,7 @@ export default {
   computed: {
     editorOptions() {
       const options = Object.assign({}, defaultOptions, this.options)
-      
+
       options.initialEditType = this.mode
       options.height = this.height
       options.language = this.language

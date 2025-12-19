@@ -54,7 +54,7 @@
                   <div class="slug-item">
                     {{ row.slug }}
                   </div>
-                </el-tooltip> 
+                </el-tooltip>
               </el-tag>
             </div>
 
@@ -99,36 +99,36 @@
 
         <el-table-column align="center" :label="$t('auth_rule.table_actions')" width="280">
           <template slot-scope="scope">
-            <el-button 
+            <el-button
               v-waves
               :loading="scope.row.id == loading.detail"
-              :disabled="!checkPermission(['larke-admin.auth-rule.detail'])" 
-              type="info" 
-              size="mini" 
-              icon="el-icon-info" 
+              :disabled="!checkPermission(['larke-admin.auth-rule.detail'])"
+              type="info"
+              size="mini"
+              icon="el-icon-info"
               @click="handleDetail(scope.$index, scope.row)"
             >
               {{ $t('auth_rule.table_detail') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
-              :disabled="!checkPermission(['larke-admin.auth-rule.update'])" 
-              type="primary" 
-              size="mini" 
-              icon="el-icon-edit" 
+              :disabled="!checkPermission(['larke-admin.auth-rule.update'])"
+              type="primary"
+              size="mini"
+              icon="el-icon-edit"
               @click="handleEdit(scope.$index, scope.row)"
             >
               {{ $t('auth_rule.table_update') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
+              v-permission="['larke-admin.auth-rule.delete']"
               :loading="scope.row.id == loading.delete"
-              v-permission="['larke-admin.auth-rule.delete']" 
-              type="danger" 
-              size="mini" 
-              icon="el-icon-delete" 
+              type="danger"
+              size="mini"
+              icon="el-icon-delete"
               @click="handleDelete(scope.$index, scope.row)"
             >
               {{ $t('auth_rule.table_delete') }}
@@ -223,8 +223,8 @@ export default {
       },
       loading: {
         detail: '',
-        delete: '',
-      },
+        delete: ''
+      }
     }
   },
   created() {

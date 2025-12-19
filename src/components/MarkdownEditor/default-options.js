@@ -12,6 +12,6 @@ export default {
     ['ul', 'ol', 'task', 'indent', 'outdent'],
     ['table', 'image', 'link'],
     ['code', 'codeblock'],
-    ['scrollSync'],
+    ['scrollSync']
   ]
 }

@@ -82,7 +82,7 @@ export default {
         confirmButtonText: this.$t('common.ok'),
         cancelButtonText: this.$t('common.cancel'),
         type: 'warning'
-      }).then(async () => {
+      }).then(async() => {
         const loading = thiz.$loading({
           lock: true,
           text: this.$t('common.clear_cache_doing'),
@@ -103,7 +103,7 @@ export default {
         }).catch(() => {
           loading.close()
         })
-      });
+      })
     },
     logout() {
       const thiz = this
@@ -112,10 +112,10 @@ export default {
         confirmButtonText: this.$t('common.ok'),
         cancelButtonText: this.$t('common.cancel'),
         type: 'warning'
-      }).then(async () => {
+      }).then(async() => {
         await thiz.$store.dispatch('user/logout')
         thiz.$router.push(`/login?redirect=${this.$route.fullPath}`)
-      });
+      })
     }
   }
 }

@@ -30,6 +30,6 @@ export default {
     'oldpassword_dont_empty': 'Oldpassword dont empty',
     'newpassword_dont_empty': 'Newpassword dont empty',
     'confirm_newpassword_dont_empty': 'Confirm newpassword  dont empty',
-    'updata_password_success': 'Updata password successfully',
-  },
+    'updata_password_success': 'Updata password successfully'
+  }
 }

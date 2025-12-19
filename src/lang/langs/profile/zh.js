@@ -30,6 +30,6 @@ export default {
     'oldpassword_dont_empty': '旧密码不能为空',
     'newpassword_dont_empty': '新密码不能为空',
     'confirm_newpassword_dont_empty': '确认密码不能为空',
-    'updata_password_success': '密码更新成功',
-  },
+    'updata_password_success': '密码更新成功'
+  }
 }

@@ -6,37 +6,42 @@
       </div>
 
       <div class="filter-container">
-        <el-input 
-          v-model="listQuery.searchword" 
-          :placeholder="$t('extension.search_searchword')" 
-          clearable 
-          style="width: 200px;margin-right: 10px;" 
-          class="filter-item" 
-          @keyup.enter.native="handleFilter" />
+        <el-input
+          v-model="listQuery.searchword"
+          :placeholder="$t('extension.search_searchword')"
+          clearable
+          style="width: 200px;margin-right: 10px;"
+          class="filter-item"
+          @keyup.enter.native="handleFilter"
+        />
 
-        <el-select 
-          v-model="listQuery.status" 
-          :placeholder="$t('extension.search_status')" 
-          clearable 
-          class="filter-item" 
-          style="width: 130px;margin-right: 10px;">
-          <el-option 
-            v-for="item in statusOptions" 
-            :key="item.key" 
-            :label="item.display_name" 
-            :value="item.key" />
+        <el-select
+          v-model="listQuery.status"
+          :placeholder="$t('extension.search_status')"
+          clearable
+          class="filter-item"
+          style="width: 130px;margin-right: 10px;"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.key"
+            :label="item.display_name"
+            :value="item.key"
+          />
         </el-select>
 
-        <el-select 
-          v-model="listQuery.order" 
-          style="width: 140px;margin-right: 10px;" 
-          class="filter-item" 
-          @change="handleFilter">
-          <el-option 
-            v-for="item in sortOptions" 
-            :key="item.key" 
-            :label="item.label" 
-            :value="item.key" />
+        <el-select
+          v-model="listQuery.order"
+          style="width: 140px;margin-right: 10px;"
+          class="filter-item"
+          @change="handleFilter"
+        >
+          <el-option
+            v-for="item in sortOptions"
+            :key="item.key"
+            :label="item.label"
+            :value="item.key"
+          />
         </el-select>
 
         <el-button v-waves class="filter-item" style="margin-right: 10px;" type="primary" icon="el-icon-search" @click="handleFilter">
@@ -44,44 +49,50 @@
         </el-button>
 
         <el-upload
-          class="filter-item" 
+          class="filter-item"
           style="margin-right: 10px;"
           action=""
           :on-change="onUploadChange"
           :auto-upload="false"
           :show-file-list="false"
         >
-          <el-button v-waves 
-            :disabled="!checkPermission(['larke-admin.extension.upload'])" 
-            slot="trigger" 
-            :loading="uploadLoading" 
-            type="primary" 
-            icon="el-icon-upload">{{ $t('extension.search_upload') }}</el-button>
-        </el-upload>        
+          <el-button
+            slot="trigger"
+            v-waves
+            :disabled="!checkPermission(['larke-admin.extension.upload'])"
+            :loading="uploadLoading"
+            type="primary"
+            icon="el-icon-upload"
+          >{{ $t('extension.search_upload') }}</el-button>
+        </el-upload>
 
-        <el-button v-waves 
-          :disabled="!checkPermission(['larke-admin.extension.local'])" 
-          class="filter-item" 
-          type="warning" 
-          icon="el-icon-folder" 
-          @click="handleLocalExtension">
+        <el-button
+          v-waves
+          :disabled="!checkPermission(['larke-admin.extension.local'])"
+          class="filter-item"
+          type="warning"
+          icon="el-icon-folder"
+          @click="handleLocalExtension"
+        >
           {{ $t('extension.search_install') }}
         </el-button>
 
-        <el-button v-waves 
-          :disabled="!checkPermission(['larke-admin.extension.refresh'])" 
+        <el-button
+          v-waves
+          :disabled="!checkPermission(['larke-admin.extension.refresh'])"
           :loading="loading.refresh"
-          class="filter-item" 
-          type="danger" 
-          icon="el-icon-refresh" 
-          @click="handleRefresh">
+          class="filter-item"
+          type="danger"
+          icon="el-icon-refresh"
+          @click="handleRefresh"
+        >
           {{ $t('extension.search_refresh') }}
-        </el-button> 
+        </el-button>
       </div>
 
       <el-table
-        class="border-gray"
         v-loading="listLoading"
+        class="border-gray"
         :header-cell-style="{background:'#eef1f6',color:'#606266'}"
         :data="list"
         fit
@@ -92,12 +103,12 @@
           <template slot-scope="scope">
             <div class="extension-box">
               <div class="extension-icon" @click="handleShowIcon(scope.$index, scope.row)">
-                <img :src="scope.row.icon" style="width:90%;" />
+                <img :src="scope.row.icon" style="width:90%;">
               </div>
-              
+
               <div class="extension-data">
                 <div class="extension-title">
-                  <span class="extension-title-icon" v-if="scope.row.homepage && scope.row.homepage != ''">
+                  <span v-if="scope.row.homepage && scope.row.homepage != ''" class="extension-title-icon">
                     <a :href="scope.row.homepage" target="_blank" :title="scope.row.title">
                       <i class="el-icon-paperclip" />
                     </a>
@@ -181,7 +192,7 @@
               <span v-else>{{ row.listorder }}</span>
             </div>
           </template>
-        </el-table-column>        
+        </el-table-column>
 
         <el-table-column width="160px" align="left" :label="$t('extension.table_installtime')">
           <template slot-scope="scope">
@@ -226,48 +237,48 @@
         <el-table-column align="left" :label="$t('extension.table_actions')" width="200">
           <template slot-scope="scope">
             <div>
-              <el-button 
-                v-waves 
+              <el-button
+                v-waves
                 :loading="scope.row.id == loading.detail"
-                type="info" 
-                size="mini" 
-                icon="el-icon-info" 
+                type="info"
+                size="mini"
+                icon="el-icon-info"
                 @click="handleDetail(scope.$index, scope.row)"
-              >  
+              >
                 {{ $t('extension.table_detail') }}
               </el-button>
 
-              <el-button 
-                v-waves 
-                v-permission="['larke-admin.extension.uninstall']" 
-                type="danger" 
-                size="mini" 
-                icon="el-icon-delete" 
+              <el-button
+                v-waves
+                v-permission="['larke-admin.extension.uninstall']"
+                type="danger"
+                size="mini"
+                icon="el-icon-delete"
                 @click="handleUninstall(scope.$index, scope.row)"
-              >                
+              >
                 {{ $t('extension.table_uninstall') }}
               </el-button>
             </div>
 
             <div style="margin-top:5px;">
-              <el-button 
-                v-waves 
-                :disabled="!checkPermission(['larke-admin.extension.config'])" 
-                v-if="scope.row.config != '[]'" 
-                type="primary" 
-                size="mini" 
-                icon="el-icon-edit" 
+              <el-button
+                v-if="scope.row.config != '[]'"
+                v-waves
+                :disabled="!checkPermission(['larke-admin.extension.config'])"
+                type="primary"
+                size="mini"
+                icon="el-icon-edit"
                 @click="handleConfig(scope.$index, scope.row)"
               >
                 {{ $t('extension.table_config') }}
               </el-button>
 
-              <el-button 
-                v-waves 
-                v-permission="['larke-admin.extension.command']" 
-                type="warning" 
-                size="mini" 
-                icon="el-icon-cpu" 
+              <el-button
+                v-waves
+                v-permission="['larke-admin.extension.command']"
+                type="warning"
+                size="mini"
+                icon="el-icon-cpu"
                 @click="handleCommand(scope.$index, scope.row)"
               >
                 {{ $t('extension.table_command') }}
@@ -280,9 +291,10 @@
       <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
     </el-card>
 
-    <el-dialog 
-      :visible.sync="icon.dialogVisible" 
-      :title="icon.title">
+    <el-dialog
+      :visible.sync="icon.dialogVisible"
+      :title="icon.title"
+    >
       <img :src="icon.img" class="extension-icon-img">
     </el-dialog>
 
@@ -344,17 +356,17 @@ import {
 
 export default {
   name: 'ExtensionIndex',
-  components: { 
-    BackToTop, 
-    LangSelect, 
-    Pagination, 
-    Detail, 
-    Setting, 
-    Command 
+  components: {
+    BackToTop,
+    LangSelect,
+    Pagination,
+    Detail,
+    Setting,
+    Command
   },
-  directives: { 
-    waves, 
-    permission 
+  directives: {
+    waves,
+    permission
   },
   filters: {},
   data() {
@@ -387,7 +399,7 @@ export default {
         { key: 'create_time__ASC', label: this.$t('extension.search_sort_asc') },
         { key: 'create_time__DESC', label: this.$t('extension.search_sort_desc') },
         { key: 'listorder__ASC', label: this.$t('extension.search_order_asc') },
-        { key: 'listorder__DESC', label: this.$t('extension.search_order_desc') },
+        { key: 'listorder__DESC', label: this.$t('extension.search_order_desc') }
       ],
       uploadLoading: false,
       uploadFile: null,
@@ -403,7 +415,7 @@ export default {
       sort: {
         editable: [],
         editableItem: {},
-        editableOldSort: 0,    
+        editableOldSort: 0
       },
       setting: {
         dialogVisible: false,
@@ -419,8 +431,8 @@ export default {
       },
       loading: {
         detail: '',
-        refresh: false,
-      },
+        refresh: false
+      }
     }
   },
   created() {
@@ -465,26 +477,26 @@ export default {
             thiz.getList()
 
             thiz.loading.refresh = false
-          });
+          })
         })
       })
     },
     onUploadChange(file) {
       this.uploadLoading = true
 
-      const isZip = (file.raw.type === 'application/x-zip-compressed');
+      const isZip = (file.raw.type === 'application/x-zip-compressed')
 
       if (!isZip) {
         this.uploadLoading = false
-        this.$message.error(this.$t('extension.confirm_upload_error'));
-        return false;
+        this.$message.error(this.$t('extension.confirm_upload_error'))
+        return false
       }
 
       const formData = new FormData()
-      formData.append('file', file.raw) 
+      formData.append('file', file.raw)
 
       this.uploadFile = file.raw
-      
+
       const thiz = this
       upload(formData).then(response => {
         thiz.successTip(thiz.$t('extension.confirm_upload_success'))
@@ -496,17 +508,17 @@ export default {
 
         if (err.code == 411) {
           thiz.confirmTip(thiz.$t('extension.confirm_upload_force', {
-            "message": err.message,
+            'message': err.message
           }), function() {
             thiz.reUpload()
           })
         }
       })
-    }, 
+    },
     reUpload() {
       const formData = new FormData()
-      formData.append('file', this.uploadFile) 
-      formData.append('force', 1) 
+      formData.append('file', this.uploadFile)
+      formData.append('force', 1)
 
       upload(formData).then(response => {
         this.successTip(this.$t('extension.confirm_upload_success'))
@@ -549,7 +561,7 @@ export default {
           duration: 2 * 1000
         })
       })
-    },    
+    },
     handleDetail(index, row) {
       this.loading.detail = row.id
 
@@ -587,18 +599,18 @@ export default {
           content: data.keywordlist,
           type: 'json',
           depth: 2
-        },    
+        },
         {
           name: this.$t('extension.detail_homepage'),
           content: data.homepage,
           type: 'text'
-        },              
+        },
         {
           name: this.$t('extension.detail_authorlist'),
           content: data.authorlist,
           type: 'json',
           depth: 3
-        },      
+        },
         {
           name: this.$t('extension.detail_requires'),
           content: data.requires,
@@ -629,7 +641,7 @@ export default {
         },
         {
           name: this.$t('extension.detail_status'),
-          content: data.status + "",
+          content: data.status + '',
           type: 'boolen'
         }
       ]
@@ -733,7 +745,7 @@ export default {
 }
 .extension-icon {
   display: block;
-  width: 51px;  
+  width: 51px;
   cursor: pointer;
   position: absolute;
   left: 0;

@@ -18,7 +18,7 @@
         </div>
       </div>
     </el-col>
-        
+
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel">
         <div class="card-panel-icon-wrapper icon-paperclip">
@@ -47,11 +47,12 @@
           <div class="card-panel-text">
             {{ $t('dashboard.extensions') }}
           </div>
-          <count-to 
-            :start-val="0" 
-            :end-val="extensions" 
-            :duration="3200" 
-            class="card-panel-num" />
+          <count-to
+            :start-val="0"
+            :end-val="extensions"
+            :duration="3200"
+            class="card-panel-num"
+          />
         </div>
       </div>
     </el-col>
@@ -65,11 +66,12 @@
           <div class="card-panel-text">
             {{ $t('dashboard.groups') }}
           </div>
-          <count-to 
-            :start-val="0" 
-            :end-val="groups" 
-            :duration="3600" 
-            class="card-panel-num" />
+          <count-to
+            :start-val="0"
+            :end-val="groups"
+            :duration="3600"
+            class="card-panel-num"
+          />
         </div>
       </div>
     </el-col>
@@ -94,7 +96,7 @@ export default {
       admins: 0,
       attachments: 0,
       extensions: 0,
-      groups: 0,
+      groups: 0
     }
   },
   created() {

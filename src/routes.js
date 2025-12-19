@@ -1,10 +1,11 @@
 /** 左侧菜单排序 */
 
 export default {
-
-  /** 这些为系统菜单 */
-  System: 110000,
-  Attachment: 110020,
+  UserManageRoot: 110010,
   Permission: 110030,
-  LocalExtension: 110050,
+  OperationLog: 110039,
+  System: 110040,
+  // LocalExtension: 110050,
+  Attachment: 110050,
+  ExtensionRoot: 999999
 }

@@ -102,7 +102,7 @@ export default {
 
     // 获取主题 css
     getThemeCssData(variable) {
-      let themeCssData = themeData()
+      const themeCssData = themeData()
 
       // require('@/assets/theme/element-icons.woff')
       // require('@/assets/theme/element-icons.ttf')

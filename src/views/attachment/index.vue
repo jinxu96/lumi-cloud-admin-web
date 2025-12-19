@@ -66,36 +66,36 @@
 
         <el-table-column align="center" :label="$t('attachment.action')" width="280">
           <template slot-scope="scope">
-            <el-button 
+            <el-button
               v-waves
               :loading="scope.row.id == loading.detail"
-              :disabled="!checkPermission(['larke-admin.attachment.detail'])" 
-              type="info" 
-              size="mini" 
-              icon="el-icon-info" 
+              :disabled="!checkPermission(['larke-admin.attachment.detail'])"
+              type="info"
+              size="mini"
+              icon="el-icon-info"
               @click="handleDetail(scope.$index, scope.row)"
             >
               {{ $t('attachment.detail') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
-              :disabled="!checkPermission(['larke-admin.attachment.download-code', 'larke-admin.attachment.download'])" 
-              type="warning" 
-              size="mini" 
-              icon="el-icon-download" 
+              :disabled="!checkPermission(['larke-admin.attachment.download-code', 'larke-admin.attachment.download'])"
+              type="warning"
+              size="mini"
+              icon="el-icon-download"
               @click="handleDownload(scope.row.id)"
             >
               {{ $t('attachment.download') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
+              v-permission="['larke-admin.attachment.delete']"
               :loading="scope.row.id == loading.delete"
-              v-permission="['larke-admin.attachment.delete']" 
-              type="danger" 
-              size="mini" 
-              icon="el-icon-delete" 
+              type="danger"
+              size="mini"
+              icon="el-icon-delete"
               @click="handleDelete(scope.$index, scope.row)"
             >
               {{ $t('attachment.delete') }}
@@ -185,8 +185,8 @@ export default {
       },
       loading: {
         detail: '',
-        delete: '',
-      },
+        delete: ''
+      }
     }
   },
   created() {
@@ -279,7 +279,7 @@ export default {
           },
           {
             name: this.$t('attachment.detail_status'),
-            content: data.status + "",
+            content: data.status + '',
             type: 'boolen'
           },
           {

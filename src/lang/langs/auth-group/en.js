@@ -6,7 +6,7 @@ export default {
     'access_tips': 'tips：dont give `权限` 和 `管理分组` to what not super admin',
     'access_save': 'Save',
     'access_save_success': 'Access save success',
-    
+
     'form_top_group': 'Top group',
     'form_parentid': 'Parent',
     'form_select': 'Please select',
@@ -23,11 +23,11 @@ export default {
     'form_save': 'Save',
     'form_create_success': 'create success',
     'form_update_success': 'update success',
-    
+
     'rules_parentid_required': 'parent required',
     'rules_title_required': 'title required',
     'rules_listorder_required': 'sort required',
-    
+
     'search_title': 'Group',
     'search_searchword': 'enter keywords',
     'search_status': 'Status',
@@ -36,7 +36,7 @@ export default {
     'search_clear_cache': 'Refresh',
     'search_group_tree': 'Tree',
     'search_all_group': 'All group',
-    
+
     'table_title': 'Title',
     'table_listorder': 'Sort',
     'table_create_time': 'CreateTime',
@@ -67,13 +67,13 @@ export default {
     'detail_update_ip': 'UpdateIp',
     'detail_create_time': 'CreateTime',
     'detail_create_ip': 'CreateIp',
-    
+
     'enable_success': 'enable success',
     'disable_success': 'disable success',
     'confirm_delete': 'confirm delete the group?',
     'confirm_delete_success': 'delete the group success',
     'confirm_update_cache': 'confirm update cache?',
     'confirm_updateing_cache': 'updateing cache...',
-    'confirm_update_cache_success': 'update cache success',
-  },
+    'confirm_update_cache_success': 'update cache success'
+  }
 }

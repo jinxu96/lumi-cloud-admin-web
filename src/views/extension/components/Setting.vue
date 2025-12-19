@@ -7,11 +7,12 @@
   >
     <template slot>
       <el-form-item>
-        <el-button 
-          type="primary" 
+        <el-button
           v-waves
+          type="primary"
           :loading="loading.submit"
-          @click="submit">{{ $t('extension.settings_save') }}</el-button>
+          @click="submit"
+        >{{ $t('extension.settings_save') }}</el-button>
       </el-form-item>
     </template>
   </dynamic-form>
@@ -46,8 +47,8 @@ export default {
       },
       inputs: {},
       loading: {
-        submit: false,
-      },
+        submit: false
+      }
     }
   },
   created() {
@@ -100,7 +101,7 @@ export default {
       }).then(() => {
         thiz.loading.submit = false
 
-        thiz.$emit("pushConfig", data)
+        thiz.$emit('pushConfig', data)
 
         this.$message({
           message: this.$t('extension.settings_save_success'),

@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="form" :model="data" :rules="rules" label-width="100px">
+  <el-form ref="form" v-loading="detailLoading" :model="data" :rules="rules" label-width="100px">
     <el-form-item :label="$t('admin.form_passport')" prop="name">
       <el-input v-model.trim="data.name" :placeholder="$t('admin.form_enter_passport')" />
     </el-form-item>

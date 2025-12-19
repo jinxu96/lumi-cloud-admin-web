@@ -25,6 +25,6 @@ export default {
     'php_version': 'PHP Version',
     'mysql_version': 'MySQL Version',
     'max_upload': 'Max Upload',
-    'server_time': 'Server Time',
-  },
+    'server_time': 'Server Time'
+  }
 }

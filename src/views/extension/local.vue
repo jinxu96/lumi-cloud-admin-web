@@ -6,24 +6,28 @@
       </div>
 
       <div class="filter-container">
-        <el-button v-waves 
-          :disabled="!checkPermission(['larke-admin.extension.index'])" 
-          class="filter-item" 
-          type="primary" 
-          icon="el-icon-s-cooperation" 
-          @click="handleExtension">
+        <el-button
+          v-waves
+          :disabled="!checkPermission(['larke-admin.extension.index'])"
+          class="filter-item"
+          type="primary"
+          icon="el-icon-s-cooperation"
+          @click="handleExtension"
+        >
           {{ $t('extension.title') }}
         </el-button>
 
-        <el-button v-waves 
-          :disabled="!checkPermission(['larke-admin.extension.refresh'])" 
+        <el-button
+          v-waves
+          :disabled="!checkPermission(['larke-admin.extension.refresh'])"
           :loading="loading.refresh"
-          class="filter-item" 
-          type="danger" 
-          icon="el-icon-refresh" 
-          @click="handleRefresh">
+          class="filter-item"
+          type="danger"
+          icon="el-icon-refresh"
+          @click="handleRefresh"
+        >
           {{ $t('extension.search_refresh') }}
-        </el-button> 
+        </el-button>
       </div>
 
       <el-table
@@ -38,7 +42,7 @@
         <el-table-column align="center" width="70px" label="">
           <template slot-scope="scope">
             <div class="extension-icon" @click="handleShowIcon(scope.$index, scope.row)">
-              <img :src="scope.row.icon" style="width:90%;" />
+              <img :src="scope.row.icon" style="width:90%;">
             </div>
           </template>
         </el-table-column>
@@ -135,35 +139,37 @@
                 <span v-else>
                   {{ item.name }}
                 </span>
-              </div>          
+              </div>
 
               <div class="author-email">
                 <el-tag v-if="item.email" type="info" size="mini">
                   <i class="el-icon-message" />&nbsp;
                   <span>{{ item.email }}</span>
                 </el-tag>
-              </div>  
+              </div>
             </div>
           </template>
         </el-table-column>
 
         <el-table-column align="center" :label="$t('extension.table_actions')" width="100">
           <template slot-scope="scope">
-            <el-button v-waves 
-              :disabled="!checkPermission(['larke-admin.extension.install'])" 
-              v-if="scope.row.install.length == 0" 
-              type="primary" 
-              size="mini" 
+            <el-button
+              v-if="scope.row.install.length == 0"
+              v-waves
+              :disabled="!checkPermission(['larke-admin.extension.install'])"
+              type="primary"
+              size="mini"
               @click="handleInstall(scope.$index, scope.row)"
             >
               {{ $t('extension.table_install') }}
             </el-button>
 
-            <el-button v-waves 
-              :disabled="!checkPermission(['larke-admin.extension.upgrade'])" 
-              v-if="scope.row.upgrade == 1" 
-              type="warning" 
-              size="mini" 
+            <el-button
+              v-if="scope.row.upgrade == 1"
+              v-waves
+              :disabled="!checkPermission(['larke-admin.extension.upgrade'])"
+              type="warning"
+              size="mini"
               @click="handleUpgrade(scope.$index, scope.row)"
             >
               {{ $t('extension.table_upgrade') }}
@@ -173,10 +179,11 @@
       </el-table>
     </el-card>
 
-    <el-dialog 
+    <el-dialog
       append-to-body
-      :visible.sync="icon.dialogVisible" 
-      :title="icon.title">
+      :visible.sync="icon.dialogVisible"
+      :title="icon.title"
+    >
       <img :src="icon.img" class="extension-icon-img">
     </el-dialog>
   </div>
@@ -216,8 +223,8 @@ export default {
         dialogVisible: false
       },
       loading: {
-        refresh: false,
-      },
+        refresh: false
+      }
     }
   },
   created() {
@@ -245,7 +252,7 @@ export default {
             thiz.getList()
 
             thiz.loading.refresh = false
-          });
+          })
         })
       })
     },
@@ -340,7 +347,7 @@ export default {
 .extension-icon {
   display: block;
   margin: 0 auto;
-  width: 100%;  
+  width: 100%;
   cursor: pointer;
 }
 .extension-icon-img {

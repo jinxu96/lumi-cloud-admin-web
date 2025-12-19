@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="authRuleForm" :model="data" :rules="rules" label-width="100px">
+  <el-form ref="authRuleForm" v-loading="detailLoading" :model="data" :rules="rules" label-width="100px">
     <el-form-item :label="$t('auth_rule.form_parentid')" prop="parentid">
       <el-select
         v-model="data.parentid"
@@ -23,7 +23,7 @@
           </template>
         </el-input>
       </el-tooltip>
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_rule.form_url_tip') }}
       </div>
     </el-form-item>
@@ -40,7 +40,7 @@
     </el-form-item>
     <el-form-item :label="$t('auth_rule.form_listorder')" prop="listorder">
       <el-input v-model.trim="data.listorder" :placeholder="$t('auth_rule.form_enter_listorder')" />
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_rule.form_listorder_tip') }}
       </div>
     </el-form-item>
@@ -252,12 +252,12 @@ export default {
           thiz.loading = false
 
           this.successTip(this.$t('auth_rule.form_update_success'), function() {
-              if (thiz.$refs.authRuleForm !== undefined) {
-                thiz.id = ''
-                thiz.$refs.authRuleForm.resetFields()
-              }
-              thiz.item.dialogVisible = false
-            })
+            if (thiz.$refs.authRuleForm !== undefined) {
+              thiz.id = ''
+              thiz.$refs.authRuleForm.resetFields()
+            }
+            thiz.item.dialogVisible = false
+          })
         }).catch(err => {
           thiz.loading = false
         })

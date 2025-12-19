@@ -1,13 +1,13 @@
 <template>
-  <el-form v-loading="detailLoading" ref="form" label-width="100px">
+  <el-form ref="form" v-loading="detailLoading" label-width="100px">
     <el-alert
-        type="warning"
-        :title="$t('extension.command_alert_title')"
-        :description="$t('extension.command_alert_content')"
-        style="margin-bottom:15px;"
-        show-icon
-        :closable="false"
-    />  
+      type="warning"
+      :title="$t('extension.command_alert_title')"
+      :description="$t('extension.command_alert_content')"
+      style="margin-bottom:15px;"
+      show-icon
+      :closable="false"
+    />
 
     <el-form-item :label="$t('extension.command_title')">
       <el-input v-model.trim="data.title" readonly />
@@ -18,12 +18,12 @@
     </el-form-item>
 
     <el-form-item :label="$t('extension.command_repository_register')">
-        <el-button v-waves :disabled="!checkPermission(['larke-admin.extension.repository-register']) || data.has_repository" class="filter-item" size="mini" type="primary" @click="handleRepository('register')">
-          {{ $t('extension.command_repository_register_btn') }}
-        </el-button> 
-        <div class="text-grey">
-          {{ $t('extension.command_repository_register_tip') }}
-        </div>
+      <el-button v-waves :disabled="!checkPermission(['larke-admin.extension.repository-register']) || data.has_repository" class="filter-item" size="mini" type="primary" @click="handleRepository('register')">
+        {{ $t('extension.command_repository_register_btn') }}
+      </el-button>
+      <div class="text-grey">
+        {{ $t('extension.command_repository_register_tip') }}
+      </div>
     </el-form-item>
 
     <el-form-item :label="$t('extension.command_require_title')" prop="description">
@@ -31,12 +31,12 @@
     </el-form-item>
 
     <el-form-item :label="$t('extension.command_repository_remove')">
-        <el-button v-waves :disabled="!checkPermission(['larke-admin.extension.repository-remove']) || !data.has_repository" class="filter-item" size="mini" type="danger" @click="handleRepository('remove')">
-          {{ $t('extension.command_repository_remove_btn') }}
-        </el-button> 
-        <div class="text-grey">         
-          {{ $t('extension.command_repository_remove_tip') }}
-        </div>
+      <el-button v-waves :disabled="!checkPermission(['larke-admin.extension.repository-remove']) || !data.has_repository" class="filter-item" size="mini" type="danger" @click="handleRepository('remove')">
+        {{ $t('extension.command_repository_remove_btn') }}
+      </el-button>
+      <div class="text-grey">
+        {{ $t('extension.command_repository_remove_tip') }}
+      </div>
     </el-form-item>
 
     <el-form-item :label="$t('extension.command_unstall_title')" prop="description">
@@ -54,10 +54,10 @@ import waves from '@/directive/waves' // waves directive
 import permission from '@/directive/permission/index.js' // 权限判断指令
 import checkPermission from '@/utils/permission' // 权限判断函数
 import LangSelect from '@/components/LangSelect'
-import { 
-  getCommand, 
-  repositoryRegister, 
-  repositoryRemove 
+import {
+  getCommand,
+  repositoryRegister,
+  repositoryRemove
 } from '@/api/extension'
 
 export default {
@@ -80,8 +80,8 @@ export default {
         title: '',
         require: '',
         remove: '',
-        has_repository: false,
-      },
+        has_repository: false
+      }
     }
   },
   watch: {

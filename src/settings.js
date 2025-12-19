@@ -2,7 +2,7 @@ module.exports = {
   title: 'Larke Admin',
 
   /**
-   * @type {string} 
+   * @type {string}
    * @description Laeke-Admin frontend version
    */
   version: '2.0.7',

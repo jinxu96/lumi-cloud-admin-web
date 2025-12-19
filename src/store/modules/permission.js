@@ -3,8 +3,8 @@ import { asyncRoutes, constantRoutes } from '@/router'
 import extensions from '@/utils/extensions'
 import routes from '@/routes'
 
-/** 
- * 合并扩展路由 
+/**
+ * 合并扩展路由
  */
 function mergeExtension(routes, extensionRoutes) {
   const res = []
@@ -19,25 +19,25 @@ function mergeExtension(routes, extensionRoutes) {
   extensionRoutes.forEach(route => {
     const tmp = { ...route }
     res.push(tmp)
-  }) 
+  })
 
   const tmp404 = { ...route404 }
   res.push(tmp404)
 
-  return res  
+  return res
 }
 
-/** 
- * 菜单排序 
+/**
+ * 菜单排序
  */
 function routesSort(route) {
   const newRoutes = { ...routes }
 
   let i = 0
-  for (let key in newRoutes) {
-    if (! isNumber(newRoutes[key])) {
+  for (const key in newRoutes) {
+    if (!isNumber(newRoutes[key])) {
       i++
-      newRoutes[key] = 100+i      
+      newRoutes[key] = 100 + i
     }
   }
 
@@ -58,7 +58,7 @@ function routesSort(route) {
 
     if (item.children) {
       routesSort(item.children)
-    }    
+    }
   })
 
   arraySort(route, 'sort')

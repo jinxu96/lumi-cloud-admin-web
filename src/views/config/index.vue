@@ -104,36 +104,36 @@
 
         <el-table-column align="center" :label="$t('config.table_actions')" width="280">
           <template slot-scope="scope">
-            <el-button 
+            <el-button
               v-waves
               :loading="scope.row.id == loading.detail"
-              :disabled="!checkPermission(['larke-admin.config.detail'])" 
-              type="info" 
-              size="mini" 
-              icon="el-icon-info" 
+              :disabled="!checkPermission(['larke-admin.config.detail'])"
+              type="info"
+              size="mini"
+              icon="el-icon-info"
               @click="handleDetail(scope.$index, scope.row)"
             >
               {{ $t('config.table_detail') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
-              :disabled="!checkPermission(['larke-admin.config.update'])" 
-              type="primary" 
-              size="mini" 
-              icon="el-icon-edit" 
+              :disabled="!checkPermission(['larke-admin.config.update'])"
+              type="primary"
+              size="mini"
+              icon="el-icon-edit"
               @click="handleEdit(scope.$index, scope.row)"
             >
               {{ $t('config.table_update') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
+              v-permission="['larke-admin.config.delete']"
               :loading="scope.row.id == loading.delete"
-              v-permission="['larke-admin.config.delete']" 
-              type="danger" 
-              size="mini" 
-              icon="el-icon-delete" 
+              type="danger"
+              size="mini"
+              icon="el-icon-delete"
               @click="handleDelete(scope.$index, scope.row)"
             >
               {{ $t('config.table_delete') }}
@@ -240,8 +240,8 @@ export default {
       editableOldSort: 0,
       loading: {
         detail: '',
-        delete: '',
-      },
+        delete: ''
+      }
     }
   },
   created() {
@@ -390,12 +390,12 @@ export default {
           },
           {
             name: this.$t('config.detail_show'),
-            content: data.is_show + "",
+            content: data.is_show + '',
             type: 'status'
           },
           {
             name: this.$t('config.detail_status'),
-            content: data.status + "",
+            content: data.status + '',
             type: 'boolen'
           },
 

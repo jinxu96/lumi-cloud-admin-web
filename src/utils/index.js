@@ -357,70 +357,70 @@ export function removeClass(ele, cls) {
 }
 
 export function getPathFileName(path) {
-  var pos = path.lastIndexOf('/');
-  return path.substring(pos + 1);
+  var pos = path.lastIndexOf('/')
+  return path.substring(pos + 1)
 }
 
 // 获取文件名
 export function getFileName(name) {
   const newName = getPathFileName(name)
-  return newName.substring(0, newName.lastIndexOf("."))
+  return newName.substring(0, newName.lastIndexOf('.'))
 }
 
 // 获取 .后缀名
 export function getFileDotExtension(name) {
   const newName = getPathFileName(name)
-  return namnewNamee.substring(newName.lastIndexOf("."))
+  return namnewNamee.substring(newName.lastIndexOf('.'))
 }
 
 // 只获取后缀名
-export function getFileExtension (name) {
+export function getFileExtension(name) {
   const newName = getPathFileName(name)
-  return newName.substring(newName.lastIndexOf(".")+1)
+  return newName.substring(newName.lastIndexOf('.') + 1)
 }
 
 // 多层级对象合并
 export function assiginObj(target, sources) {
-  let newobj = {};
-  let keys1 = Object.keys(target);
-  let keys2 = Object.keys(sources);
+  const newobj = {}
+  const keys1 = Object.keys(target)
+  const keys2 = Object.keys(sources)
   for (const key of keys1) {
-      if (typeof target[key] === 'object' 
-        && typeof sources[key] === 'object'
-      ) {
-          newobj[key] = assiginObj(target[key], sources[key])
-      } else {
-          let value = keys2.indexOf(key) >= 0 ? sources[key] : target[key]
-          newobj[key] = value
-      }
+    if (typeof target[key] === 'object' &&
+        typeof sources[key] === 'object'
+    ) {
+      newobj[key] = assiginObj(target[key], sources[key])
+    } else {
+      const value = keys2.indexOf(key) >= 0 ? sources[key] : target[key]
+      newobj[key] = value
+    }
   }
   for (const key of keys2) {
-      if (!newobj[key]) {
-          newobj[key] = sources[key]
-      }
+    if (!newobj[key]) {
+      newobj[key] = sources[key]
+    }
   }
   return newobj
 }
 
 // 排序
 export function sortBy(attr, rev) {
-  //第二个参数没有传递 默认升序排列
+  // 第二个参数没有传递 默认升序排列
   if (rev == undefined) {
-      rev = 1;
-  }else{
-      rev = (rev) ? 1 : -1;
+    rev = 1
+  } else {
+    rev = (rev) ? 1 : -1
   }
-   
+
   return function(a, b) {
-      a = a[attr];
-      b = b[attr];
-      if (a < b) {
-          return rev * -1;
-      }
-      if (a > b) {
-          return rev * 1;
-      }
-      return 0;
+    a = a[attr]
+    b = b[attr]
+    if (a < b) {
+      return rev * -1
+    }
+    if (a > b) {
+      return rev * 1
+    }
+    return 0
   }
 }
 
@@ -431,12 +431,12 @@ export function arraySort(array, attr, rev) {
 
 // 数字判断
 export function isNumber(value) {
-  return typeof value === 'number' && !isNaN(value);
+  return typeof value === 'number' && !isNaN(value)
 }
 
 // json判断
 export function isJson(str) {
-  if (typeof str != 'string') {
+  if (typeof str !== 'string') {
     return false
   }
 
@@ -444,11 +444,11 @@ export function isJson(str) {
 
   try {
     obj = JSON.parse(str)
-  } catch(e) {
+  } catch (e) {
     return false
   }
 
-  if (typeof obj == 'object' && obj) {
+  if (typeof obj === 'object' && obj) {
     return true
   }
 
@@ -456,14 +456,14 @@ export function isJson(str) {
 }
 
 export function getPropertyCount(o) {
-  let n, count = 0;
+  let n; let count = 0
   for (n in o) {
     if (o.hasOwnProperty(n)) {
-      count ++;
+      count++
     }
   }
 
-  return count;
+  return count
 }
 
 export function formatOpions(options) {

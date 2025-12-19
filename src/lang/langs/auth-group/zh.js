@@ -6,7 +6,7 @@ export default {
     'access_tips': '注意：非超级管理员请不要授权给 `分组` 和 `管理分组` 分组。',
     'access_save': '提交',
     'access_save_success': '分组授权成功',
-    
+
     'form_top_group': '顶级分组',
     'form_parentid': '父级分组',
     'form_select': '请选择',
@@ -23,11 +23,11 @@ export default {
     'form_save': '提交',
     'form_create_success': '添加分组成功',
     'form_update_success': '更新分组信息成功',
-    
+
     'rules_parentid_required': '父级分组不能为空',
     'rules_title_required': '名称不能为空',
     'rules_listorder_required': '排序不能为空',
-    
+
     'search_title': '管理分组',
     'search_searchword': '请输入关键字',
     'search_status': '状态',
@@ -36,7 +36,7 @@ export default {
     'search_clear_cache': '更新分组缓存',
     'search_group_tree': '分组结构',
     'search_all_group': '全部分组',
-    
+
     'table_title': '名称',
     'table_listorder': '排序',
     'table_create_time': '添加时间',
@@ -67,13 +67,13 @@ export default {
     'detail_update_ip': '更新IP',
     'detail_create_time': '添加时间',
     'detail_create_ip': '添加IP',
-    
+
     'enable_success': '分组启用成功',
     'disable_success': '分组禁用成功',
     'confirm_delete': '确认要删除该分组吗？',
     'confirm_delete_success': '删除分组成功',
     'confirm_update_cache': '确认要更新分组缓存吗？',
     'confirm_updateing_cache': '更新分组缓存中...',
-    'confirm_update_cache_success': '更新分组缓存成功',
-  },
+    'confirm_update_cache_success': '更新分组缓存成功'
+  }
 }

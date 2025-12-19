@@ -1,11 +1,11 @@
 import md5 from 'js-md5'
 import JSEncrypt from 'jsencrypt'
-import { 
-  captcha, 
-  passkey, 
-  login, 
-  refreshToken, 
-  logout 
+import {
+  captcha,
+  passkey,
+  login,
+  refreshToken,
+  logout
 } from '@/api/passport'
 import { getInfo, getRoles } from '@/api/user'
 import {
@@ -76,16 +76,16 @@ const actions = {
 
   // user login
   login({ commit }, userInfo) {
-    const { 
-      username, password, 
-      captcha, captchaKey, 
-      passkeyId, passkey 
+    const {
+      username, password,
+      captcha, captchaKey,
+      passkeyId, passkey
     } = userInfo
 
     // 密码加密
-    var encrypt = new JSEncrypt();
-    encrypt.setPublicKey(passkey);
-    var encryptedPwd = encrypt.encrypt(md5(password));
+    var encrypt = new JSEncrypt()
+    encrypt.setPublicKey(passkey)
+    var encryptedPwd = encrypt.encrypt(md5(password))
 
     return new Promise((resolve, reject) => {
       login({
@@ -97,7 +97,7 @@ const actions = {
       }).then(response => {
         const { data } = response
         const token = data.access_token.trim()
-        const expires_in = parseInt(data.expires_in) + (Date.parse(new Date())/1000)
+        const expires_in = parseInt(data.expires_in) + (Date.parse(new Date()) / 1000)
         const refresh_token = data.refresh_token
 
         commit('SET_TOKEN', token)
@@ -107,7 +107,7 @@ const actions = {
         setToken(token)
         setTokenExpiresIn(expires_in)
         setRefreshToken(refresh_token)
-        
+
         resolve(data)
       }).catch(error => {
         reject(error)

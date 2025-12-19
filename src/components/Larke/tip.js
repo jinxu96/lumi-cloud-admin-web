@@ -8,7 +8,7 @@ Vue.prototype.successTip = function(msg, callback) {
     type: 'success',
     duration: 3 * 1000,
     onClose: callback
-  })  
+  })
 }
 Vue.prototype.errorTip = function(msg, callback) {
   this.$message({
@@ -17,7 +17,7 @@ Vue.prototype.errorTip = function(msg, callback) {
     type: 'error',
     duration: 3 * 1000,
     onClose: callback
-  })  
+  })
 }
 Vue.prototype.infoTip = function(msg) {
   this.$message.info(msg)
@@ -28,11 +28,11 @@ Vue.prototype.confirmTip = function(msg, okCallback, noCallback) {
     cancelButtonText: this.$t('取消'),
     type: 'warning'
   }).then(() => {
-    if (typeof okCallback == 'function') {
+    if (typeof okCallback === 'function') {
       okCallback()
     }
   }).catch(() => {
-    if (typeof noCallback == 'function') {
+    if (typeof noCallback === 'function') {
       noCallback()
     }
   })

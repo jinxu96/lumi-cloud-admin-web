@@ -1,6 +1,6 @@
 import Layout from '@/layout'
 
-const route =  {
+const route = {
   path: '/attachment',
   component: Layout,
   redirect: '/attachment/index',
@@ -18,7 +18,7 @@ const route =  {
     {
       path: '/attachment/index',
       component: () => import('@/views/attachment/index'),
-      name: 'Attachment',
+      name: 'AttachmentList',
       meta: {
         title: 'attachment',
         icon: 'el-icon-document',

@@ -37,11 +37,11 @@ import { getInfo } from '@/api/user'
 
 export default {
   name: 'Profile',
-  components: { 
-    UserCard, 
-    Account, 
-    Password, 
-    Avatar 
+  components: {
+    UserCard,
+    Account,
+    Password,
+    Avatar
   },
   data() {
     return {
@@ -70,7 +70,7 @@ export default {
           email: email,
           avatar: avatar,
           introduce: introduce,
-          groups: groups,
+          groups: groups
         }
       })
     }

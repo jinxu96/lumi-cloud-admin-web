@@ -80,35 +80,35 @@
         <el-table-column align="left" :label="$t('admin.table_actions')" width="320">
           <template slot-scope="scope">
             <div>
-              <el-button 
+              <el-button
                 v-waves
-                type="primary" 
-                :disabled="!checkPermission(['larke-admin.admin.access'])" 
-                size="mini" 
-                icon="el-icon-setting" 
+                type="primary"
+                :disabled="!checkPermission(['larke-admin.admin.access'])"
+                size="mini"
+                icon="el-icon-setting"
                 @click="handleAccess(scope.$index, scope.row)"
               >
                 {{ $t('admin.table_setting_group') }}
               </el-button>
 
-              <el-button 
+              <el-button
                 v-waves
-                :disabled="!checkPermission(['larke-admin.admin.password'])" 
-                type="warning" 
-                size="mini" 
-                icon="el-icon-key" 
+                :disabled="!checkPermission(['larke-admin.admin.password'])"
+                type="warning"
+                size="mini"
+                icon="el-icon-key"
                 @click="handlePassword(scope.$index, scope.row)"
               >
                 {{ $t('admin.table_password') }}
               </el-button>
 
-              <el-button 
+              <el-button
                 v-waves
                 :loading="scope.row.id == loading.detail"
-                :disabled="!checkPermission(['larke-admin.admin.detail'])" 
-                type="info" 
-                size="mini" 
-                icon="el-icon-info" 
+                :disabled="!checkPermission(['larke-admin.admin.detail'])"
+                type="info"
+                size="mini"
+                icon="el-icon-info"
                 @click="handleDetail(scope.$index, scope.row)"
               >
                 {{ $t('admin.table_detail') }}
@@ -116,24 +116,24 @@
             </div>
 
             <div style="margin-top:5px;">
-              <el-button 
+              <el-button
                 v-waves
-                :disabled="!checkPermission(['larke-admin.admin.update'])" 
-                type="primary" 
-                size="mini" 
-                icon="el-icon-edit" 
+                :disabled="!checkPermission(['larke-admin.admin.update'])"
+                type="primary"
+                size="mini"
+                icon="el-icon-edit"
                 @click="handleEdit(scope.$index, scope.row)"
               >
                 {{ $t('admin.table_update') }}
               </el-button>
 
-              <el-button 
+              <el-button
                 v-waves
+                v-permission="['larke-admin.admin.delete']"
                 :loading="scope.row.id == loading.delete"
-                v-permission="['larke-admin.admin.delete']" 
-                type="danger" 
-                size="mini" 
-                icon="el-icon-delete" 
+                type="danger"
+                size="mini"
+                icon="el-icon-delete"
                 @click="handleDelete(scope.$index, scope.row)"
               >
                 {{ $t('admin.table_delete') }}
@@ -164,10 +164,11 @@
           <el-input v-model="password.newpassword" type="password" />
         </el-form-item>
         <el-form-item>
-          <el-button 
-            type="primary" 
+          <el-button
+            type="primary"
             :loading="loading.password"
-            @click="changePassword">
+            @click="changePassword"
+          >
             {{ $t('common.ok') }}
           </el-button>
         </el-form-item>
@@ -178,17 +179,18 @@
       <el-form>
         <el-form-item :label="$t('admin.dialog_logout_refreshToken')">
           <el-input v-model="logout.refreshToken" type="textarea" rows="6" placeholder="请输入账号的RefreshToken" />
-          <div class="text-grey"> 
+          <div class="text-grey">
             {{ $t('admin.dialog_logout_tips') }}
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button 
-            type="primary" 
+          <el-button
+            type="primary"
             :loading="loading.logout"
-            @click="onLogout">
-              {{ $t('admin.dialog_logout_ok') }}
-            </el-button>
+            @click="onLogout"
+          >
+            {{ $t('admin.dialog_logout_ok') }}
+          </el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -261,8 +263,8 @@ export default {
         { key: 'close', display_name: this.$t('admin.table_disable') }
       ],
       sortOptions: [
-        { key: 'create_time__ASC', label: this.$t('admin.table_asc'),  },
-        { key: 'create_time__DESC', label: this.$t('admin.table_desc'),  }
+        { key: 'create_time__ASC', label: this.$t('admin.table_asc') },
+        { key: 'create_time__DESC', label: this.$t('admin.table_desc') }
       ],
       create: {
         dialogVisible: false
@@ -293,7 +295,7 @@ export default {
         detail: '',
         delete: '',
         password: false,
-        logout: false,
+        logout: false
       }
     }
   },
@@ -395,7 +397,7 @@ export default {
           },
           {
             name: this.$t('admin.detail_status'),
-            content: data.status + "",
+            content: data.status + '',
             type: 'boolen'
           }
         ]
@@ -509,7 +511,7 @@ export default {
           this.$message({
             message: this.$t('admin.confirm_update_chache_success'),
             type: 'success',
-            duration: 3 * 1000,
+            duration: 3 * 1000
           })
         }).catch(() => {
           loading.close()

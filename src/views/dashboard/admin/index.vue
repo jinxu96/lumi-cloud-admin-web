@@ -50,7 +50,7 @@ export default {
 
     RaddarChart,
     PieChart,
-    BarChart,
+    BarChart
   },
   data() {
     return {
@@ -61,22 +61,22 @@ export default {
 
       timer: '',
 
-      currentSystem: 'SystemTable',
+      currentSystem: 'SystemTable'
     }
   },
   created() {
     const thiz = this
 
     this.nickname = this.$store.getters.nickname
-    if (! this.nickname) {
-      setTimeout(function () {
+    if (!this.nickname) {
+      setTimeout(function() {
         thiz.getNickname()
       }, 5000)
     }
 
     this.timer = setInterval(this.setNowTime, 1000)
 
-    if (! checkPermission(['larke-admin.system.info'])) {
+    if (!checkPermission(['larke-admin.system.info'])) {
       this.currentSystem = ''
     }
   },
@@ -97,12 +97,12 @@ export default {
       var date = dateObj.getDate()
       var day = dateObj.getDay()
       var weeks = [
-        this.$t('dashboard.sunday'), 
-        this.$t('dashboard.monday'), 
-        this.$t('dashboard.tuesday'), 
-        this.$t('dashboard.wednesday'), 
-        this.$t('dashboard.thursdday'), 
-        this.$t('dashboard.friday'), 
+        this.$t('dashboard.sunday'),
+        this.$t('dashboard.monday'),
+        this.$t('dashboard.tuesday'),
+        this.$t('dashboard.wednesday'),
+        this.$t('dashboard.thursdday'),
+        this.$t('dashboard.friday'),
         this.$t('dashboard.saturday')
       ]
       var week = weeks[day]
@@ -110,9 +110,9 @@ export default {
       var minute = dateObj.getMinutes()
       var second = dateObj.getSeconds()
       var timeValue = '' + (
-        (hour >= 12) 
-        ? ((hour >= 18) ? this.$t('dashboard.night') : this.$t('dashboard.afternoon')) 
-        : ((hour >= 8) ? this.$t('dashboard.morning') : this.$t('dashboard.midnight'))
+        (hour >= 12)
+          ? ((hour >= 18) ? this.$t('dashboard.night') : this.$t('dashboard.afternoon'))
+          : ((hour >= 8) ? this.$t('dashboard.morning') : this.$t('dashboard.midnight'))
       )
       var nowTime = this.$t('dashboard.now_time_show', {
         year: this.dateFilter(year),

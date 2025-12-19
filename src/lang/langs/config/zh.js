@@ -42,7 +42,7 @@ export default {
     'form_save': '提交',
     'form_create_success': '添加配置成功',
     'form_update_success': '编辑配置成功',
-    
+
     'rules_type_required': '类型不能为空',
     'rules_title_required': '标题不能为空',
     'rules_name_required': '名称不能为空',
@@ -59,7 +59,7 @@ export default {
     'search_sort_desc': '倒叙',
     'search_btn': '搜索',
     'search_create_config': '添加',
-    
+
     'table_name': '名称',
     'table_title': '标题',
     'table_type': '类型',
@@ -72,11 +72,11 @@ export default {
     'table_update': '编辑',
     'table_delete': '删除',
     'table_listorder_success': '配置排序成功',
-    
+
     'dialog_detail': '配置详情',
     'dialog_create': '添加配置',
     'dialog_update': '编辑配置',
-    
+
     'detail_id': 'ID',
     'detail_group': '分组',
     'detail_type': '类型',
@@ -90,7 +90,7 @@ export default {
     'detail_status': '激活状态',
     'detail_update_time': '最后更新',
     'detail_create_time': '添加时间',
-    
+
     'enable_success': '配置启用成功',
     'disable_success': '配置禁用成功',
     'confirm_delete': '确认要删除该配置吗？',
@@ -99,6 +99,6 @@ export default {
     'setting_title': '网站设置',
     'setting_save': '提交',
     'setting_loading': '加载中..',
-    'setting_save_success': '提交更新成功',
-  },
+    'setting_save_success': '提交更新成功'
+  }
 }

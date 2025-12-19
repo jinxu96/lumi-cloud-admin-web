@@ -26,7 +26,7 @@ export default {
     'form_top_rule': 'top rule',
     'form_create_success': 'create success',
     'form_update_success': 'update success',
-    
+
     'rules_parentid_required': 'parent required',
     'rules_title_required': 'title required',
     'rules_url_required': 'url required',
@@ -53,7 +53,7 @@ export default {
     'search_all_rule': 'All',
     'search_create_rule': 'Create',
     'search_rule_tree': 'Tree',
-    
+
     'table_title': 'Title',
     'table_url': 'Url',
     'table_copy_slug': 'Copy {slug}',
@@ -65,11 +65,11 @@ export default {
     'table_update': 'Update',
     'table_delete': 'Delete',
     'table_listorder_success': 'update sort success',
-    
+
     'dialog_create': 'Rule create',
     'dialog_update': 'Rule update',
     'dialog_detail': 'Rule detail',
-    
+
     'detail_id': 'ID',
     'detail_parentid': 'Parent',
     'detail_title': 'Title',
@@ -84,12 +84,12 @@ export default {
     'detail_update_ip': 'UpdateIp',
     'detail_create_time': 'CreateTime',
     'detail_create_ip': 'CreateIp',
-    
+
     'enable_success': 'enable success',
     'disable_success': 'disable success',
     'confirm_delete': 'confirm delete the rule?',
     'confirm_delete_success': 'delete the rule success',
     'confirm_delete_selected': 'confirm delete the selected rule?',
-    'select_delete_rules': 'pleace will delete rules',
-  },
+    'select_delete_rules': 'pleace will delete rules'
+  }
 }

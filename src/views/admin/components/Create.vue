@@ -14,7 +14,7 @@
 
     <el-form-item :label="$t('admin.form_group')" prop="group_id">
       <el-select v-model="data.group_id" clearable :placeholder="$t('admin.form_need_one_group')">
-        <el-option v-for="item in groups" :key="item.id" :label="item.title" v-html="(item.spacer ? item.spacer : '') + item.title" :value="item.id" />
+        <el-option v-for="item in groups" :key="item.id" :label="item.title" :value="item.id" v-html="(item.spacer ? item.spacer : '') + item.title" />
       </el-select>
     </el-form-item>
 
@@ -43,9 +43,9 @@
 
 <script>
 import Avatar from './Avatar'
-import { 
-  getGroups, 
-  createAdmin 
+import {
+  getGroups,
+  createAdmin
 } from '@/api/admin'
 
 export default {
@@ -110,9 +110,9 @@ export default {
   methods: {
     // 管理
     async getGroups() {
-        const res = await getGroups()
+      const res = await getGroups()
 
-        this.groups = res.data.list
+      this.groups = res.data.list
     },
     submit() {
       const thiz = this

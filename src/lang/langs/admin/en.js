@@ -3,9 +3,9 @@ export default {
     'access_title': 'Admin',
     'access_group': 'Group',
     'access_success': 'Access success',
-    
+
     'select_avatar': 'Select avatar',
-    
+
     'form_passport': 'Passport',
     'form_enter_passport': 'enter passport',
     'form_nickname': 'Nickname',
@@ -20,16 +20,16 @@ export default {
     'form_status': 'Status',
     'form_status_enable': 'Enable',
     'form_status_disable': 'Disable',
-    
+
     'rules_name_required': 'name required',
     'rules_nickname_required': 'nickname required',
     'rules_email_required': 'email required',
     'rules_group_id_required': 'group_id required',
     'rules_introduce_required': 'introduce required',
-    
+
     'create_success': 'create success',
     'update_success': 'update success',
-    
+
     'search_title': 'Admin',
     'search_searchword': 'enter keywords',
     'search_status': 'Status',
@@ -37,7 +37,7 @@ export default {
     'search_create_passport': 'Create',
     'search_clear_cache': 'Refresh',
     'search_passport_logout': 'Logout',
-    
+
     'table_name': 'Name',
     'table_nickname': 'Nickname',
     'table_create_time': 'CreateTime',
@@ -54,7 +54,7 @@ export default {
     'table_desc': 'Desc',
     'table_enable_success': 'enable success',
     'table_disable_success': 'disable success',
-    
+
     'dialog_detail': 'Detail',
     'dialog_create': 'Create',
     'dialog_edit': 'Edit',
@@ -77,7 +77,7 @@ export default {
     'detail_last_active': 'LastActive',
     'detail_last_ip': 'LastIp',
     'detail_status': 'Status',
-    
+
     'confirm_delete': 'confirm delete admin?',
     'confirm_delete_success': 'delete admin success',
     'password_not_empty': 'password not empty',
@@ -86,6 +86,6 @@ export default {
     'confirm_updateing_cache': 'updateing cache...',
     'confirm_update_cache_success': 'update cache success',
     'refreshToken_not_empty': 'refreshToken not empty',
-    'logout_success': 'logout success',
-  },
+    'logout_success': 'logout success'
+  }
 }

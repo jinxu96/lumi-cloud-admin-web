@@ -23,7 +23,7 @@
           </template>
         </el-input>
       </el-tooltip>
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_rule.form_url_tip') }}
       </div>
     </el-form-item>
@@ -40,7 +40,7 @@
     </el-form-item>
     <el-form-item :label="$t('auth_rule.form_listorder')" prop="listorder">
       <el-input v-model.trim="data.listorder" :placeholder="$t('auth_rule.form_enter_listorder')" />
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_rule.form_listorder_tip') }}
       </div>
     </el-form-item>
@@ -134,7 +134,7 @@ export default {
         id: 0,
         type: 'list'
       })
-      
+
       const list = all.data.list
 
       if (list.length > 0) {
@@ -183,11 +183,11 @@ export default {
           thiz.loading = false
 
           this.successTip(this.$t('auth_rule.form_create_success'), function() {
-              if (thiz.$refs.authRuleForm !== undefined) {
-                thiz.$refs.authRuleForm.resetFields()
-              }
-              thiz.item.dialogVisible = false
-            })
+            if (thiz.$refs.authRuleForm !== undefined) {
+              thiz.$refs.authRuleForm.resetFields()
+            }
+            thiz.item.dialogVisible = false
+          })
         }).catch(err => {
           thiz.loading = false
         })

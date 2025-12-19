@@ -1,11 +1,11 @@
 import Layout from '@/layout'
 
-const route =  {
+const route = {
   path: '/extension',
   component: Layout,
   redirect: '/extension/index',
   alwaysShow: true, // will always show the root menu
-  name: 'LocalExtension',
+  name: 'ExtensionRoot',
   meta: {
     title: 'localExtension',
     icon: 'el-icon-s-cooperation',
@@ -41,7 +41,7 @@ const route =  {
         ]
       },
       hidden: false
-    },
+    }
   ]
 }
 

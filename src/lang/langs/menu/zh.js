@@ -20,7 +20,7 @@ export default {
     'form_top_menu': '顶级菜单',
     'form_create_success': '添加菜单成功',
     'form_update_success': '更新菜单信息成功',
-    
+
     'rules_pid_required': '父级菜单不能为空',
     'rules_title_required': '名称不能为空',
     'rules_slug_required': '标识不能为空',
@@ -31,7 +31,7 @@ export default {
     'search_alert_title': '菜单设置及新增需注意',
     'search_alert_description': '菜单目前只有设置，暂时没有使用',
     'search_create': '添加菜单',
-    
+
     'table_title': '菜单',
     'table_url': '链接',
     'table_sort': '排序',
@@ -39,7 +39,7 @@ export default {
     'table_detail': '详情',
     'table_update': '编辑',
     'table_delete': '删除',
-    
+
     'dialog_create': '添加菜单',
     'dialog_update': '编辑菜单',
     'dialog_detail': '菜单详情',
@@ -51,9 +51,9 @@ export default {
     'detail_url': '菜单链接',
     'detail_method': '链接请求类型',
     'detail_sort': '排序',
-    
+
     'confirm_delete': '确认要删除该菜单吗?',
-    'confirm_delete_success': '删除菜单成功',
-  },
-  
+    'confirm_delete_success': '删除菜单成功'
+  }
+
 }

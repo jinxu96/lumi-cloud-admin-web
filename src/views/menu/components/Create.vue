@@ -15,18 +15,18 @@
       <el-button :type="!rule.visible ? 'primary' : 'danger'" class="fast-select" @click="ruleFastSelect">{{ !rule.visible ? $t('menu.form_fast_select') : $t('menu.form_close_select') }}</el-button>
     </el-form-item>
 
-    <el-form-item :label="$t('menu.form_fast_select')" v-if="rule.visible">
+    <el-form-item v-if="rule.visible" :label="$t('menu.form_fast_select')">
       <el-select
+        v-model="rule.id"
         :placeholder="$t('menu.form_select_rules')"
         clearable
         filterable
         :filter-method="ruleFilter"
-        v-model="rule.id"
         @change="ruleChange"
       >
         <el-option v-for="item in rule.ruleOptions" :key="item.key" :label="item.display_name | entityToString" :value="item.key" />
-      </el-select>      
-    </el-form-item>    
+      </el-select>
+    </el-form-item>
 
     <el-form-item :label="$t('menu.form_title')" prop="title">
       <el-input v-model.trim="data.title" :placeholder="$t('menu.form_enter_title')" />
@@ -124,12 +124,12 @@ export default {
       ],
       parentFilterOptions: [],
       rule: {
-        visible: false,        
+        visible: false,
         id: '',
-        ruleList: [], 
+        ruleList: [],
         ruleOptions: [],
-        ruleFilterOptions: [],  
-      }      
+        ruleFilterOptions: []
+      }
     }
   },
   created() {
@@ -212,7 +212,7 @@ export default {
           reject(err)
         })
       })
-    },    
+    },
     ruleFilter(val) {
       if (val) {
         this.rule.ruleOptions = this.rule.ruleFilterOptions.filter(item => {
@@ -237,7 +237,7 @@ export default {
           }
         })
         const item = clickItem[0]
-        
+
         this.data.title = item.title
         this.data.slug = item.slug
         this.data.url = item.url

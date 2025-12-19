@@ -26,7 +26,7 @@ export default {
     'form_top_rule': '顶级权限',
     'form_create_success': '添加权限成功',
     'form_update_success': '更新权限信息成功',
-    
+
     'rules_parentid_required': '父级不能为空',
     'rules_title_required': '名称不能为空',
     'rules_url_required': '请求链接不能为空',
@@ -53,7 +53,7 @@ export default {
     'search_all_rule': '全部权限',
     'search_create_rule': '添加权限',
     'search_rule_tree': '权限结构',
-    
+
     'table_title': '名称',
     'table_url': '链接',
     'table_copy_slug': '点击复制 {slug}',
@@ -65,11 +65,11 @@ export default {
     'table_update': '编辑',
     'table_delete': '删除',
     'table_listorder_success': '权限排序成功',
-    
+
     'dialog_create': '添加权限',
     'dialog_update': '编辑权限',
     'dialog_detail': '权限详情',
-    
+
     'detail_id': 'ID',
     'detail_parentid': '父级ID',
     'detail_title': '名称',
@@ -84,12 +84,12 @@ export default {
     'detail_update_ip': '更新IP',
     'detail_create_time': '添加时间',
     'detail_create_ip': '添加IP',
-    
+
     'enable_success': '权限启用成功',
     'disable_success': '权限禁用成功',
     'confirm_delete': '确认要删除该权限吗？',
     'confirm_delete_success': '删除权限成功',
     'confirm_delete_selected': '确认要删除选中的权限吗？',
-    'select_delete_rules': '请选择要删除的权限',
-  },
+    'select_delete_rules': '请选择要删除的权限'
+  }
 }

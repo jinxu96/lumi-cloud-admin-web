@@ -23,7 +23,7 @@
 
     <el-form-item :label="$t('auth_group.form_listorder')" prop="listorder">
       <el-input v-model.trim="data.listorder" :placeholder="$t('auth_group.form_enter_listorder')" />
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_group.form_listorder_tip') }}
       </div>
     </el-form-item>
@@ -34,7 +34,7 @@
         <el-radio :label="0">{{ $t('auth_group.form_status_disable') }}</el-radio>
       </el-radio-group>
     </el-form-item>
-    
+
     <el-form-item>
       <el-button type="primary" :loading="loading" @click="submit">{{ $t('auth_group.form_save') }}</el-button>
     </el-form-item>
@@ -90,7 +90,6 @@ export default {
   },
   methods: {
     async initData() {
-
       try {
         const groupChildren = await getGroupChildrenList({
           id: 0,
@@ -109,7 +108,6 @@ export default {
 
           this.parentFilterOptions = this.parentOptions
         }
-
       } catch (error) {
         console.log('err' + error)
       }

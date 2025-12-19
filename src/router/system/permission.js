@@ -1,6 +1,6 @@
 import Layout from '@/layout'
 
-const route =  {
+const route = {
   path: '/permission',
   component: Layout,
   redirect: '/admin/index',
@@ -83,7 +83,7 @@ const route =  {
         ]
       },
       hidden: true
-    },
+    }
 
   ]
 }

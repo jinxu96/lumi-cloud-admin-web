@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="form" :model="data" :rules="rules" label-width="100px">
+  <el-form ref="form" v-loading="detailLoading" :model="data" :rules="rules" label-width="100px">
     <el-form-item :label="$t('config.form_group')" prop="group">
       <el-select v-model="data.group" :placeholder="$t('config.form_select_group')" clearable>
         <el-option v-for="item in groupOptions" :key="item.key" :label="item.display_name" :value="item.key" />

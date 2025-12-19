@@ -10,10 +10,11 @@
       <el-input v-model="data.newpassword_confirm" type="password" :placeholder="$t('profile.new_password_confirm_enter')" />
     </el-form-item>
     <el-form-item>
-      <el-button 
-        :loading="loading" 
-        type="primary" 
-        @click="submit">
+      <el-button
+        :loading="loading"
+        type="primary"
+        @click="submit"
+      >
         {{ $t('profile.save') }}
       </el-button>
     </el-form-item>
@@ -43,13 +44,13 @@ export default {
         newpassword: '',
         newpassword_confirm: ''
       },
-      loading: false,
+      loading: false
     }
   },
   methods: {
     submit() {
       this.$refs.form.validate(valid => {
-        if (! valid) {
+        if (!valid) {
           return false
         }
 

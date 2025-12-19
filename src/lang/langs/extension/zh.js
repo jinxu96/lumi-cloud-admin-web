@@ -29,7 +29,7 @@ export default {
     'table_actions': '操作',
     'table_install': '安装',
     'table_upgrade': '更新',
-    
+
     'confirm_install': '确认要安装该扩展({name})吗？',
     'confirm_installing': '扩展安装中...',
     'confirm_install_success': '安装扩展成功',
@@ -53,7 +53,7 @@ export default {
     'search_upload': '上传扩展',
     'search_install': '安装/更新',
     'search_refresh': '刷新',
-    
+
     'table_title': '扩展',
     'table_description': '简介',
     'table_adaptation': '当前扩展适配系统版本',
@@ -69,7 +69,7 @@ export default {
     'table_uninstall': '卸载',
     'table_config': '配置',
     'table_command': '脚本',
-    
+
     'dialog_detail': '扩展详情',
     'dialog_local': '本地扩展',
     'dialog_setting': '扩展设置',
@@ -101,7 +101,7 @@ export default {
     'disable_success': '扩展禁用成功',
     'confirm_uninstall': '确认要卸载该扩展吗？',
     'confirm_uninstalling': '扩展卸载中...',
-    'confirm_uninstall_success': '卸载扩展成功',
-  },
-  
+    'confirm_uninstall_success': '卸载扩展成功'
+  }
+
 }

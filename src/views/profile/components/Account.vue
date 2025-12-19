@@ -10,10 +10,11 @@
       <el-input v-model.trim="user.introduce" type="textarea" rows="6" :placeholder="$t('profile.introduce_enter')" />
     </el-form-item>
     <el-form-item>
-      <el-button 
-        :loading="loading" 
-        type="primary" 
-        @click="submit">
+      <el-button
+        :loading="loading"
+        type="primary"
+        @click="submit"
+      >
         {{ $t('profile.save') }}
       </el-button>
     </el-form-item>
@@ -46,13 +47,13 @@ export default {
           { required: true, message: this.$t('profile.email_dont_empty'), trigger: 'blur' }
         ]
       },
-      loading: false,
+      loading: false
     }
   },
   methods: {
     submit() {
       this.$refs.form.validate(valid => {
-        if (! valid) {
+        if (!valid) {
           return false
         }
 
@@ -64,7 +65,7 @@ export default {
           introduce: this.user.introduce
         }).then(response => {
           this.loading = false
-          
+
           this.$message({
             message: this.$t('profile.info_update_success'),
             type: 'success',

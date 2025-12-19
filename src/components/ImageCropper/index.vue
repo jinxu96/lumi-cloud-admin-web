@@ -147,7 +147,7 @@ export default {
     field: {
       type: String,
       default: 'avatar'
-    },  
+    },
     // 原名key，类似于id，触发事件会带上（如果一个页面多个图片上传控件，可以做区分
     ki: {
       type: Number,

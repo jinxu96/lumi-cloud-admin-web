@@ -29,7 +29,7 @@ export default {
     'table_actions': 'Actions',
     'table_install': 'Install',
     'table_upgrade': 'Upgrade',
-    
+
     'confirm_install': 'confirm install the extension ({name})？',
     'confirm_installing': 'extension install...',
     'confirm_install_success': 'extension install success',
@@ -53,7 +53,7 @@ export default {
     'search_upload': 'Upload',
     'search_install': 'Install',
     'search_refresh': 'Refresh',
-    
+
     'table_title': 'Extension',
     'table_description': 'Desc',
     'table_adaptation': 'Adaptation',
@@ -69,7 +69,7 @@ export default {
     'table_uninstall': 'Uninstall',
     'table_config': 'Config',
     'table_command': 'Command',
-    
+
     'dialog_detail': 'Detail',
     'dialog_local': 'Local',
     'dialog_setting': 'Setting',
@@ -101,7 +101,7 @@ export default {
     'disable_success': 'disable success',
     'confirm_uninstall': 'confirm uninstall the extension?',
     'confirm_uninstalling': 'extension uninstall...',
-    'confirm_uninstall_success': 'uninstall success',
-  },
-  
+    'confirm_uninstall_success': 'uninstall success'
+  }
+
 }

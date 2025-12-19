@@ -15,13 +15,14 @@
       />
 
       <div class="filter-container">
-        <el-button 
-          v-waves 
-          :disabled="!checkPermission(['larke-admin.menu.create'])" 
-          class="filter-item" 
-          type="primary" 
-          icon="el-icon-edit" 
-          @click="handleCreate">
+        <el-button
+          v-waves
+          :disabled="!checkPermission(['larke-admin.menu.create'])"
+          class="filter-item"
+          type="primary"
+          icon="el-icon-edit"
+          @click="handleCreate"
+        >
           {{ $t('menu.search_create') }}
         </el-button>
       </div>
@@ -78,35 +79,35 @@
 
         <el-table-column align="center" :label="$t('menu.table_actions')" width="280">
           <template slot-scope="scope">
-            <el-button 
+            <el-button
               v-waves
               :loading="scope.row.id == loading.detail"
-              type="info" 
-              size="mini" 
-              icon="el-icon-info" 
+              type="info"
+              size="mini"
+              icon="el-icon-info"
               @click="handleDetail(scope.$index, scope.row)"
             >
               {{ $t('menu.table_detail') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
-              :disabled="!checkPermission(['larke-admin.menu.update'])" 
-              type="primary" 
-              size="mini" 
-              icon="el-icon-edit" 
+              :disabled="!checkPermission(['larke-admin.menu.update'])"
+              type="primary"
+              size="mini"
+              icon="el-icon-edit"
               @click="handleEdit(scope.$index, scope.row)"
             >
               {{ $t('menu.table_update') }}
             </el-button>
 
-            <el-button 
+            <el-button
               v-waves
-              v-permission="['larke-admin.menu.delete']" 
+              v-permission="['larke-admin.menu.delete']"
               :loading="scope.row.id == loading.delete"
-              type="danger" 
-              size="mini" 
-              icon="el-icon-delete" 
+              type="danger"
+              size="mini"
+              icon="el-icon-delete"
               @click="handleDelete(scope.$index, scope.row)"
             >
               {{ $t('menu.table_delete') }}
@@ -198,8 +199,8 @@ export default {
       },
       loading: {
         detail: '',
-        delete: '',
-      },
+        delete: ''
+      }
     }
   },
   created() {

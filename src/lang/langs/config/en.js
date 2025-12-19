@@ -42,7 +42,7 @@ export default {
     'form_save': 'Save',
     'form_create_success': 'create success',
     'form_update_success': 'update success',
-    
+
     'rules_type_required': 'type required',
     'rules_title_required': 'title required',
     'rules_name_required': 'name required',
@@ -59,7 +59,7 @@ export default {
     'search_sort_desc': 'Desc',
     'search_btn': 'Search',
     'search_create_config': 'Add',
-    
+
     'table_name': 'Name',
     'table_title': 'Title',
     'table_type': 'Type',
@@ -72,11 +72,11 @@ export default {
     'table_update': 'Update',
     'table_delete': 'Delete',
     'table_listorder_success': 'Update sort success',
-    
+
     'dialog_detail': 'Config detail',
     'dialog_create': 'Config create',
     'dialog_update': 'Config update',
-    
+
     'detail_id': 'ID',
     'detail_group': 'Group',
     'detail_type': 'Type',
@@ -90,7 +90,7 @@ export default {
     'detail_status': 'Status',
     'detail_update_time': 'UpdateTime',
     'detail_create_time': 'CreateTime',
-    
+
     'enable_success': 'enable success',
     'disable_success': 'disable success',
     'confirm_delete': 'confirm delete the config?',
@@ -99,6 +99,6 @@ export default {
     'setting_title': 'Web Setting',
     'setting_save': 'Save',
     'setting_loading': 'loading..',
-    'setting_save_success': 'Save success',
-  },
+    'setting_save_success': 'Save success'
+  }
 }

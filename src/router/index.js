@@ -11,6 +11,7 @@ import system from './system/system'
 import attachment from './system/attachment'
 import permission from './system/permission'
 import extension from './system/extension'
+import userManage from './system/user-manage' // 用户管理顶级菜单
 
 /**
  * constantRoutes
@@ -100,6 +101,7 @@ export const asyncRoutes = [
   system,
   attachment,
   permission,
+  userManage, // 前台用户管理功能
   extension,
 
   // 404 page must be placed at the end !!!

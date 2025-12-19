@@ -93,12 +93,12 @@ service.interceptors.response.use(
           isRefreshing = true
         })
 
-        return Promise.reject("登陆已过期")
+        return Promise.reject('登陆已过期')
       }
 
       // catch 返回数据
-      let defaultConfig = response.config
-      if (defaultConfig["catchReturnData"] != undefined && defaultConfig["catchReturnData"]) {
+      const defaultConfig = response.config
+      if (defaultConfig['catchReturnData'] != undefined && defaultConfig['catchReturnData']) {
         return Promise.reject(res)
       }
 

@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="form" :model="data" label-width="100px">
+  <el-form ref="form" v-loading="detailLoading" :model="data" label-width="100px">
     <el-form-item :label="$t('auth_group.access_title')" prop="title">
       <el-input v-model.trim="title" readonly />
     </el-form-item>
@@ -29,7 +29,7 @@
         </template>
       </el-tree>
 
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_group.access_tips') }}
       </div>
     </el-form-item>

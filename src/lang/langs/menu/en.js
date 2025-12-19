@@ -20,7 +20,7 @@ export default {
     'form_top_menu': 'top menu',
     'form_create_success': 'Create success',
     'form_update_success': 'Update success',
-    
+
     'rules_pid_required': 'parent required',
     'rules_title_required': 'title required',
     'rules_slug_required': 'slug required',
@@ -31,7 +31,7 @@ export default {
     'search_alert_title': 'menu set tip',
     'search_alert_description': 'now, menu not use',
     'search_create': 'Add',
-    
+
     'table_title': 'Menu',
     'table_url': 'Url',
     'table_sort': 'Sort',
@@ -39,7 +39,7 @@ export default {
     'table_detail': 'Detail',
     'table_update': 'Update',
     'table_delete': 'Delete',
-    
+
     'dialog_create': 'Create',
     'dialog_update': 'Update',
     'dialog_detail': 'Detail',
@@ -51,9 +51,9 @@ export default {
     'detail_url': 'Url',
     'detail_method': 'Method',
     'detail_sort': 'Sort',
-    
+
     'confirm_delete': 'confirm delete the menu?',
-    'confirm_delete_success': 'delete the menu success',
-  },
-  
+    'confirm_delete_success': 'delete the menu success'
+  }
+
 }

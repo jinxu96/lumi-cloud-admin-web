@@ -1,17 +1,17 @@
 import i18n from '@/lang'
 import { assiginObj, getFileName } from '@/utils'
 
-/** 
+/**
  * 加载路由
  */
-let routers = []
+const routers = []
 const routeFiles = require.context('@/extension/', true, /router.js$/)
 routeFiles.keys().map(item => {
   routers.push(routeFiles(item).default)
 })
 
-/** 
- * 加载扩展语言包 
+/**
+ * 加载扩展语言包
  */
 const extensionLangs = require.context('@/extension/', true, /lang\/[\w\/]+\.js$/)
 extensionLangs.keys().map(item => {

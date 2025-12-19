@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="form" :model="data" label-width="100px">
+  <el-form ref="form" v-loading="detailLoading" :model="data" label-width="100px">
     <el-form-item :label="$t('admin.access_title')" prop="name">
       <el-input v-model.trim="name" readonly />
     </el-form-item>

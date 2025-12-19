@@ -1,21 +1,21 @@
 import variables from '@/styles/element-variables.scss'
 import defaultSettings from '@/settings'
 
-const { 
-  title, 
-  version, 
-  showSettings, 
-  tagsView, 
-  fixedHeader, 
-  sidebarLogo, 
+const {
+  title,
+  version,
+  showSettings,
+  tagsView,
+  fixedHeader,
+  sidebarLogo,
   supportPinyinSearch,
   langMap
 } = defaultSettings
 
 const state = {
   theme: variables.theme,
-  title, 
-  version, 
+  title,
+  version,
   showSettings,
   tagsView,
   fixedHeader,

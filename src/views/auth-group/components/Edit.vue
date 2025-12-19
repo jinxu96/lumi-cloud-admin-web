@@ -1,5 +1,5 @@
 <template>
-  <el-form v-loading="detailLoading" ref="authGroupForm" :model="data" :rules="rules" label-width="100px">
+  <el-form ref="authGroupForm" v-loading="detailLoading" :model="data" :rules="rules" label-width="100px">
     <el-form-item :label="$t('auth_group.form_parentid')" prop="parentid">
       <el-select
         v-model="data.parentid"
@@ -9,11 +9,12 @@
         :filter-method="parentFilter"
         @change="parentidChange"
       >
-        <el-option 
-          v-for="item in parentOptions" 
-          :key="item.key" 
-          :label="item.display_name | entityToString" 
-          :value="item.key" />
+        <el-option
+          v-for="item in parentOptions"
+          :key="item.key"
+          :label="item.display_name | entityToString"
+          :value="item.key"
+        />
       </el-select>
     </el-form-item>
 
@@ -22,16 +23,17 @@
     </el-form-item>
 
     <el-form-item :label="$t('auth_group.form_description')" prop="description">
-      <el-input 
-        v-model.trim="data.description" 
-        type="textarea" 
-        rows="6" 
-        :placeholder="$t('auth_group.form_enter_description')" />
+      <el-input
+        v-model.trim="data.description"
+        type="textarea"
+        rows="6"
+        :placeholder="$t('auth_group.form_enter_description')"
+      />
     </el-form-item>
 
     <el-form-item :label="$t('auth_group.form_listorder')" prop="listorder">
       <el-input v-model.trim="data.listorder" :placeholder="$t('auth_group.form_enter_listorder')" />
-      <div class="text-grey">         
+      <div class="text-grey">
         {{ $t('auth_group.form_listorder_tip') }}
       </div>
     </el-form-item>
@@ -119,7 +121,7 @@ export default {
   methods: {
     async initData() {
       this.detailLoading = true
-      
+
       const all = await this.getAll()
       const children = await this.getChildren()
 
@@ -149,7 +151,7 @@ export default {
 
       this.children.push(this.id)
       this.all.forEach(item => {
-        if (! this.children.includes(item.id)) {
+        if (!this.children.includes(item.id)) {
           this.parentOptions.push({
             key: item.id,
             display_name: item.spacer + ' ' + item.title

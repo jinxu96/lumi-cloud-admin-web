@@ -73,24 +73,24 @@
         <el-table-column align="left" :label="$t('auth_group.table_actions')" width="220">
           <template slot-scope="scope">
             <div>
-              <el-button 
+              <el-button
                 v-waves
-                :disabled="!checkPermission(['larke-admin.auth-group.access'])" 
-                type="primary" 
-                size="mini" 
-                icon="el-icon-setting" 
+                :disabled="!checkPermission(['larke-admin.auth-group.access'])"
+                type="primary"
+                size="mini"
+                icon="el-icon-setting"
                 @click="handleAccess(scope.$index, scope.row)"
               >
                 {{ $t('auth_group.table_access') }}
               </el-button>
-              
-              <el-button 
+
+              <el-button
                 v-waves
                 :loading="scope.row.id == loading.detail"
-                :disabled="!checkPermission(['larke-admin.auth-group.detail'])" 
-                type="info" 
-                size="mini" 
-                icon="el-icon-info" 
+                :disabled="!checkPermission(['larke-admin.auth-group.detail'])"
+                type="info"
+                size="mini"
+                icon="el-icon-info"
                 @click="handleDetail(scope.$index, scope.row)"
               >
                 {{ $t('auth_group.table_detail') }}
@@ -98,24 +98,24 @@
             </div>
 
             <div style="margin-top:5px;">
-              <el-button 
+              <el-button
                 v-waves
-                :disabled="!checkPermission(['larke-admin.auth-group.update'])" 
-                type="primary" 
-                size="mini" 
-                icon="el-icon-edit" 
+                :disabled="!checkPermission(['larke-admin.auth-group.update'])"
+                type="primary"
+                size="mini"
+                icon="el-icon-edit"
                 @click="handleEdit(scope.$index, scope.row)"
               >
                 {{ $t('auth_group.table_update') }}
               </el-button>
 
-              <el-button 
+              <el-button
                 v-waves
+                v-permission="['larke-admin.auth-group.delete']"
                 :loading="scope.row.id == loading.delete"
-                v-permission="['larke-admin.auth-group.delete']" 
-                type="danger" 
-                size="mini" 
-                icon="el-icon-delete" 
+                type="danger"
+                size="mini"
+                icon="el-icon-delete"
                 @click="handleDelete(scope.$index, scope.row)"
               >
                 {{ $t('auth_group.table_delete') }}
@@ -207,8 +207,8 @@ export default {
       },
       loading: {
         detail: '',
-        delete: '',
-      },
+        delete: ''
+      }
     }
   },
   created() {

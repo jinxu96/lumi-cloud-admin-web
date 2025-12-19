@@ -1,6 +1,6 @@
 import Layout from '@/layout'
 
-const route =  {
+const route = {
   path: '/system',
   component: Layout,
   redirect: '/attachment/index',
