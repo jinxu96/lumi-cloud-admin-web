@@ -10,6 +10,9 @@ export default {
     menu: 'Menu',
 
     attachment: 'Attachment',
+    machine: 'Machines',
+    machineList: 'Machine List',
+    machineModuleList: 'Module List',
 
     permission: 'Permission',
     admin: 'Admin',
@@ -75,6 +78,7 @@ export default {
     'ok': 'Ok',
     'cancel': 'Cancel',
     'save': 'Save',
+    'loading': 'Loading...',
 
     'enable': 'Enable',
     'disable': 'Disable',

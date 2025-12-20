@@ -333,7 +333,344 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 
 > 提示：密码重置后将删除该用户的所有 Sanctum Token，前台需要重新登录。
 
+# 机器管理 API
+
+## 机器列表
+- **权限标识**：`app-admin.machines.index`
+- **接口**：`GET /admin-api/machines`
+- **说明**：分页查询可用机器，支持按关键字与启用状态过滤。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `100` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`slug`、`brand`、`sort_order`、`created_at`、`updated_at` |
+| `keyword` | string | 否 | 模糊搜索（名称、slug、品牌） |
+| `is_active` | boolean | 否 | 按启用状态过滤（`true`/`false`/`1`/`0` 等） |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 2,
+		"list": [
+			{
+				"id": 1,
+				"name": "LumiMaker X1",
+				"slug": "lumimaker-x1",
+				"brand": "Lumi",
+				"icon_url": "https://cdn.example.com/machines/x1.png",
+				"description": "入门级桌面激光机",
+				"is_active": true,
+				"sort_order": 1,
+				"modules_count": 2,
+				"created_at": "2025-12-15 09:00:00",
+				"updated_at": "2025-12-18 11:20:00"
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].slug` | string | 机器唯一标识，创建时保证唯一，支持字母、数字、`-`、`_` |
+| `data.list[].brand` | string/null | 品牌名称 |
+| `data.list[].icon_url` | string/null | 展示图片地址 |
+| `data.list[].description` | string/null | 机器描述 |
+| `data.list[].is_active` | boolean | 是否启用 |
+| `data.list[].sort_order` | integer | 排序值，越小越靠前 |
+| `data.list[].modules_count` | integer | 该机器下的模块数量 |
+
+## 新增机器
+- **权限标识**：`app-admin.machines.store`
+- **接口**：`POST /admin-api/machines`
+- **说明**：创建新的机器记录。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 是 | 机器名称，最大 120 字符 |
+| `slug` | string | 是 | 机器标识，最大 120 字符，仅允许字母、数字、`-`、`_`，需保持唯一 |
+| `brand` | string | 否 | 品牌名称，最大 60 字符 |
+| `icon_url` | string | 否 | 展示图片地址，最大 512 字符 |
+| `description` | string | 否 | 机器描述 |
+| `is_active` | boolean | 否 | 是否启用，默认 `true` |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+
+- **成功响应**：返回与“机器列表”单项一致的结构。
+
+## 机器详情
+- **权限标识**：`app-admin.machines.show`
+- **接口**：`GET /admin-api/machines/{id}`
+- **说明**：查看机器详情及其下模块、加工配置。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `id` | integer | 是 | 机器 ID |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"id": 1,
+		"name": "LumiMaker X1",
+		"slug": "lumimaker-x1",
+		"brand": "Lumi",
+		"icon_url": "https://cdn.example.com/machines/x1.png",
+		"description": "入门级桌面激光机",
+		"is_active": true,
+		"sort_order": 1,
+		"modules_count": 2,
+		"created_at": "2025-12-15 09:00:00",
+		"updated_at": "2025-12-18 11:20:00",
+		"modules": [
+			{
+				"id": 11,
+				"name": "蓝光 10W 模块",
+				"power_watt": 10000,
+				"color_hex": "#1E90FF",
+				"description": "默认激光头",
+				"is_active": true,
+				"sort_order": 1,
+				"profiles": [
+					{
+						"id": 101,
+						"processing_module": "laser",
+						"processing_mode": "vector",
+						"process_type": "cut",
+						"power_watt": 10000,
+						"sort_order": 1
+					}
+				]
+			}
+		]
+	}
+}
+```
+
+- **额外字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `modules[].color_hex` | string/null | UI 展示颜色，统一为 `#RRGGBB` |
+| `modules[].profiles` | array | 关联加工配置列表 |
+| `modules[].profiles[].processing_module` | string/null | 加工模块（如 `laser`、`blade`） |
+| `modules[].profiles[].processing_mode` | string/null | 加工模式（如 `vector`、`raster`） |
+| `modules[].profiles[].process_type` | string/null | 加工类型（如 `cut`、`engrave`） |
+
+## 更新机器
+- **权限标识**：`app-admin.machines.update`
+- **接口**：`PUT /admin-api/machines/{id}` 或 `PATCH /admin-api/machines/{id}`
+- **说明**：修改机器基础信息，字段同“新增机器”，均为可选。
+- **注意**：当提交的值与原值一致时，接口会返回“无需更新”以提示前端无需刷新。
+
+## 删除机器
+- **权限标识**：`app-admin.machines.destroy`
+- **接口**：`DELETE /admin-api/machines/{id}`
+- **说明**：删除机器前需确保无关联模块，否则会提示“请先删除或迁移该机器下的模块”。
+
+# 机器模块 API
+
+## 模块列表
+- **权限标识**：`app-admin.machine-modules.index`
+- **接口**：`GET /admin-api/machine-modules`
+- **说明**：分页查询机器模块，可按机器、关键字、启用状态过滤。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `100` |
+| `machine_id` | integer | 否 | 仅查看指定机器下的模块 |
+| `keyword` | string | 否 | 模块名称或描述模糊搜索 |
+| `is_active` | boolean | 否 | 启用状态过滤 |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`power_watt`、`sort_order`、`created_at`、`updated_at` |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 3,
+		"list": [
+			{
+				"id": 11,
+				"machine_id": 1,
+				"machine": {
+					"id": 1,
+					"name": "LumiMaker X1",
+					"slug": "lumimaker-x1"
+				},
+				"name": "蓝光 10W 模块",
+				"power_watt": 10000,
+				"color_hex": "#1E90FF",
+				"description": "默认激光头",
+				"is_active": true,
+				"sort_order": 1,
+				"profiles_count": 4,
+				"created_at": "2025-12-15 09:10:00",
+				"updated_at": "2025-12-18 11:20:00"
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].machine` | object/null | 包含 `id`、`name`、`slug` 的机器概要信息 |
+| `data.list[].power_watt` | integer/null | 模块功率（瓦），为空表示未设置固定功率 |
+| `data.list[].color_hex` | string/null | UI 展示颜色，统一输出为 `#RRGGBB` |
+| `data.list[].profiles_count` | integer | 关联加工配置数量 |
+
+## 新增模块
+- **权限标识**：`app-admin.machine-modules.store`
+- **接口**：`POST /admin-api/machine-modules`
+- **说明**：创建机器模块，模块名称在同一机器内需唯一。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `machine_id` | integer | 是 | 所属机器 ID，需存在 |
+| `name` | string | 是 | 模块名称，最大 120 字符，在同一机器内唯一 |
+| `power_watt` | integer | 否 | 模块功率（瓦），范围 `1`~`200000` |
+| `color_hex` | string | 否 | 展示颜色，支持 `#RRGGBB` 或不带 `#` 的六位十六进制 |
+| `description` | string | 否 | 模块描述 |
+| `is_active` | boolean | 否 | 是否启用，默认 `true` |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+
+- **成功响应**：返回与“模块列表”单项一致的结构。
+
+## 模块详情
+- **权限标识**：`app-admin.machine-modules.show`
+- **接口**：`GET /admin-api/machine-modules/{id}`
+- **说明**：查看模块详情及加工配置。
+- **路径参数**：与“机器详情”类似，`id` 为模块 ID。
+- **响应字段**：在列表字段基础上新增 `profiles` 数组，结构同“机器详情”中的模块配置说明。
+
+## 更新模块
+- **权限标识**：`app-admin.machine-modules.update`
+- **接口**：`PUT /admin-api/machine-modules/{id}` 或 `PATCH /admin-api/machine-modules/{id}`
+- **说明**：修改模块信息，字段同“新增模块”，均为可选；当更新颜色时支持自动补全 `#` 并转大写。
+
+## 删除模块
+- **权限标识**：`app-admin.machine-modules.destroy`
+- **接口**：`DELETE /admin-api/machine-modules/{id}`
+- **说明**：删除前需确保无关联加工配置，否则会提示“请先删除该模块下的加工配置”。
+
+## 导入机器模块配置
+- **权限标识**：`app-admin.machine-modules.import`
+- **接口**：`POST /admin-api/machine-modules/import`
+- **说明**：批量导入机器、模块与加工配置，需上传官方模板填写完成的文件。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 填写完成的导入模板（支持 CSV、XLSX），第一列以 `#` 开头的行会被视为注释 |
+
+- **请求示例**：
+
+```bash
+curl -X POST "https://example.com/admin-api/machine-modules/import" \
+	-H "Authorization: Bearer <token>" \
+	-F "file=@/path/to/machine_module_import_template.xlsx"
+```
+
+- **成功响应**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "导入完成",
+	"data": {
+		"stats": {
+			"total_rows": 25,
+			"machines_created": 1,
+			"machines_updated": 2,
+			"modules_created": 5,
+			"modules_updated": 3,
+			"profiles_created": 12,
+			"profiles_updated": 4
+		},
+		"errors": []
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `stats.total_rows` | integer | 有效数据行数（不含注释行） |
+| `stats.*_created`/`stats.*_updated` | integer | 各模型的新增或更新数量 |
+| `errors` | array | 导入失败的错误列表（若为空表示全部成功） |
+
+## 导出机器模块配置
+- **权限标识**：`app-admin.machine-modules.export`
+- **接口**：`GET /admin-api/machine-modules/export`
+- **说明**：导出当前机器、模块与加工配置，生成 XLSX 文件。
+- **请求示例**：
+
+```bash
+curl -X GET "https://example.com/admin-api/machine-modules/export" \
+	-H "Authorization: Bearer <token>" -OJ
+```
+
+- **响应**：返回二进制 Excel 文件，文件名默认为 `machine_modules_YYYYMMDD_HHMMSS.xlsx`。
+
+## 材料库导入
+- **权限标识**：`app-admin.material-library.import`
+- **接口**：`POST /admin-api/material-library/import`
+- **说明**：批量导入材料、关联模块与加工参数矩阵，流程与机器模块导入类似。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：与“导入机器模块配置”相同，仅上传模板文件。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "导入完成",
+	"data": {
+		"stats": {
+			"total_rows": 18,
+			"materials_created": 6,
+			"materials_updated": 2,
+			"profiles_created": 9,
+			"profiles_updated": 4
+		},
+		"errors": [
+			"第 7 行：模块名称不能为空"
+		]
+	}
+}
+```
+
 ## 其他注意事项
-- 接口需在后台中为对应角色分配 `app-admin.users.*` 权限。
+- 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。
 

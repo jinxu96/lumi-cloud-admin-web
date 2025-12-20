@@ -11,6 +11,9 @@ export default {
     menu: '菜单管理',
 
     attachment: '附件管理',
+    machine: '机器管理',
+    machineList: '机器列表',
+    machineModuleList: '模块列表',
 
     permission: '权限管理',
     admin: '管理员',
@@ -79,6 +82,7 @@ export default {
     'ok': '确定',
     'cancel': '取消',
     'save': '提交',
+    'loading': '加载中...',
 
     'enable': '启用',
     'disable': '禁用',

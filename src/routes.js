@@ -2,6 +2,7 @@
 
 export default {
   UserManageRoot: 110010,
+  MachineRoot: 110020,
   Permission: 110030,
   OperationLog: 110039,
   System: 110040,
