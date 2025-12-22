@@ -26,18 +26,21 @@
           @keyup.enter.native="handleFilter"
         />
 
-        <el-select
-          v-model="listQuery.is_active"
-          :placeholder="$t('machine.search_status')"
-          clearable
-          class="filter-item"
-          style="width: 160px;margin-right: 12px;"
-          @change="handleFilter"
-        >
-          <el-option :label="$t('machine.option_all')" value="" />
-          <el-option :label="$t('machine.option_enabled')" value="true" />
-          <el-option :label="$t('machine.option_disabled')" value="false" />
-        </el-select>
+        <div class="filter-item filter-field" style="margin-right: 12px;">
+          <span class="filter-label">{{ $t('machine.search_status') }}</span>
+          <el-select
+            v-model="listQuery.is_active"
+            :placeholder="$t('machine.search_status')"
+            clearable
+            class="filter-select"
+            style="width: 160px;"
+            @change="handleFilter"
+          >
+            <el-option :label="$t('machine.option_all')" value="" />
+            <el-option :label="$t('machine.option_enabled')" value="true" />
+            <el-option :label="$t('machine.option_disabled')" value="false" />
+          </el-select>
+        </div>
 
         <el-select
           v-model="listQuery.order"
@@ -88,6 +91,21 @@
           </template>
         </el-table-column>
 
+        <el-table-column width="120" align="center" :label="$t('machine.table_icon')">
+          <template slot-scope="{ row }">
+            <el-image
+              v-if="row.icon_url"
+              :src="row.icon_url"
+              fit="cover"
+              class="machine-icon-thumb"
+              :lazy="true"
+            >
+              <div slot="error" class="icon-placeholder">-</div>
+            </el-image>
+            <div v-else class="icon-placeholder">-</div>
+          </template>
+        </el-table-column>
+
         <el-table-column width="120" align="center" :label="$t('machine.table_is_active')">
           <template slot-scope="{ row }">
             <el-tag :type="row.is_active ? 'success' : 'info'">
@@ -122,7 +140,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column width="280" align="center" :label="$t('machine.table_actions')">
+        <el-table-column fixed="right" width="360" align="center" :label="$t('machine.table_actions')">
           <template slot-scope="{ row }">
             <el-button
               v-waves
@@ -144,6 +162,18 @@
               @click="openEdit(row)"
             >
               {{ $t('machine.action_edit') }}
+            </el-button>
+            <el-button
+              v-waves
+              size="mini"
+              :type="row.is_active ? 'warning' : 'success'"
+              plain
+              icon="el-icon-switch-button"
+              :loading="loading.status === row.id"
+              :disabled="!checkPermission(['app-admin.machines.status'])"
+              @click="toggleStatus(row)"
+            >
+              {{ row.is_active ? $t('machine.action_disable') : $t('machine.action_enable') }}
             </el-button>
             <el-button
               v-waves
@@ -187,7 +217,35 @@
           <el-input v-model="dialog.form.brand" maxlength="60" show-word-limit />
         </el-form-item>
         <el-form-item :label="$t('machine.form_icon')">
-          <el-input v-model="dialog.form.icon_url" maxlength="512" />
+          <el-input
+            v-model="dialog.form.icon_url"
+            maxlength="512"
+            :placeholder="$t('machine.form_icon_placeholder')"
+            @input="handleIconUrlInput"
+          />
+          <div class="icon-upload-actions">
+            <el-upload
+              v-if="canUploadIcon"
+              class="icon-upload"
+              :show-file-list="false"
+              :action="uploadPlaceholderAction"
+              :before-upload="beforeIconUpload"
+              :http-request="handleIconUpload"
+              accept="image/*"
+              :disabled="dialog.iconUploading"
+            >
+              <el-button size="mini" type="primary" :loading="dialog.iconUploading">
+                {{ $t('machine.action_upload_icon') }}
+              </el-button>
+            </el-upload>
+            <span class="icon-tip">{{ $t('machine.form_icon_tip') }}</span>
+          </div>
+          <div v-if="iconPreviewUrl" class="icon-preview">
+            <span class="icon-preview-title">{{ $t('machine.preview_title') }}</span>
+            <el-image :src="iconPreviewUrl" fit="cover" class="icon-preview-image">
+              <div slot="error" class="icon-preview-error">-</div>
+            </el-image>
+          </div>
         </el-form-item>
         <el-form-item :label="$t('machine.form_description')">
           <el-input v-model="dialog.form.description" type="textarea" :rows="3" maxlength="500" show-word-limit />
@@ -211,7 +269,7 @@
 import waves from '@/directive/waves'
 import checkPermission from '@/utils/permission'
 import Pagination from '@/components/Pagination'
-import { getMachines, deleteMachine, createMachine, updateMachine } from '@/api/machines'
+import { getMachines, deleteMachine, createMachine, updateMachine, updateMachineStatus, uploadMachineIcon } from '@/api/machines'
 
 const createDefaultForm = () => ({
   id: '',
@@ -241,19 +299,36 @@ export default {
         page: 1
       },
       orderOptions: [],
+      // Element Upload 组件要求提供 action 属性，实际请求由 http-request 接管
+      uploadPlaceholderAction: '/noop-upload',
       loading: {
-        delete: ''
+        delete: '',
+        status: ''
       },
       dialog: {
         visible: false,
         loading: false,
         isEdit: false,
+        iconUploading: false,
+        iconFile: null,
+        iconPreview: '',
         form: createDefaultForm(),
         rules: {
           name: [{ required: true, message: this.$t('machine.form_rules_name'), trigger: 'blur' }],
           slug: [{ required: true, message: this.$t('machine.form_rules_slug'), trigger: 'blur' }]
         }
       }
+    }
+  },
+  computed: {
+    iconPreviewUrl() {
+      return this.dialog.iconPreview || this.dialog.form.icon_url || ''
+    },
+    canUploadIcon() {
+      if (this.dialog.isEdit) {
+        return this.checkPermission(['app-admin.machines.icon'])
+      }
+      return this.checkPermission(['app-admin.machines.store']) || this.checkPermission(['app-admin.machines.icon'])
     }
   },
   created() {
@@ -266,6 +341,9 @@ export default {
       { key: 'created_at__ASC', label: this.$t('machine.order_created_asc') }
     ]
     this.getList()
+  },
+  beforeDestroy() {
+    this.clearLocalIconFile()
   },
   methods: {
     checkPermission,
@@ -345,6 +423,8 @@ export default {
     openCreate() {
       this.dialog.visible = true
       this.dialog.isEdit = false
+      this.dialog.iconUploading = false
+      this.clearLocalIconFile()
       this.dialog.form = createDefaultForm()
     },
     // 打开编辑弹窗
@@ -354,6 +434,8 @@ export default {
       }
       this.dialog.visible = true
       this.dialog.isEdit = true
+      this.dialog.iconUploading = false
+      this.clearLocalIconFile()
       this.dialog.form = {
         id: row.id,
         name: row.name || '',
@@ -364,6 +446,30 @@ export default {
         is_active: Boolean(row.is_active),
         sort_order: typeof row.sort_order === 'number' ? row.sort_order : Number(row.sort_order) || 0
       }
+    },
+    // 切换机器启用状态
+    toggleStatus(row) {
+      if (!row || !row.id) {
+        return
+      }
+      const targetStatus = !row.is_active
+      const confirmKey = targetStatus ? 'machine.confirm_enable' : 'machine.confirm_disable'
+      this.$confirm(this.$t(confirmKey), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.loading.status = row.id
+        updateMachineStatus(row.id, targetStatus)
+          .then(() => {
+            const messageKey = targetStatus ? 'machine.message_enable_success' : 'machine.message_disable_success'
+            this.$message.success(this.$t(messageKey))
+            this.getList()
+          })
+          .finally(() => {
+            this.loading.status = ''
+          })
+      }).catch(() => {})
     },
     // 提交新增或编辑
     submitDialog() {
@@ -380,10 +486,11 @@ export default {
           is_active: Boolean(this.dialog.form.is_active),
           sort_order: Number(this.dialog.form.sort_order) || 0
         }
+        const submitData = this.buildMachineSubmitData(payload)
         this.dialog.loading = true
         const request = this.dialog.isEdit
-          ? updateMachine(this.dialog.form.id, payload)
-          : createMachine(payload)
+          ? updateMachine(this.dialog.form.id, submitData)
+          : createMachine(submitData)
         request
           .then(() => {
             const messageKey = this.dialog.isEdit ? 'machine.message_update_success' : 'machine.message_create_success'
@@ -402,7 +509,116 @@ export default {
         this.$refs.machineForm.resetFields()
       }
       this.dialog.loading = false
+      this.dialog.iconUploading = false
+      this.clearLocalIconFile()
       this.dialog.form = createDefaultForm()
+    },
+    // 校验上传文件
+    beforeIconUpload(file) {
+      const isImage = /^image\//.test(file.type)
+      if (!isImage) {
+        this.$message.error(this.$t('machine.message_icon_upload_error_type'))
+        return false
+      }
+      const isLt5M = file.size / 1024 / 1024 <= 5
+      if (!isLt5M) {
+        this.$message.error(this.$t('machine.message_icon_upload_error_size'))
+        return false
+      }
+      return true
+    },
+    // 自定义上传机器展示图
+    handleIconUpload(uploadOption) {
+      const { file, onError, onSuccess } = uploadOption || {}
+      if (!file) {
+        if (typeof onError === 'function') {
+          onError()
+        }
+        return
+      }
+      if (!this.dialog.isEdit) {
+        this.setLocalIconFile(file)
+        if (typeof onSuccess === 'function') {
+          onSuccess({})
+        }
+        return
+      }
+      if (!this.dialog.form.id) {
+        this.$message.error(this.$t('machine.message_icon_upload_error'))
+        if (typeof onError === 'function') {
+          onError()
+        }
+        return
+      }
+      this.dialog.iconUploading = true
+      uploadMachineIcon(this.dialog.form.id, file)
+        .then(res => {
+          const payload = res.data || {}
+          const nextUrl = payload.icon_url || (payload.machine && payload.machine.icon_url) || this.dialog.form.icon_url
+          if (nextUrl) {
+            this.dialog.form.icon_url = nextUrl
+          }
+          this.$message.success(this.$t('machine.message_icon_upload_success'))
+          this.getList()
+          this.clearLocalIconFile()
+          if (typeof onSuccess === 'function') {
+            onSuccess(payload)
+          }
+        })
+        .catch(error => {
+          this.$message.error(this.$t('machine.message_icon_upload_error'))
+          if (typeof onError === 'function') {
+            onError(error)
+          }
+        })
+        .finally(() => {
+          this.dialog.iconUploading = false
+        })
+    },
+    // 手动输入地址时清除临时文件
+    handleIconUrlInput() {
+      if (this.dialog.iconFile || this.dialog.iconPreview) {
+        this.clearLocalIconFile()
+      }
+    },
+    // 记录本地选择的图片文件
+    setLocalIconFile(file) {
+      this.clearLocalIconFile()
+      if (file) {
+        let previewUrl = ''
+        if (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
+          previewUrl = window.URL.createObjectURL(file)
+        }
+        this.dialog.iconFile = file
+        this.dialog.iconPreview = previewUrl
+      }
+    },
+    // 清理本地临时文件和预览
+    clearLocalIconFile() {
+      if (this.dialog.iconPreview && typeof window !== 'undefined' && window.URL && typeof window.URL.revokeObjectURL === 'function') {
+        window.URL.revokeObjectURL(this.dialog.iconPreview)
+      }
+      this.dialog.iconPreview = ''
+      this.dialog.iconFile = null
+    },
+    // 根据当前表单构建提交数据
+    buildMachineSubmitData(payload) {
+      if (!this.dialog.iconFile) {
+        return payload
+      }
+      const formData = new FormData()
+      Object.keys(payload).forEach(key => {
+        const value = payload[key]
+        if (value !== '' && value !== null && value !== undefined) {
+          if (typeof value === 'boolean') {
+            formData.append(key, value ? '1' : '0')
+          } else {
+            formData.append(key, value)
+          }
+        }
+      })
+      formData.append('icon', this.dialog.iconFile)
+      return formData
     }
   }
 }
@@ -432,8 +648,71 @@ export default {
 .filter-item {
   margin-bottom: 12px;
 }
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
 .machine-name {
   display: flex;
   align-items: center;
+}
+.machine-icon-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.icon-placeholder {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  font-size: 20px;
+}
+.icon-upload-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.icon-tip {
+  font-size: 12px;
+  color: #909399;
+}
+.icon-preview {
+  margin-top: 12px;
+}
+.icon-preview-title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #606266;
+}
+.icon-preview-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.icon-preview-error {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  color: #c0c4cc;
+  font-size: 20px;
 }
 </style>

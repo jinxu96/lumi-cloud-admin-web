@@ -1,0 +1,83 @@
+.material-processing-profiles .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.material-processing-profiles .card-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+.material-processing-profiles .card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.material-processing-profiles .hidden-file-input {
+  display: none;
+}
+.material-processing-profiles .filter-container {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.material-processing-profiles .filter-item {
+  margin-bottom: 12px;
+}
+.material-processing-profiles .filter-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.material-processing-profiles .filter-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+.material-processing-profiles .material-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.material-processing-profiles .material-name {
+  font-weight: 500;
+}
+.material-processing-profiles .material-code {
+  font-size: 12px;
+  color: #909399;
+}
+.material-processing-profiles .profile-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.material-processing-profiles .profile-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: #909399;
+}
+.material-processing-profiles .tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.material-processing-profiles .tag-success {
+  background: #e1f3d8;
+  color: #67c23a;
+}
+.material-processing-profiles .tag-info {
+  background: #ecf5ff;
+  color: #409eff;
+}
+.material-processing-profiles .notes-cell {
+  display: inline-block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

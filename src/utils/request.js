@@ -14,7 +14,15 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // do something before request is sent
-    config.headers['Content-Type'] = 'application/json;charset=utf-8'
+    config.headers = config.headers || {}
+    if (config.data instanceof FormData) {
+      // 允许浏览器自动生成 multipart 边界
+      if (config.headers && config.headers['Content-Type']) {
+        delete config.headers['Content-Type']
+      }
+    } else if (!config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/json;charset=utf-8'
+    }
 
     if (store.getters.token) {
       // let each request carry token
@@ -76,11 +84,8 @@ service.interceptors.response.use(
             resolve(service(response.config))
           })
         })
-      }
-
-      // Token expires;
-      else if (res.code === 104 || res.code === 107) {
-        // to re-login
+      } else if (res.code === 104 || res.code === 107) {
+        // Token expires; to re-login
         MessageBox.confirm('登陆已过期，是否重新登陆？', '系统提示', {
           confirmButtonText: '重登',
           cancelButtonText: '取消',
@@ -98,7 +103,7 @@ service.interceptors.response.use(
 
       // catch 返回数据
       const defaultConfig = response.config
-      if (defaultConfig['catchReturnData'] != undefined && defaultConfig['catchReturnData']) {
+      if (defaultConfig['catchReturnData'] !== undefined && defaultConfig['catchReturnData']) {
         return Promise.reject(res)
       }
 

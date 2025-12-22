@@ -37,3 +37,28 @@ export function deleteMachine(id) {
     method: 'delete'
   })
 }
+
+export function updateMachineStatus(id, isActive) {
+  // 更新机器启用状态
+  return request({
+    url: `machines/${id}/status`,
+    method: 'patch',
+    data: {
+      is_active: isActive
+    }
+  })
+}
+
+export function uploadMachineIcon(id, file) {
+  // 上传机器展示图
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: `machines/${id}/icon`,
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

@@ -13,6 +13,7 @@ import permission from './system/permission'
 import extension from './system/extension'
 import userManage from './system/user-manage' // 用户管理顶级菜单
 import machine from './system/machine'
+import material from './system/material'
 
 /**
  * constantRoutes
@@ -103,6 +104,7 @@ export const asyncRoutes = [
   attachment,
   permission,
   machine,
+  material,
   userManage, // 前台用户管理功能
   extension,
 

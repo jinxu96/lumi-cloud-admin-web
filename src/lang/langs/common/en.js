@@ -1,3 +1,4 @@
+// Common route labels with material processing profile entry
 export default {
   route: {
     dashboard: 'Dashboard',
@@ -13,6 +14,9 @@ export default {
     machine: 'Machines',
     machineList: 'Machine List',
     machineModuleList: 'Module List',
+    material: 'Materials',
+    materialList: 'Material List',
+    materialProcessingProfileList: 'Processing Profiles', // Material processing profile list title
 
     permission: 'Permission',
     admin: 'Admin',

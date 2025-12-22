@@ -43,6 +43,17 @@ export function deleteMachineModule(id) {
   })
 }
 
+export function updateMachineModuleStatus(id, isActive) {
+  // 更新模块启用状态
+  return request({
+    url: `machine-modules/${id}/status`,
+    method: 'patch',
+    data: {
+      is_active: isActive
+    }
+  })
+}
+
 export function importMachineModules(data) {
   // 导入模块配置文件
   return request({
@@ -61,6 +72,24 @@ export function exportMachineModules(params) {
     url: 'machine-modules/export',
     method: 'get',
     params,
+    responseType: 'blob',
+    catchReturnData: true
+  }).catch(error => {
+    if (error instanceof Blob) {
+      return {
+        data: error,
+        headers: {}
+      }
+    }
+    return Promise.reject(error)
+  })
+}
+
+export function downloadMachineModuleTemplate() {
+  // 下载导入模板
+  return request({
+    url: 'machine-modules/template',
+    method: 'get',
     responseType: 'blob',
     catchReturnData: true
   }).catch(error => {

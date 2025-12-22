@@ -1,3 +1,4 @@
+// 通用路由与界面文案（含材料加工配置菜单）
 export default {
   route: {
     dashboard: '控制台',
@@ -14,6 +15,9 @@ export default {
     machine: '机器管理',
     machineList: '机器列表',
     machineModuleList: '模块列表',
+    material: '材料管理',
+    materialList: '材料列表',
+    materialProcessingProfileList: '加工配置列表', // 材料加工配置列表页标题
 
     permission: '权限管理',
     admin: '管理员',

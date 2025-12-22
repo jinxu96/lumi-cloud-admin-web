@@ -1,5 +1,5 @@
 module.exports = {
-  title: 'Larke Admin',
+  title: 'Lumi Cloud Admin',
 
   /**
    * @type {string}

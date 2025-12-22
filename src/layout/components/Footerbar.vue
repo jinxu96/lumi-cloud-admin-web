@@ -1,7 +1,5 @@
 <template>
-  <div class="footerbar">
-    <span class="copyright">Copyright @ {{ systemTitle }} v{{ systemVersion }}</span>
-  </div>
+  <div class="footerbar" aria-hidden="true" />
 </template>
 
 <script>

@@ -1,111 +1,146 @@
-# larke-admin 前端页面
+<h3 align="center">
+    lumi后台管理系统 前端编译文档
+</h3>
 
+## 简介
 
-## 项目介绍
+本项目是基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin) 的前端项目，部分功能为了适配 larke-admin 进行了优化和调整。
+编译工具为 `pnpm`
 
-*  `larke-admin` 的前端页面
-*  框架为 `vue2` 和 `element-ui`
-*  本项目为 `后台前端页面`，`后台api服务` 可查看 [Larke Admin](https://github.com/deatil/larke-admin) 项目
+## 功能
 
+```
+- 登录 / 注销
 
-## 截图预览
+- 权限验证
+  - 页面权限
+  - 指令权限
+  - 权限配置
+  - 二步登录
 
-<table>
-    <tr>
-        <td width="50%">
-            <center>
-                <img alt="login" src="https://user-images.githubusercontent.com/24578855/103483910-8cec8780-4e25-11eb-93c5-ea7ce7a09b60.png" />
-            </center>
-        </td>
-        <td width="50%">
-            <center>
-                <img alt="index" src="https://user-images.githubusercontent.com/24578855/105568367-cacd3380-5d73-11eb-98ab-55701d0068ed.png" />
-            </center>
-        </td>
-    </tr>
-    <tr>
-        <td width="50%">
-            <center>
-                <img alt="admin" src="https://user-images.githubusercontent.com/24578855/101988564-6bd8c100-3cd5-11eb-8524-21151ba3b404.png" />
-            </center>
-        </td>
-        <td width="50%">
-            <center>
-                <img alt="admin-access" src="https://user-images.githubusercontent.com/24578855/103433753-db393500-4c31-11eb-8d8a-b40dfa0db84e.png" />
-            </center>
-        </td>
-    </tr>
-    <tr>
-        <td width="50%">
-            <center>
-                <img alt="attach" src="https://user-images.githubusercontent.com/24578855/101988566-6da28480-3cd5-11eb-9532-69d88b2f598d.png" />
-            </center>
-        </td>
-        <td width="50%">
-            <center>
-                <img alt="config" src="https://user-images.githubusercontent.com/24578855/101988567-6e3b1b00-3cd5-11eb-8799-66e8ebec6020.png" />
-            </center>
-        </td>
-    </tr>
-    <tr>
-        <td width="50%">
-            <center>
-                <img alt="menus" src="https://user-images.githubusercontent.com/24578855/101988573-71cea200-3cd5-11eb-8e8b-e80ab319b216.png" />
-            </center>
-        </td>
-        <td width="50%">
-            <center>
-                <img alt="rule2" src="https://user-images.githubusercontent.com/24578855/102609155-f9992e00-4165-11eb-93ad-82275af134ab.png" />
-            </center>
-        </td>
-    </tr>
-</table>
+- 多环境发布
+  - dev
+  - sit
+  - stage
+  - prod
 
-更多截图 
-[Larke Admin 后台截图](https://github.com/deatil/larke-admin/issues/1)
+- 全局功能
+  - 国际化多语言
+  - 多种动态换肤
+  - 动态侧边栏（支持多级路由嵌套）
+  - 动态面包屑
+  - 快捷导航(标签页)
+  - Svg Sprite 图标
+  - 本地/后端 mock 数据
+  - Screenfull全屏
+  - 自适应收缩侧边栏
 
+- 编辑器
+  - 富文本
+  - Markdown
+  - JSON 等多格式
 
-## 安装步骤
+- Excel
+  - 导出excel
+  - 导入excel
+  - 前端可视化excel
+  - 导出zip
 
-1. 前端编译文档可以查看文档 [README-build.zh-CN.md](README-build.zh-CN.md)
+- 表格
+  - 动态表格
+  - 拖拽表格
+  - 内联编辑
 
-在编译前你需要复制 `.env.development.larke` 重命名为 `.env.development`，复制 `vue.config.js.larke` 重命名为 `vue.config.js`
+- 错误页面
+  - 401
+  - 404
 
-2. 当前编译环境
+- 組件
+  - 头像上传
+  - 返回顶部
+  - 拖拽Dialog
+  - 拖拽Select
+  - 拖拽看板
+  - 列表拖拽
+  - SplitPane
+  - Dropzone
+  - Sticky
+  - CountTo
 
- - (node v9.9.0 / npm 6.14.8)
- 
- - (node v16.6.2 / npm 6.14.8)
+- 综合实例
+- 错误日志
+- Dashboard
+- 引导页
+- ECharts 图表
+- Clipboard(剪贴复制)
+- Markdown2html
+```
 
+## 开发
 
-## 扩展推荐
+```bash
+# 开发环境 防止跨域 vue.config.js
+  devServer: {
+    // .........
+    proxy: {
+      '/admin-api': {
+        // 将前端请求转发到本地后端，避免开发环境出现跨域
+        target: 'http://127.0.0.1:8010',
+        changeOrigin: true
+      }
+    }
+   // ......... 
+  },
 
-| 名称 | 描述 |
-| --- | --- |
-| [demo](https://github.com/deatil/larke-admin-demo) | 扩展示例 |
-| [操作日志](https://github.com/deatil/larke-operation-log) | 记录 admin 系统的相关操作日志 |
-| [签名证书](https://github.com/deatil/larke-admin-signcert) | 生成RSA,EDDSA,ECDSA等非对称签名证书 |
-| [日志查看器](https://github.com/deatil/larke-admin-logviewer) | laravel日志查看扩展 |
+# 修改左边菜单栏：src\routes.js  xxxx在src\router\system\对应菜单栏的name.js的name值
+export default {
+  xxxx:10010
+}
 
-注：扩展目录默认为 `/extension` 目录
+# 更改后端请求接口
+编辑 .env.development 和 .env.production 环境变量里的 VUE_APP_BASE_API 的接口地址为后端 api 接口地址
 
+# 安装依赖
+pnpm install
 
-## 特别鸣谢
+# 安装依赖并忽略错误
+pnpm install --ignore-scripts
 
-感谢以下的项目,排名不分先后
+# 建议不要直接使用 cnpm 安装依赖，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
+pnpm install --registry=https://registry.npm.taobao.org
 
- - vue
+# 启动服务
+pnpm run dev
+```
 
- - element-ui
+浏览器访问 http://localhost:9527
 
- - vue-element-admin
+## 发布
 
+```bash
+# 构建测试环境
+pnpm run build:stage
 
-## 开源协议
+# 构建生产环境
+pnpm run build:prod
+```
 
-*  `larke-admin` 遵循 `Apache2` 开源协议发布，在保留本系统版权的情况下提供个人及商业免费使用。  
+## 其它
 
+```bash
+# 预览发布环境效果
+pnpm run preview
 
-## 版权
+# 预览发布环境效果 + 静态资源分析
+pnpm run preview -- --report
 
-*  该系统所属版权归 deatil(https://github.com/deatil) 所有。
+# 代码格式检查
+pnpm run lint
+
+# 代码格式检查并自动修复
+pnpm run lint -- --fix
+```
+
+如果出现 `uv_os_gethostname` 问题，可以搜索在出错依赖库入口文件添加 `os.hostname = () => "localhost";` 解决
+
+更多文档信息可以查看 [使用文档](https://panjiachen.github.io/vue-element-admin-site/zh/)

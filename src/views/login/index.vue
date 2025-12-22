@@ -82,9 +82,9 @@
 
       </el-form>
 
-      <div class="copyright">
+      <!-- <div class="copyright">
         Copyright @ 2025 <a target="_blank" href="http://github.com/deatil/larke-admin">Larke-admin</a>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -112,7 +112,7 @@ export default {
       }
     }
     const validateCaptcha = (rule, value, callback) => {
-      if (value.length != 4) {
+      if (value.length !== 4) {
         callback(new Error(this.$t('login.rules_captcha_required')))
       } else {
         callback()
@@ -199,6 +199,7 @@ export default {
           this.loginForm.passkey = res.data.key
         })
         .catch(err => {
+          console.error('Failed to load passkey', err)
           return false
         })
     },
@@ -215,6 +216,7 @@ export default {
           this.captchaImg = captchaImg
         })
         .catch(err => {
+          console.error('Failed to refresh captcha', err)
           return false
         })
     },
@@ -230,6 +232,7 @@ export default {
             .catch(err => {
               this.refreshCaptcha()
 
+              console.error('Login failed', err)
               this.loading = false
             })
         } else {

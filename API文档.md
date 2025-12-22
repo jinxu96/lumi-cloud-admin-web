@@ -402,12 +402,13 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 | `name` | string | 是 | 机器名称，最大 120 字符 |
 | `slug` | string | 是 | 机器标识，最大 120 字符，仅允许字母、数字、`-`、`_`，需保持唯一 |
 | `brand` | string | 否 | 品牌名称，最大 60 字符 |
-| `icon_url` | string | 否 | 展示图片地址，最大 512 字符 |
+| `icon_url` | string | 否 | 展示图片地址，最大 512 字符（若上传文件可忽略） |
+| `icon` | file | 否 | 展示图片文件，`multipart/form-data` 上传，大小约 5 MB 内 |
 | `description` | string | 否 | 机器描述 |
 | `is_active` | boolean | 否 | 是否启用，默认 `true` |
 | `sort_order` | integer | 否 | 排序值，默认 `0` |
 
-- **成功响应**：返回与“机器列表”单项一致的结构。
+- **成功响应**：返回与“机器列表”单项一致的结构；如本次上传了图片，会额外返回 `attachment_id`。
 
 ## 机器详情
 - **权限标识**：`app-admin.machines.show`
@@ -479,6 +480,50 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **说明**：修改机器基础信息，字段同“新增机器”，均为可选。
 - **注意**：当提交的值与原值一致时，接口会返回“无需更新”以提示前端无需刷新。
 
+## 启用/禁用机器
+- **权限标识**：`app-admin.machines.status`
+- **接口**：`PATCH /admin-api/machines/{id}/status`
+- **说明**：仅调整机器的启用状态，适用于需要单独权限控制的场景。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_active` | boolean | 是 | `true` 表示启用，`false` 表示停用 |
+
+- **响应**：返回更新后的机器信息，结构同“机器列表”单项。
+
+## 上传机器图片
+- **权限标识**：`app-admin.machines.icon`
+- **接口**：`POST /admin-api/machines/{id}/icon`
+- **说明**：上传新的机器展示图，并同步更新机器 `icon_url`。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 需上传的图片文件，最大约 5 MB |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "上传成功",
+	"data": {
+		"attachment_id": "2d9c2a5c-1d84-4f8e-9d4f-8b3c8f5e1234",
+		"icon_url": "https://cdn.example.com/machines/x1.png",
+		"machine": {
+			"id": 1,
+			"name": "LumiMaker X1",
+			"icon_url": "https://cdn.example.com/machines/x1.png",
+			"is_active": true,
+			"modules_count": 2
+		}
+	}
+}
+```
+
 ## 删除机器
 - **权限标识**：`app-admin.machines.destroy`
 - **接口**：`DELETE /admin-api/machines/{id}`
@@ -524,6 +569,7 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 				"name": "蓝光 10W 模块",
 				"power_watt": 10000,
 				"color_hex": "#1E90FF",
+				"icon_url": "https://cdn.example.com/modules/laser.png",
 				"description": "默认激光头",
 				"is_active": true,
 				"sort_order": 1,
@@ -574,6 +620,18 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **权限标识**：`app-admin.machine-modules.update`
 - **接口**：`PUT /admin-api/machine-modules/{id}` 或 `PATCH /admin-api/machine-modules/{id}`
 - **说明**：修改模块信息，字段同“新增模块”，均为可选；当更新颜色时支持自动补全 `#` 并转大写。
+
+## 启用/禁用模块
+- **权限标识**：`app-admin.machine-modules.status`
+- **接口**：`PATCH /admin-api/machine-modules/{id}/status`
+- **说明**：仅调整模块的启用状态，可单独授权。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_active` | boolean | 是 | `true` 表示启用，`false` 表示停用 |
+
+- **响应**：返回更新后的模块信息，结构同“模块列表”单项。
 
 ## 删除模块
 - **权限标识**：`app-admin.machine-modules.destroy`
@@ -642,6 +700,227 @@ curl -X GET "https://example.com/admin-api/machine-modules/export" \
 
 - **响应**：返回二进制 Excel 文件，文件名默认为 `machine_modules_YYYYMMDD_HHMMSS.xlsx`。
 
+## 下载机器模块导入模板
+- **权限标识**：`app-admin.machine-modules.template`
+- **接口**：`GET /admin-api/machine-modules/template`
+- **说明**：下载官方提供的机器模块导入 CSV 模板。
+- **请求示例**：
+
+```bash
+curl -X GET "https://example.com/admin-api/machine-modules/template" \
+	-H "Authorization: Bearer <token>" -OJ
+```
+
+- **响应**：返回 `machine_module_import_template.csv` 文件。
+
+
+# 材料管理 API
+
+## 材料列表
+- **权限标识**：`app-admin.materials.index`
+- **接口**：`GET /admin-api/materials`
+- **说明**：分页查询材料基础信息，支持关键字、分类、品牌、启用状态、公开状态和关联模块过滤。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`material_code`、`sku_code`、`category`、`brand`、`thickness_mm`、`sort_order`、`created_at`、`updated_at` |
+| `keyword` | string | 否 | 模糊查询材料名称、物料编码或 SKU |
+| `category` | string | 否 | 精确匹配材料分类 |
+| `brand` | string | 否 | 精确匹配品牌 |
+| `is_active` | boolean/string | 否 | 是否启用，接受 `true`/`false`/`1`/`0` 等值 |
+| `is_public` | boolean/string | 否 | 是否在材料库对外公开 |
+| `machine_module_id` | integer | 否 | 仅筛选绑定了指定机器模块的材料 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 36,
+		"list": [
+			{
+				"id": 101,
+				"name": "柚木板",
+				"material_code": "WOOD-TEAK-3MM",
+				"sku_code": "SKU-8810",
+				"category": "wood",
+				"brand": "Lumi",
+				"spec": "300×500×3mm",
+				"thickness_mm": 3,
+				"color": "棕色",
+				"description": "适用于激光雕刻与轻度切割",
+				"cover_url": "https://cdn.example.com/materials/wood-teak.png",
+				"is_active": true,
+				"is_public": true,
+				"sort_order": 5,
+				"package_contents": [],
+				"tags": ["wood", "engrave"],
+				"warnings": [],
+				"processing_profiles_count": 4,
+				"media_count": 2,
+				"created_at": "2025-12-18 09:00:00",
+				"updated_at": "2025-12-21 10:30:00"
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].material_code` | string/null | 材料编号，供导入导出或仓储系统使用 |
+| `data.list[].sku_code` | string/null | SKU 码，便于与商城对接 |
+| `data.list[].spec` | string/null | 规格描述或尺寸 |
+| `data.list[].thickness_mm` | number/null | 厚度（毫米），精度保留到小数位 |
+| `data.list[].package_contents` | array | 套装内包含的物件列表（JSON 数组） |
+| `data.list[].tags` | array | 标签集合（JSON 数组） |
+| `data.list[].warnings` | array | 来自 `extra.warnings` 的安全提示列表 |
+| `data.list[].processing_profiles_count` | integer | 已配置的加工参数数量 |
+| `data.list[].media_count` | integer | 已关联的媒体资源数量 |
+
+## 新增材料
+- **权限标识**：`app-admin.materials.store`
+- **接口**：`POST /admin-api/materials`
+- **说明**：创建材料基础档案，可同时上传封面图片。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**（除 `name` 外均为可选）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 是 | 材料名称，最大 120 字符 |
+| `material_code` | string | 否 | 材料编号，最大 60 字符，建议唯一 |
+| `sku_code` | string | 否 | SKU 码，最大 60 字符 |
+| `category` | string | 否 | 材料分类，最大 60 字符 |
+| `brand` | string | 否 | 品牌名称，最大 60 字符 |
+| `spec` | string | 否 | 规格描述，最大 120 字符 |
+| `thickness_mm` | number | 否 | 材料厚度（毫米），范围 `0~1000` |
+| `color` | string | 否 | 颜色描述，最大 60 字符 |
+| `description` | string | 否 | 详细描述 |
+| `package_contents` | array/json | 否 | 套装内容（JSON 数组或字符串） |
+| `tags` | array/json | 否 | 标签列表 |
+| `extra` | object/json | 否 | 自定义扩展字段（JSON 对象） |
+| `is_active` | boolean | 否 | 是否启用，默认 `true` |
+| `is_public` | boolean | 否 | 是否公开，默认 `true` |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+| `cover` | file | 否 | 封面图片，大小不超过 5 MB，支持常见图片格式 |
+
+- **成功响应**：返回材料列表单项结构；如上传封面会额外附带 `attachment_id` 方便前端追踪附件记录。
+
+## 材料详情
+- **权限标识**：`app-admin.materials.show`
+- **接口**：`GET /admin-api/materials/{id}`
+- **说明**：查询材料基础信息、关联媒体、绑定机器模块以及加工参数。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"id": 101,
+		"name": "柚木板",
+		"material_code": "WOOD-TEAK-3MM",
+		"sku_code": "SKU-8810",
+		"category": "wood",
+		"brand": "Lumi",
+		"spec": "300×500×3mm",
+		"thickness_mm": 3,
+		"color": "棕色",
+		"description": "适用于激光雕刻与轻度切割",
+		"cover_url": "https://cdn.example.com/materials/wood-teak.png",
+		"package_contents": [],
+		"tags": ["wood", "engrave"],
+		"warnings": [],
+		"extra": {},
+		"is_active": true,
+		"is_public": true,
+		"sort_order": 5,
+		"processing_profiles_count": 4,
+		"media_count": 2,
+		"created_at": "2025-12-18 09:00:00",
+		"updated_at": "2025-12-21 10:30:00",
+		"media": [
+			{
+				"id": 9001,
+				"media_type": "image",
+				"url": "https://cdn.example.com/materials/gallery/wood-teak-1.png",
+				"is_cover": true,
+				"title": "封面",
+				"caption": null,
+				"sort_order": 0,
+				"metadata": {}
+			}
+		],
+		"machine_modules": [
+			{
+				"id": 11,
+				"name": "蓝光 10W 模块",
+				"machine": {
+					"id": 1,
+					"name": "LumiMaker X1",
+					"slug": "lumimaker-x1"
+				},
+				"pivot": {
+					"is_default": true,
+					"notes": "默认推荐"
+				}
+			}
+		],
+		"processing_profiles": [
+			{
+				"id": 501,
+				"machine_module_profile": {
+					"id": 301,
+					"processing_module": "laser",
+					"processing_mode": "vector",
+					"process_type": "cut",
+					"power_watt": 10000,
+					"machine_module": {
+						"id": 11,
+						"name": "蓝光 10W 模块",
+						"machine": {
+							"id": 1,
+							"name": "LumiMaker X1",
+							"slug": "lumimaker-x1"
+						}
+					}
+				},
+				"power_percent": 90,
+				"speed_mm_per_sec": 8,
+				"passes": 2,
+				"focus_offset_mm": 0,
+				"air_assist": true,
+				"parameter_matrix": {},
+				"preview_image_url": null,
+				"notes": null,
+				"is_active": true,
+				"sort_order": 0
+			}
+		]
+	}
+}
+```
+
+- **字段补充**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `media[].is_cover` | boolean | 是否为封面图（与 `cover_url` 对应） |
+| `machine_modules[].pivot.is_default` | boolean | 指定机器模块是否为默认推荐 |
+| `processing_profiles[].air_assist` | boolean | 是否开启空压辅助 |
+| `processing_profiles[].parameter_matrix` | object | 高级参数矩阵（JSON 对象） |
+
 ## 材料库导入
 - **权限标识**：`app-admin.material-library.import`
 - **接口**：`POST /admin-api/material-library/import`
@@ -670,7 +949,232 @@ curl -X GET "https://example.com/admin-api/machine-modules/export" \
 }
 ```
 
+- **提示**：请确保使用最新版的模板（位于 `resources/templates/material_library_import_template.csv`），并按照注释说明填写；其中 JSON 字段需填写合法 JSON 字符串。
+
+## 更新材料
+- **权限标识**：`app-admin.materials.update`
+- **接口**：`PUT /admin-api/materials/{id}` 或 `PATCH /admin-api/materials/{id}`
+- **说明**：更新材料基础信息，字段与“新增材料”一致；当传入文件字段 `cover` 时会替换封面并自动清理旧图。
+- **提示**：若请求内容与当前数据一致，接口返回“无需更新”以提示前端无需刷新。
+
+## 调整材料状态
+- **权限标识**：`app-admin.materials.status`
+- **接口**：`PATCH /admin-api/materials/{id}/status`
+- **说明**：仅切换材料启用状态，可单独授权。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_active` | boolean | 是 | `true` 为启用，`false` 为停用 |
+
+- **响应**：返回最新材料数据。
+
+## 上传材料封面
+- **权限标识**：`app-admin.materials.cover`
+- **接口**：`POST /admin-api/materials/{id}/cover`
+- **说明**：独立上传或替换材料封面图，适用于编辑页直接替换图片。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 封面图片，最大 5 MB |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "上传成功",
+	"data": {
+		"attachment_id": "8c0db402-0cda-4b73-8a07-9f5f5fbe2b68",
+		"cover_url": "https://cdn.example.com/materials/wood-teak.png",
+		"material": {
+			"id": 101,
+			"name": "柚木板",
+			"cover_url": "https://cdn.example.com/materials/wood-teak.png",
+			"is_active": true,
+			"is_public": true,
+			"processing_profiles_count": 4,
+			"media_count": 2
+		}
+	}
+}
+```
+
+## 删除材料
+- **权限标识**：`app-admin.materials.destroy`
+- **接口**：`DELETE /admin-api/materials/{id}`
+- **说明**：删除材料前需先解除机器模块关联并清理所有加工参数；成功删除后系统会同步移除封面文件及附件记录。
+
+
+# 材料加工配置 API
+
+## 配置列表
+- **权限标识**：`app-admin.material-processing-profiles.index`
+- **接口**：`GET /admin-api/material-processing-profiles`
+- **说明**：分页查看指定材料与机器模块的加工参数，支持按材料、模块、机型、加工类型与关键字筛选。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`sort_order`、`power_percent`、`created_at` 等 |
+| `material_id` | integer | 否 | 仅查看指定材料的配置 |
+| `machine_module_profile_id` | integer | 否 | 仅查看指定模块加工方案下的配置 |
+| `machine_module_id` | integer | 否 | 按机器模块过滤（内部通过关联查询） |
+| `machine_id` | integer | 否 | 按机型过滤 |
+| `process_type` | string | 否 | 按加工类型过滤，例如 `engrave`、`cut` |
+| `is_active` | string | 否 | 是否启用，接受 `true`/`false`/`1`/`0` 等值 |
+| `keyword` | string | 否 | 模糊搜索备注或材料名称、编号 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 6,
+		"list": [
+			{
+				"id": 501,
+				"material": {
+					"id": 101,
+					"name": "柚木板",
+					"material_code": "WOOD-TEAK-3MM"
+				},
+				"machine_module_profile": {
+					"id": 301,
+					"processing_module": "laser",
+					"processing_mode": "vector",
+					"process_type": "cut",
+					"machine_module": {
+						"id": 11,
+						"name": "蓝光 10W 模块",
+						"machine": {
+							"id": 1,
+							"name": "LumiMaker X1",
+							"slug": "lumimaker-x1"
+						}
+					}
+				},
+				"power_percent": 90,
+				"speed_mm_per_sec": 8,
+				"passes": 2,
+				"focus_offset_mm": 0,
+				"air_assist": true,
+				"parameter_matrix": {},
+				"preview_image_url": null,
+				"notes": "默认推荐",
+				"is_active": true,
+				"sort_order": 0,
+				"created_at": "2025-12-20 10:00:00",
+				"updated_at": "2025-12-21 09:00:00"
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `material` | object/null | 包含材料 ID、名称、编码等基础信息 |
+| `machine_module_profile` | object/null | 包含加工方案及所属机器模块、机型信息 |
+| `power_percent` | integer | 激光功率百分比 |
+| `speed_mm_per_sec` | number/null | 运动速度（毫米/秒） |
+| `passes` | integer/null | 重复加工次数 |
+| `focus_offset_mm` | number/null | 焦距偏移量（毫米） |
+| `air_assist` | boolean/null | 是否启用气辅（`null` 表示未配置） |
+| `parameter_matrix` | object | 高级参数矩阵（JSON 对象） |
+| `is_active` | boolean | 是否启用该配置 |
+| `sort_order` | integer | 排序值，越小越靠前 |
+
+## 配置详情
+- **权限标识**：`app-admin.material-processing-profiles.show`
+- **接口**：`GET /admin-api/material-processing-profiles/{id}`
+- **说明**：返回单条加工配置的完整信息，与列表项结构一致。
+
+## 新增配置
+- **权限标识**：`app-admin.material-processing-profiles.store`
+- **接口**：`POST /admin-api/material-processing-profiles`
+- **说明**：创建材料与模块加工方案之间的参数配置。
+- **请求方式**：`application/json`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `material_id` | integer | 是 | 目标材料 ID |
+| `machine_module_profile_id` | integer | 是 | 关联的机器模块加工方案 ID |
+| `power_percent` | integer | 是 | 激光功率百分比，范围 `0~100` |
+| `speed_mm_per_sec` | number | 否 | 运动速度（毫米/秒） |
+| `passes` | integer | 否 | 重复加工次数，最小值 `1` |
+| `focus_offset_mm` | number | 否 | 焦距偏移量（毫米，可为负） |
+| `air_assist` | boolean | 否 | 是否开启气辅 |
+| `preview_image_url` | string | 否 | 预览图地址，最大 500 字符 |
+| `notes` | string | 否 | 备注说明，最大 500 字符 |
+| `is_active` | boolean | 否 | 是否启用，默认 `true` |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+| `parameter_matrix` | object | 否 | 直接提交完整参数矩阵（JSON 对象） |
+| `parameter_matrix_sections` | object | 否 | 结构化参数片段，由后台自动组装矩阵（若同时提交，优先使用该字段） |
+
+- **说明**：`parameter_matrix_sections` 可包含 `fill_engrave`、`line_engrave`、`line_cut`、`line_mark`、`fill_mark` 等子对象，后台会通过内部助手与默认模板合并生成 `parameter_matrix`，避免手写复杂 JSON。
+
+## 更新配置
+- **权限标识**：`app-admin.material-processing-profiles.update`
+- **接口**：`PUT /admin-api/material-processing-profiles/{id}` 或 `PATCH /admin-api/material-processing-profiles/{id}`
+- **说明**：字段同“新增配置”，全部为可选；当参数与当前值一致时会返回“无需更新”。
+
+## 删除配置
+- **权限标识**：`app-admin.material-processing-profiles.destroy`
+- **接口**：`DELETE /admin-api/material-processing-profiles/{id}`
+- **说明**：移除单条加工配置，删除后不可恢复，请确认未在前台引用。
+
+## 上传示例图
+- **权限标识**：`app-admin.material-processing-profiles.preview`
+- **接口**：`POST /admin-api/material-processing-profiles/{id}/preview`
+- **说明**：独立上传或替换加工配置的示例图，适合表单内单独更新图片。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 示例图图片，最大 5 MB；支持常见图片格式 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "上传成功",
+	"data": {
+		"attachment_id": 12345,
+		"preview_image_url": "https://cdn.example.com/material-processing/preview-501.png",
+		"profile": {
+			"id": 501,
+			"preview_image_url": "https://cdn.example.com/material-processing/preview-501.png"
+		}
+	}
+}
+```
+
+- **说明**：响应会同时返回最新的加工配置详情，便于前端同步界面；附件 ID 可用于后续追踪或清理资源。
+
+## 下载配置模板
+- **权限标识**：`app-admin.material-processing-profiles.template`
+- **接口**：`GET /admin-api/material-processing-profiles/template`
+- **说明**：下载加工配置导入模板（CSV），包含常用列头及填写提示。
+- **响应**：返回 `material_processing_profiles_template.csv`，默认带 UTF-8 BOM 以兼容 Excel。
+
 ## 其他注意事项
-- 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限。
+- 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限，可按按钮粒度选择 `*.status`、`*.import`、`*.export`。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。
 

@@ -5,6 +5,15 @@
         <span class="card-title">{{ $t('machineModule.search_title') }}</span>
         <div class="card-actions">
           <el-button
+            v-if="checkPermission(['app-admin.machine-modules.import'])"
+            :loading="templateLoading"
+            icon="el-icon-document"
+            size="small"
+            @click="handleDownloadTemplate"
+          >
+            {{ $t('machineModule.action_download_template') }}
+          </el-button>
+          <el-button
             v-if="checkPermission(['app-admin.machine-modules.store'])"
             type="primary"
             icon="el-icon-plus"
@@ -44,38 +53,44 @@
           @keyup.enter.native="handleFilter"
         />
 
-        <el-select
-          v-model="listQuery.machine_id"
-          clearable
-          filterable
-          :placeholder="$t('machineModule.filter_machine_placeholder')"
-          class="filter-item"
-          style="width: 220px;margin-right: 12px;"
-          :loading="machineOptionsLoading"
-          @visible-change="handleMachineSelectVisible"
-          @change="handleFilter"
-        >
-          <el-option :label="$t('machineModule.option_all')" value="" />
-          <el-option
-            v-for="item in machineOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
+        <div class="filter-item filter-field" style="margin-right: 12px;">
+          <span class="filter-label">{{ $t('machineModule.search_machine') }}</span>
+          <el-select
+            v-model="listQuery.machine_id"
+            clearable
+            filterable
+            :placeholder="$t('machineModule.filter_machine_placeholder')"
+            class="filter-select"
+            style="width: 220px;"
+            :loading="machineOptionsLoading"
+            @visible-change="handleMachineSelectVisible"
+            @change="handleFilter"
+          >
+            <el-option :label="$t('machineModule.option_all')" value="" />
+            <el-option
+              v-for="item in machineOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </div>
 
-        <el-select
-          v-model="listQuery.is_active"
-          :placeholder="$t('machineModule.search_status')"
-          clearable
-          class="filter-item"
-          style="width: 160px;margin-right: 12px;"
-          @change="handleFilter"
-        >
-          <el-option :label="$t('machineModule.option_all')" value="" />
-          <el-option :label="$t('machineModule.option_enabled')" value="true" />
-          <el-option :label="$t('machineModule.option_disabled')" value="false" />
-        </el-select>
+        <div class="filter-item filter-field" style="margin-right: 12px;">
+          <span class="filter-label">{{ $t('machineModule.search_status') }}</span>
+          <el-select
+            v-model="listQuery.is_active"
+            :placeholder="$t('machineModule.search_status')"
+            clearable
+            class="filter-select"
+            style="width: 160px;"
+            @change="handleFilter"
+          >
+            <el-option :label="$t('machineModule.option_all')" value="" />
+            <el-option :label="$t('machineModule.option_enabled')" value="true" />
+            <el-option :label="$t('machineModule.option_disabled')" value="false" />
+          </el-select>
+        </div>
 
         <el-select
           v-model="listQuery.order"
@@ -163,7 +178,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column width="260" align="center" :label="$t('machineModule.table_actions')">
+        <el-table-column fixed="right" width="360" align="center" :label="$t('machineModule.table_actions')">
           <template slot-scope="{ row }">
             <el-button
               v-waves
@@ -186,6 +201,18 @@
               @click="openEdit(row)"
             >
               {{ $t('machineModule.action_edit') }}
+            </el-button>
+            <el-button
+              v-waves
+              size="mini"
+              :type="row.is_active ? 'warning' : 'success'"
+              plain
+              icon="el-icon-switch-button"
+              :loading="loading.status === row.id"
+              :disabled="!checkPermission(['app-admin.machine-modules.status'])"
+              @click="toggleStatus(row)"
+            >
+              {{ row.is_active ? $t('machineModule.action_disable') : $t('machineModule.action_enable') }}
             </el-button>
             <el-button
               v-waves
@@ -336,7 +363,9 @@ import {
   updateMachineModule,
   getMachineModuleDetail,
   importMachineModules,
-  exportMachineModules
+  exportMachineModules,
+  downloadMachineModuleTemplate,
+  updateMachineModuleStatus
 } from '@/api/machineModules'
 import { getMachines } from '@/api/machines'
 
@@ -372,10 +401,12 @@ export default {
       machineOptions: [],
       machineOptionsLoading: false,
       loading: {
-        delete: ''
+        delete: '',
+        status: ''
       },
       importing: false,
       exporting: false,
+      templateLoading: false,
       dialog: {
         visible: false,
         loading: false,
@@ -550,6 +581,30 @@ export default {
       }
       this.loadMachineOptions()
     },
+    // 切换模块启用状态
+    toggleStatus(row) {
+      if (!row || !row.id) {
+        return
+      }
+      const targetStatus = !row.is_active
+      const confirmKey = targetStatus ? 'machineModule.confirm_enable' : 'machineModule.confirm_disable'
+      this.$confirm(this.$t(confirmKey), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.loading.status = row.id
+        updateMachineModuleStatus(row.id, targetStatus)
+          .then(() => {
+            const messageKey = targetStatus ? 'machineModule.message_enable_success' : 'machineModule.message_disable_success'
+            this.$message.success(this.$t(messageKey))
+            this.getList()
+          })
+          .finally(() => {
+            this.loading.status = ''
+          })
+      }).catch(() => {})
+    },
     // 提交新增或编辑
     submitDialog() {
       this.$refs.moduleForm.validate(valid => {
@@ -656,12 +711,12 @@ export default {
       this.exporting = true
       exportMachineModules(params)
         .then(response => {
-          this.downloadBlob(response)
+          this.downloadBlob(response, 'machine_modules_export.xlsx')
           this.$message.success(this.$t('machineModule.message_export_success'))
         })
         .catch(err => {
           if (err instanceof Blob) {
-            this.downloadBlob(err)
+            this.downloadBlob(err, 'machine_modules_export.xlsx')
             this.$message.success(this.$t('machineModule.message_export_success'))
           } else {
             const message = (err && err.message) ? err.message : this.$t('machineModule.message_export_error')
@@ -672,14 +727,38 @@ export default {
           this.exporting = false
         })
     },
+    // 下载导入模板
+    handleDownloadTemplate() {
+      if (this.templateLoading) {
+        return
+      }
+      this.templateLoading = true
+      downloadMachineModuleTemplate()
+        .then(response => {
+          this.downloadBlob(response, 'machine_module_import_template.csv')
+          this.$message.success(this.$t('machineModule.message_template_success'))
+        })
+        .catch(err => {
+          if (err instanceof Blob) {
+            this.downloadBlob(err, 'machine_module_import_template.csv')
+            this.$message.success(this.$t('machineModule.message_template_success'))
+          } else {
+            const message = (err && err.message) ? err.message : this.$t('machineModule.message_template_error')
+            this.$message.error(message)
+          }
+        })
+        .finally(() => {
+          this.templateLoading = false
+        })
+    },
     // 执行 Blob 下载
-    downloadBlob(response) {
+    downloadBlob(response, fallbackName = 'machine_modules_export.xlsx') {
       if (!response) {
         return
       }
       const blob = response.data instanceof Blob ? response.data : response
       const disposition = response.headers ? response.headers['content-disposition'] : ''
-      let fileName = 'machine_modules_export.xlsx'
+      let fileName = fallbackName
       if (disposition) {
         const match = /filename\*=utf-8''([^;]+)/i.exec(disposition) || /filename="?([^";]+)"?/i.exec(disposition)
         if (match && match[1]) {
@@ -744,6 +823,16 @@ export default {
 }
 .filter-item {
   margin-bottom: 12px;
+}
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
 }
 .color-cell {
   display: flex;
