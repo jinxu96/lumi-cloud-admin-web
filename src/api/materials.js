@@ -67,3 +67,16 @@ export function uploadMaterialCover(id, file) {
     }
   })
 }
+
+export function detachMaterialModules(id, machineModuleId) {
+  // 解绑材料与机器模块关联，machineModuleId 为空时解绑全部
+  const params = {}
+  if (machineModuleId) {
+    params.machine_module_id = machineModuleId
+  }
+  return request({
+    url: `materials/${id}/machine-modules`,
+    method: 'delete',
+    params
+  })
+}

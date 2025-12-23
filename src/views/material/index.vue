@@ -207,6 +207,18 @@
               v-waves
               size="mini"
               type="danger"
+              plain
+              icon="el-icon-unlock"
+              :loading="loading.detach === row.id"
+              :disabled="!checkPermission(['app-admin.materials.detach-modules'])"
+              @click="handleDetachModules(row)"
+            >
+              {{ $t('material.action_detach_modules') }}
+            </el-button>
+            <el-button
+              v-waves
+              size="mini"
+              type="danger"
               icon="el-icon-delete"
               :loading="loading.delete === row.id"
               :disabled="!checkPermission(['app-admin.materials.destroy'])"
@@ -301,32 +313,45 @@
         <el-form-item :label="$t('material.form_description')">
           <el-input v-model="dialog.form.description" type="textarea" :rows="3" maxlength="500" show-word-limit />
         </el-form-item>
-        <el-form-item :label="$t('material.form_package_contents')">
-          <div class="form-list">
-            <div
-              v-for="(content, index) in dialog.form.package_contents"
-              :key="`package-${index}`"
-              class="form-list-item"
-            >
-              <el-input
-                v-model="dialog.form.package_contents[index]"
-                maxlength="120"
-                :placeholder="$t('material.form_package_item_placeholder')"
-                class="form-list-item__input"
+        <el-form-item :label="$t('material.form_package_contents')" prop="package_contents">
+          <div class="package-content-group">
+            <div class="package-content-row">
+              <span class="package-content-label">{{ $t('material.form_package_sheets') }}</span>
+              <el-input-number
+                v-model="dialog.form.package_contents.sheets"
+                :min="1"
+                :max="999999"
+                :step="1"
+                :precision="0"
+                controls-position="right"
+                class="package-content-number"
               />
-              <el-button
-                v-if="dialog.form.package_contents.length > 1"
-                type="text"
-                class="form-list-item__remove"
-                icon="el-icon-delete"
-                @click="removePackageContent(index)"
-              >
-                {{ $t('material.form_remove_item') }}
-              </el-button>
             </div>
-            <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="addPackageContent">
-              {{ $t('material.form_package_add') }}
-            </el-button>
+            <div class="package-content-row">
+              <span class="package-content-label">{{ $t('material.form_package_size') }}</span>
+              <div class="package-content-size">
+                <el-input-number
+                  v-model="dialog.form.package_contents.size_width_mm"
+                  :min="1"
+                  :max="100000"
+                  :step="1"
+                  :precision="0"
+                  controls-position="right"
+                  class="package-content-size-input"
+                />
+                <span class="package-content-divider">×</span>
+                <el-input-number
+                  v-model="dialog.form.package_contents.size_height_mm"
+                  :min="1"
+                  :max="100000"
+                  :step="1"
+                  :precision="0"
+                  controls-position="right"
+                  class="package-content-size-input"
+                />
+                <span class="package-content-unit">{{ $t('material.form_package_unit_mm') }}</span>
+              </div>
+            </div>
           </div>
         </el-form-item>
         <el-form-item :label="$t('material.form_tags')">
@@ -436,7 +461,7 @@
 import waves from '@/directive/waves'
 import checkPermission from '@/utils/permission'
 import Pagination from '@/components/Pagination'
-import { getMaterials, createMaterial, updateMaterial, deleteMaterial, updateMaterialStatus, uploadMaterialCover } from '@/api/materials'
+import { getMaterials, createMaterial, updateMaterial, deleteMaterial, updateMaterialStatus, uploadMaterialCover, detachMaterialModules } from '@/api/materials'
 
 const toInputText = (value) => {
   if (value === null || value === undefined) {
@@ -462,6 +487,109 @@ const createWarningItem = (data = {}) => ({
   detail_url: toInputText(data.detail_url)
 })
 
+const createDefaultPackageContents = () => ({
+  sheets: null,
+  size_width_mm: null,
+  size_height_mm: null
+})
+
+const normalizePackageContents = (input) => {
+  const fallback = createDefaultPackageContents()
+  if (input === null || input === undefined || input === '') {
+    return fallback
+  }
+
+  let value = input
+  if (typeof input === 'string') {
+    const trimmed = input.trim()
+    if (!trimmed) {
+      return fallback
+    }
+    try {
+      value = JSON.parse(trimmed)
+    } catch (error) {
+      return fallback
+    }
+  }
+
+  if (Array.isArray(value)) {
+    const [first] = value
+    if (typeof first === 'string') {
+      try {
+        return normalizePackageContents(JSON.parse(first))
+      } catch (error) {
+        return fallback
+      }
+    }
+    if (first && typeof first === 'object') {
+      return normalizePackageContents(first)
+    }
+    return fallback
+  }
+
+  if (typeof value === 'object') {
+    if (value === null) {
+      return fallback
+    }
+    const normalized = createDefaultPackageContents()
+    const sheetsValue = Number(value.sheets)
+    normalized.sheets = Number.isFinite(sheetsValue) ? sheetsValue : null
+
+    if (Array.isArray(value.size_mm) && value.size_mm.length >= 2) {
+      const widthValue = Number(value.size_mm[0])
+      const heightValue = Number(value.size_mm[1])
+      normalized.size_width_mm = Number.isFinite(widthValue) ? widthValue : null
+      normalized.size_height_mm = Number.isFinite(heightValue) ? heightValue : null
+    } else {
+      const widthValue = Number(value.width_mm !== undefined ? value.width_mm : value.width)
+      const heightValue = Number(value.height_mm !== undefined ? value.height_mm : value.height)
+      normalized.size_width_mm = Number.isFinite(widthValue) ? widthValue : null
+      normalized.size_height_mm = Number.isFinite(heightValue) ? heightValue : null
+    }
+
+    return normalized
+  }
+
+  return fallback
+}
+
+const toPositiveNumber = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
+  const num = Number(value)
+  if (!Number.isFinite(num) || num <= 0) {
+    return null
+  }
+  return num
+}
+
+const toPositiveInteger = (value) => {
+  const num = toPositiveNumber(value)
+  if (num === null) {
+    return null
+  }
+  return Math.round(num)
+}
+
+const buildPackageContentsPayload = (content) => {
+  if (!content) {
+    return null
+  }
+  const sheets = toPositiveInteger(content.sheets)
+  const width = toPositiveNumber(content.size_width_mm)
+  const height = toPositiveNumber(content.size_height_mm)
+
+  if (sheets === null || width === null || height === null) {
+    return null
+  }
+
+  return {
+    sheets,
+    size_mm: [width, height]
+  }
+}
+
 const createDefaultForm = () => ({
   id: '',
   name: '',
@@ -474,7 +602,7 @@ const createDefaultForm = () => ({
   color: '',
   cover_url: '',
   description: '',
-  package_contents: [''],
+  package_contents: createDefaultPackageContents(),
   tags: [''],
   warnings: [createWarningItem()],
   extra: '',
@@ -553,7 +681,8 @@ export default {
       uploadPlaceholderAction: '/noop-upload',
       loading: {
         delete: '',
-        status: ''
+        status: '',
+        detach: ''
       },
       dialog: {
         visible: false,
@@ -563,7 +692,8 @@ export default {
         coverPreview: '',
         form: createDefaultForm(),
         rules: {
-          name: [{ required: true, message: this.$t('material.form_rules_name'), trigger: 'blur' }]
+          name: [{ required: true, message: this.$t('material.form_rules_name'), trigger: 'blur' }],
+          package_contents: [{ validator: (rule, value, callback) => this.validatePackageContents(rule, value, callback), trigger: 'change' }]
         }
       }
     }
@@ -664,7 +794,7 @@ export default {
       this.dialog.isEdit = true
       this.dialog.coverFile = null
       this.dialog.coverPreview = ''
-      const packageContents = normalizeStringArray(row.package_contents)
+      const packageContents = normalizePackageContents(row.package_contents)
       const tags = normalizeStringArray(row.tags)
       const warnings = normalizeWarnings(row.warnings)
       this.dialog.form = {
@@ -679,7 +809,7 @@ export default {
         color: toInputText(row.color),
         cover_url: toInputText(row.cover_url),
         description: toInputText(row.description),
-        package_contents: packageContents.length ? packageContents : [''],
+        package_contents: packageContents,
         tags: tags.length ? tags : [''],
         warnings: warnings.length ? warnings : [createWarningItem()],
         extra: row && typeof row.extra === 'object' && row.extra !== null ? JSON.stringify(row.extra) : toInputText(row.extra),
@@ -738,6 +868,53 @@ export default {
           })
       }).catch(() => {})
     },
+    // 解绑材料与机器模块
+    handleDetachModules(row) {
+      if (!row || !row.id) {
+        return
+      }
+      this.$confirm(this.$t('material.confirm_detach'), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.loading.detach = row.id
+        detachMaterialModules(row.id)
+          .then(() => {
+            this.$message.success(this.$t('material.message_detach_success'))
+            this.getList()
+          })
+          .finally(() => {
+            this.loading.detach = ''
+          })
+      }).catch(() => {})
+    },
+    validatePackageContents(rule, value, callback) {
+      const info = value || {}
+      const hasSheets = info.sheets !== null && info.sheets !== undefined && info.sheets !== ''
+      if (!hasSheets) {
+        callback(new Error(this.$t('material.form_rules_package_sheets')))
+        return
+      }
+      const sheetsNumber = Number(info.sheets)
+      if (!Number.isFinite(sheetsNumber) || sheetsNumber <= 0) {
+        callback(new Error(this.$t('material.form_rules_package_sheets_positive')))
+        return
+      }
+      const hasWidth = info.size_width_mm !== null && info.size_width_mm !== undefined && info.size_width_mm !== ''
+      const hasHeight = info.size_height_mm !== null && info.size_height_mm !== undefined && info.size_height_mm !== ''
+      if (!hasWidth || !hasHeight) {
+        callback(new Error(this.$t('material.form_rules_package_size')))
+        return
+      }
+      const widthNumber = Number(info.size_width_mm)
+      const heightNumber = Number(info.size_height_mm)
+      if (!Number.isFinite(widthNumber) || !Number.isFinite(heightNumber) || widthNumber <= 0 || heightNumber <= 0) {
+        callback(new Error(this.$t('material.form_rules_package_size_positive')))
+        return
+      }
+      callback()
+    },
     // 提交新增或编辑
     submitDialog() {
       this.$refs.materialForm.validate(valid => {
@@ -745,9 +922,11 @@ export default {
           return
         }
         const baseForm = this.dialog.form
-        const packageItems = baseForm.package_contents
-          .map(item => (item === null || item === undefined) ? '' : String(item).trim())
-          .filter(item => item !== '')
+        const packagePayload = buildPackageContentsPayload(baseForm.package_contents)
+        if (!packagePayload) {
+          this.$message.error(this.$t('material.message_package_invalid'))
+          return
+        }
         const tagItems = baseForm.tags
           .map(item => (item === null || item === undefined) ? '' : String(item).trim())
           .filter(item => item !== '')
@@ -809,7 +988,7 @@ export default {
         }
 
         const extrasPayload = {
-          packageItems,
+          packageContents: packagePayload,
           tagItems,
           warnings
         }
@@ -865,16 +1044,6 @@ export default {
           this.$refs.materialForm.clearValidate()
         }
       })
-    },
-    addPackageContent() {
-      this.dialog.form.package_contents.push('')
-    },
-    removePackageContent(index) {
-      if (this.dialog.form.package_contents.length <= 1) {
-        this.dialog.form.package_contents.splice(0, 1, '')
-        return
-      }
-      this.dialog.form.package_contents.splice(index, 1)
     },
     addTag() {
       this.dialog.form.tags.push('')
@@ -964,13 +1133,13 @@ export default {
           }
         }
       })
-      const packageItems = Array.isArray(extras.packageItems) ? extras.packageItems : []
+      const packageContents = extras && typeof extras.packageContents === 'object' ? extras.packageContents : null
       const tagItems = Array.isArray(extras.tagItems) ? extras.tagItems : []
       const warnings = Array.isArray(extras.warnings) ? extras.warnings : []
 
-      packageItems.forEach(item => {
-        formData.append('package_contents[]', item)
-      })
+      if (packageContents) {
+        formData.append('package_contents', JSON.stringify(packageContents))
+      }
 
       tagItems.forEach(item => {
         formData.append('tags[]', item)
@@ -995,11 +1164,11 @@ export default {
     buildMaterialJsonPayload(payload, extras = {}) {
       // 编辑及无文件创建走纯 JSON
       const data = { ...payload }
-      const packageItems = Array.isArray(extras.packageItems) ? extras.packageItems : []
+      const packageContents = extras && typeof extras.packageContents === 'object' ? extras.packageContents : null
       const tagItems = Array.isArray(extras.tagItems) ? extras.tagItems : []
       const warnings = Array.isArray(extras.warnings) ? extras.warnings : []
 
-      data.package_contents = packageItems
+      data.package_contents = packageContents || null
       data.tags = tagItems
       data.warnings = warnings
 
@@ -1127,6 +1296,39 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.package-content-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.package-content-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.package-content-label {
+  font-size: 13px;
+  color: #606266;
+  min-width: 48px;
+}
+.package-content-number {
+  width: 160px;
+}
+.package-content-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.package-content-size-input {
+  width: 140px;
+}
+.package-content-divider {
+  color: #909399;
+}
+.package-content-unit {
+  color: #909399;
+  font-size: 13px;
 }
 .form-list-item {
   display: flex;

@@ -9,3 +9,29 @@ export function getMachineModuleProfiles(params) {
     params
   })
 }
+
+export function createMachineModuleProfile(data) {
+  // 新增机器模块加工方案
+  return request({
+    url: 'machine-module-profiles',
+    method: 'post',
+    data
+  })
+}
+
+export function updateMachineModuleProfile(id, data) {
+  // 更新指定机器模块加工方案
+  return request({
+    url: `machine-module-profiles/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteMachineModuleProfile(id) {
+  // 删除机器模块加工方案
+  return request({
+    url: `machine-module-profiles/${id}`,
+    method: 'delete'
+  })
+}

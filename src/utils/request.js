@@ -121,8 +121,26 @@ service.interceptors.response.use(
   },
   error => {
     console.log('err' + error) // for debug
+    const response = error && error.response ? error.response : null
+    let message = error && error.message ? error.message : 'Error'
+    if (response && response.data) {
+      const data = response.data
+      if (data.message) {
+        message = data.message
+      } else if (data.error) {
+        message = data.error
+      } else if (data.errors && typeof data.errors === 'object') {
+        const firstError = Object.values(data.errors).find(item => Array.isArray(item) && item.length)
+        if (firstError) {
+          message = firstError[0]
+        }
+      } else if (typeof data === 'string') {
+        message = data
+      }
+    }
+    error.message = message
     Message({
-      message: error.message,
+      message,
       type: 'error',
       duration: 3 * 1000
     })

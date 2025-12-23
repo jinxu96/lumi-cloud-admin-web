@@ -91,6 +91,7 @@ export default {
     action_create: 'Create Module',
     action_edit: 'Edit',
     action_view: 'Details',
+    action_add_profile: 'Add Processing Profile',
     action_import: 'Import Profiles',
     action_export: 'Export Profiles',
     action_download_template: 'Download Template',
@@ -135,6 +136,24 @@ export default {
     profile_processing_mode: 'Processing Mode',
     profile_process_type: 'Process Type',
     profile_power: 'Power (W)',
-    profile_sort: 'Sort'
+    profile_sort: 'Sort',
+    profile_actions: 'Actions',
+    profile_dialog_title: 'Create Processing Profile',
+    profile_dialog_title_edit: 'Edit Processing Profile',
+    profile_dialog_module: 'Processing Module',
+    profile_dialog_mode: 'Processing Mode',
+    profile_dialog_type: 'Process Type',
+    profile_dialog_power: 'Power (W)',
+    profile_dialog_sort: 'Sort',
+    profile_dialog_rules_module: 'Please enter processing module',
+    message_profile_create_success: 'Processing profile created',
+    message_profile_create_error: 'Failed to create processing profile',
+    action_edit_profile: 'Edit',
+    action_delete_profile: 'Delete',
+    message_profile_update_success: 'Processing profile updated',
+    message_profile_update_error: 'Failed to update processing profile',
+    confirm_profile_delete: 'Delete this processing profile? This action cannot be undone.',
+    message_profile_delete_success: 'Processing profile deleted',
+    message_profile_delete_error: 'Failed to delete processing profile'
   }
 }

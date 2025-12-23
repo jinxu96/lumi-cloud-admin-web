@@ -4,7 +4,7 @@
     :header-cell-style="{background:'#eef1f6',color:'#606266'}"
     class="system-table"
   >
-    <el-table-column :label="$t('dashboard.system_info')" width="200">
+    <!-- <el-table-column :label="$t('dashboard.system_info')" width="200">
       <template slot-scope="scope">
         {{ scope.row.name }}
       </template>
@@ -13,7 +13,7 @@
       <template slot-scope="scope">
         {{ scope.row.content }}
       </template>
-    </el-table-column>
+    </el-table-column> -->
   </el-table>
 </template>
 

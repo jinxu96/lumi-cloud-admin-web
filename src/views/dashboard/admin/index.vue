@@ -12,7 +12,7 @@
     <panel-group />
 
     <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="8">
+      <!-- <el-col :xs="24" :sm="24" :lg="8">
         <div class="chart-wrapper">
           <raddar-chart />
         </div>
@@ -26,7 +26,7 @@
         <div class="chart-wrapper">
           <bar-chart />
         </div>
-      </el-col>
+      </el-col> -->
     </el-row>
 
     <component :is="currentSystem" />
@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import permission from '@/directive/permission/index.js'
 import checkPermission from '@/utils/permission'
 import PanelGroup from './components/PanelGroup'
 import SystemTable from './components/SystemTable'

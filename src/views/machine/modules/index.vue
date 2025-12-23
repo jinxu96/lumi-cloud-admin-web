@@ -300,6 +300,7 @@
       :visible.sync="detail.visible"
       size="45%"
       :destroy-on-close="true"
+      @close="handleDetailClosed"
     >
       <div v-if="detail.loading" class="drawer-loading">
         <i class="el-icon-loading drawer-loading__icon" />
@@ -331,7 +332,18 @@
         </el-form>
 
         <div class="detail-section">
-          <h4>{{ $t('machineModule.detail_profiles') }}</h4>
+          <div class="detail-section__header">
+            <h4>{{ $t('machineModule.detail_profiles') }}</h4>
+            <el-button
+              v-if="checkPermission(['app-admin.machine-module-profiles.store'])"
+              type="primary"
+              size="mini"
+              icon="el-icon-plus"
+              @click="openProfileDialog"
+            >
+              {{ $t('machineModule.action_add_profile') }}
+            </el-button>
+          </div>
           <el-table
             v-if="detail.profiles && detail.profiles.length"
             :data="detail.profiles"
@@ -344,11 +356,55 @@
             <el-table-column prop="process_type" :label="$t('machineModule.profile_process_type')" />
             <el-table-column prop="power_watt" :label="$t('machineModule.profile_power')" />
             <el-table-column prop="sort_order" :label="$t('machineModule.profile_sort')" />
+            <el-table-column
+              v-if="checkPermission(['app-admin.machine-module-profiles.update', 'app-admin.machine-module-profiles.destroy'])"
+              :label="$t('machineModule.profile_actions')"
+              width="180"
+              align="center"
+            >
+              <template slot-scope="{ row }">
+                <el-button
+                  v-if="checkPermission(['app-admin.machine-module-profiles.update'])"
+                  size="mini"
+                  type="primary"
+                  plain
+                  icon="el-icon-edit"
+                  @click="openProfileEdit(row)"
+                >
+                  {{ $t('machineModule.action_edit_profile') }}
+                </el-button>
+                <el-button
+                  v-if="checkPermission(['app-admin.machine-module-profiles.destroy'])"
+                  size="mini"
+                  type="danger"
+                  plain
+                  icon="el-icon-delete"
+                  :loading="loading.profileDelete === row.id"
+                  @click="handleProfileDelete(row)"
+                >
+                  {{ $t('machineModule.action_delete_profile') }}
+                </el-button>
+              </template>
+            </el-table-column>
           </el-table>
-          <el-empty v-else :description="$t('machineModule.detail_profiles_empty')" />
+          <!-- 无加工方案时显示的提示块 -->
+          <div v-else class="detail-empty">
+            {{ $t('machineModule.detail_profiles_empty') }}
+          </div>
         </div>
       </div>
     </el-drawer>
+
+    <profile-scheme-dialog
+      v-if="detail.profileDialogVisible"
+      :visible.sync="detail.profileDialogVisible"
+      :machine-module-id="detail.currentId"
+      :default-power="detail.data && detail.data.power_watt"
+      :mode="detail.profileDialogMode"
+      :profile="detail.activeProfile"
+      @submit="handleProfileSubmit"
+      @closed="handleProfileDialogClosed"
+    />
   </div>
 </template>
 
@@ -368,6 +424,12 @@ import {
   updateMachineModuleStatus
 } from '@/api/machineModules'
 import { getMachines } from '@/api/machines'
+import {
+  createMachineModuleProfile,
+  updateMachineModuleProfile,
+  deleteMachineModuleProfile
+} from '@/api/machineModuleProfiles'
+import ProfileSchemeDialog from './components/ProfileSchemeDialog.vue'
 
 const createDefaultModuleForm = () => ({
   id: '',
@@ -382,7 +444,7 @@ const createDefaultModuleForm = () => ({
 
 export default {
   name: 'MachineModuleIndex',
-  components: { Pagination },
+  components: { Pagination, ProfileSchemeDialog },
   directives: { waves },
   data() {
     return {
@@ -402,7 +464,8 @@ export default {
       machineOptionsLoading: false,
       loading: {
         delete: '',
-        status: ''
+        status: '',
+        profileDelete: ''
       },
       importing: false,
       exporting: false,
@@ -420,8 +483,12 @@ export default {
       detail: {
         visible: false,
         loading: false,
+        currentId: '',
         data: {},
-        profiles: []
+        profiles: [],
+        profileDialogVisible: false, // 控制新增加工方案弹窗
+        profileDialogMode: 'create', // 弹窗当前模式（新增/编辑）
+        activeProfile: null // 当前正在编辑的加工方案
       }
     }
   },
@@ -774,24 +841,121 @@ export default {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     },
-    // 打开详情抽屉
-    openDetail(row) {
-      if (!row || !row.id) {
+    loadModuleDetail(moduleId, { reset = false, showLoading = true } = {}) {
+      if (!moduleId) {
         return
       }
-      this.detail.visible = true
-      this.detail.loading = true
-      this.detail.data = {}
-      this.detail.profiles = []
-      getMachineModuleDetail(row.id)
+      if (reset) {
+        this.detail.data = {}
+        this.detail.profiles = []
+      }
+      if (showLoading) {
+        this.detail.loading = true
+      }
+      return getMachineModuleDetail(moduleId)
         .then(res => {
           const data = res.data || {}
           this.detail.data = data
           this.detail.profiles = data.profiles || []
         })
         .finally(() => {
-          this.detail.loading = false
+          if (showLoading) {
+            this.detail.loading = false
+          }
         })
+    },
+    // 打开详情抽屉
+    openDetail(row) {
+      if (!row || !row.id) {
+        return
+      }
+      this.detail.visible = true
+      this.detail.profileDialogVisible = false
+      this.detail.currentId = row.id
+      this.loadModuleDetail(row.id, { reset: true, showLoading: true })
+    },
+    openProfileDialog() {
+      if (!this.detail.currentId) {
+        return
+      }
+      this.detail.profileDialogMode = 'create'
+      this.detail.activeProfile = null
+      this.detail.profileDialogVisible = true
+    },
+    openProfileEdit(row) {
+      if (!row || !row.id) {
+        return
+      }
+      this.detail.profileDialogMode = 'edit'
+      this.detail.activeProfile = { ...row }
+      this.detail.profileDialogVisible = true
+    },
+    handleProfileSubmit(context, done) {
+      const mode = context && context.mode ? context.mode : 'create'
+      const payload = context && context.payload ? context.payload : null
+      const profileId = context && context.profileId ? context.profileId : (this.detail.activeProfile && this.detail.activeProfile.id)
+      if (!payload) {
+        done(false)
+        return
+      }
+      let request
+      if (mode === 'edit' && profileId) {
+        request = updateMachineModuleProfile(profileId, payload)
+      } else {
+        request = createMachineModuleProfile(payload)
+      }
+      request
+        .then(() => {
+          const messageKey = mode === 'edit'
+            ? 'machineModule.message_profile_update_success'
+            : 'machineModule.message_profile_create_success'
+          this.$message.success(this.$t(messageKey))
+          this.loadModuleDetail(this.detail.currentId, { reset: false, showLoading: false })
+          done(true)
+        })
+        .catch(err => {
+          const fallbackKey = mode === 'edit'
+            ? 'machineModule.message_profile_update_error'
+            : 'machineModule.message_profile_create_error'
+          const message = (err && err.message) ? err.message : this.$t(fallbackKey)
+          this.$message.error(message)
+          done(false)
+        })
+    },
+    handleProfileDelete(row) {
+      if (!row || !row.id) {
+        return
+      }
+      this.$confirm(this.$t('machineModule.confirm_profile_delete'), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.loading.profileDelete = row.id
+        deleteMachineModuleProfile(row.id)
+          .then(() => {
+            this.$message.success(this.$t('machineModule.message_profile_delete_success'))
+            this.loadModuleDetail(this.detail.currentId, { reset: false, showLoading: false })
+          })
+          .catch(err => {
+            const message = (err && err.message) ? err.message : this.$t('machineModule.message_profile_delete_error')
+            this.$message.error(message)
+          })
+          .finally(() => {
+            this.loading.profileDelete = ''
+          })
+      }).catch(() => {})
+    },
+    handleProfileDialogClosed() {
+      this.detail.profileDialogMode = 'create'
+      this.detail.activeProfile = null
+    },
+    handleDetailClosed() {
+      this.detail.profileDialogVisible = false
+      this.detail.currentId = ''
+      this.detail.profileDialogMode = 'create'
+      this.detail.activeProfile = null
+      this.loading.profileDelete = ''
     }
   }
 }
@@ -879,6 +1043,8 @@ export default {
 }
 .drawer-content {
   padding: 0 8px 24px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
 }
 .detail-form .el-form-item {
   margin-bottom: 12px;
@@ -886,9 +1052,21 @@ export default {
 .detail-section {
   margin-top: 24px;
 }
-.detail-section h4 {
+.detail-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
+}
+.detail-section__header h4 {
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
+}
+.detail-empty {
+  padding: 28px 0;
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
 }
 </style>

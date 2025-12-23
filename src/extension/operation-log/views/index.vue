@@ -145,7 +145,7 @@
 
         <el-table-column align="center" :label="$t('操作')" width="150">
           <template slot-scope="scope">
-            <el-tooltip :content="查看完整变更" placement="top">
+            <el-tooltip :content="$t('查看完整变更')" placement="top">
               <span style="display:inline-block;">
                 <el-button
                   v-waves

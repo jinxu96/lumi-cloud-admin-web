@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-main">
-      <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
+      <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="off" label-position="left">
 
         <div class="title-container">
           <h3 class="title">
@@ -21,7 +21,7 @@
             name="username"
             type="text"
             tabindex="1"
-            autocomplete="off"
+            autocomplete="new-password"
           />
         </el-form-item>
 
@@ -38,7 +38,7 @@
               :placeholder="$t('login.password')"
               name="password"
               tabindex="2"
-              autocomplete="off"
+              autocomplete="new-password"
               @keyup.native="checkCapslock"
               @blur="capsTooltip = false"
               @keyup.enter.native="handleLogin"
@@ -60,7 +60,7 @@
             name="captcha"
             type="text"
             tabindex="3"
-            autocomplete="off"
+            autocomplete="new-password"
             class="captcha-input"
           />
 

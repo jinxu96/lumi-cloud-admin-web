@@ -76,6 +76,7 @@
           :remote-method="handleProfileRemote"
           :loading="profileLoading"
           :disabled="!dialog.form.machine_module_id"
+          class="profile-dialog-select--wide"
           @visible-change="handleProfileVisible"
         >
           <el-option
@@ -495,9 +496,16 @@ import {
   formatProfileTitle
 } from '../utils'
 
+const cloneRules = (rules = {}) => JSON.parse(JSON.stringify(rules))
+
 export default {
   name: 'MaterialProcessingProfileDialog',
   data() {
+    const baseRules = {
+      material_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_material'), trigger: 'change' }],
+      machine_module_profile_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_profile'), trigger: 'change' }],
+      power_percent: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_power'), trigger: 'change' }]
+    }
     return {
       checkPermission,
       dialog: {
@@ -513,12 +521,9 @@ export default {
         previewPreview: '',
         previewPendingUpload: false,
         previewUploading: false,
-        rules: {
-          material_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_material'), trigger: 'change' }],
-          machine_module_profile_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_profile'), trigger: 'change' }],
-          power_percent: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_power'), trigger: 'change' }]
-        }
+        rules: cloneRules(baseRules)
       },
+      baseRules,
       materialOptions: [],
       materialLoading: false,
       machineOptions: [],
@@ -543,6 +548,7 @@ export default {
     }
   },
   methods: {
+    // 打开新建弹窗并重置表单状态
     openCreate() {
       this.dialog.visible = true
       this.dialog.isEdit = false
@@ -553,6 +559,7 @@ export default {
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
       this.prefetchBaseOptions()
     },
+    // 打开编辑弹窗并回填已有加工配置
     openEdit(row) {
       if (!row || !row.id) {
         return
@@ -627,22 +634,27 @@ export default {
           this.dialog.loading = false
         })
     },
+    // 远程搜索材料列表
     handleMaterialRemote(keyword) {
       this.fetchMaterialOptions(keyword)
     },
+    // 打开材料下拉时预加载最近数据
     handleMaterialVisible(visible) {
       if (visible && !this.materialOptions.length) {
         this.fetchMaterialOptions()
       }
     },
+    // 远程搜索机器列表
     handleMachineRemote(keyword) {
       this.fetchMachineOptions(keyword)
     },
+    // 打开机器下拉时按需加载
     handleMachineVisible(visible) {
       if (visible && !this.machineOptions.length) {
         this.fetchMachineOptions()
       }
     },
+    // 远程搜索模块列表
     handleModuleRemote(keyword) {
       if (!this.dialog.form.machine_id) {
         this.moduleOptions = []
@@ -650,11 +662,13 @@ export default {
       }
       this.fetchModuleOptions(keyword, { machineId: this.dialog.form.machine_id })
     },
+    // 打开模块下拉时根据机器加载
     handleModuleVisible(visible) {
       if (visible && this.dialog.form.machine_id) {
         this.fetchModuleOptions('', { machineId: this.dialog.form.machine_id })
       }
     },
+    // 远程搜索加工方案列表
     handleProfileRemote(keyword) {
       if (!this.dialog.form.machine_module_id) {
         this.profileOptions = []
@@ -665,29 +679,36 @@ export default {
         machineModuleId: this.dialog.form.machine_module_id
       })
     },
+    // 打开加工方案下拉时刷新可用选项
     handleProfileVisible(visible) {
       if (visible && this.dialog.form.machine_module_id) {
+        // 打开下拉面板时刷新选项，确保展示最新加工方案列表
         this.fetchProfileOptions('', {
           machineId: this.dialog.form.machine_id,
           machineModuleId: this.dialog.form.machine_module_id
         })
       }
     },
+    // 输入原始分段 JSON 时记录覆盖标记
     handleSectionsRawInput(value) {
       const content = typeof value === 'string' ? value : (this.dialog.form.parameter_matrix_sections_raw || '')
       this.dialog.rawOverrides.sections = content.trim().length > 0
     },
+    // 输入原始矩阵 JSON 时记录覆盖标记
     handleMatrixRawInput(value) {
       const content = typeof value === 'string' ? value : (this.dialog.form.parameter_matrix_raw || '')
       this.dialog.rawOverrides.matrix = content.trim().length > 0
     },
+    // 切换 line_cut 生成规则时同步间距字段
     handleLineCutGenerationRuleChange(value) {
       this.syncLineCutBreakSpacingRule(value, { force: true })
     },
+    // 重置用户是否使用原始 JSON 的标记
     resetRawOverrides() {
       this.dialog.rawOverrides.sections = false
       this.dialog.rawOverrides.matrix = false
     },
+    // 选择机器时重置模块和方案并重新拉取选项
     handleDialogMachineChange(value) {
       this.dialog.form.machine_id = value || ''
       this.dialog.form.machine_module_id = ''
@@ -713,6 +734,7 @@ export default {
         this.profileOptions = []
       }
     },
+    // 校验预览图上传文件类型与体积
     beforePreviewUpload(file) {
       if (!file) {
         return false
@@ -729,6 +751,7 @@ export default {
       }
       return true
     },
+    // 处理预览图上传流程
     handlePreviewUpload(uploadOption) {
       const { file, onSuccess, onError } = uploadOption || {}
       if (!file) {
@@ -764,11 +787,13 @@ export default {
         }
       }
     },
+    // 预览图链接变更时清理本地文件
     handlePreviewUrlInput() {
       if (this.dialog.previewFile || this.dialog.previewPreview) {
         this.clearLocalPreviewFile()
       }
     },
+    // 设置本地预览文件并生成临时 URL
     setLocalPreviewFile(file) {
       this.clearLocalPreviewFile()
       if (!file) {
@@ -782,6 +807,7 @@ export default {
       this.dialog.previewPreview = objectUrl
       this.dialog.previewPendingUpload = !(this.dialog.isEdit && this.dialog.form.id)
     },
+    // 清理本地临时预览资源
     clearLocalPreviewFile() {
       if (this.dialog.previewPreview && typeof window !== 'undefined' && window.URL && typeof window.URL.revokeObjectURL === 'function') {
         window.URL.revokeObjectURL(this.dialog.previewPreview)
@@ -790,6 +816,7 @@ export default {
       this.dialog.previewFile = null
       this.dialog.previewPendingUpload = false
     },
+    // 上传预览图至后端并同步最新 URL
     uploadPreviewFile(profileId, file) {
       if (!profileId || !file) {
         return Promise.resolve()
@@ -817,11 +844,13 @@ export default {
           this.dialog.previewUploading = false
         })
     },
+    // 重置预览上传相关状态
     resetPreviewState() {
       this.clearLocalPreviewFile()
       this.dialog.previewUploading = false
       this.dialog.previewPendingUpload = false
     },
+    // 根据生成规则同步断点间距规则
     syncLineCutBreakSpacingRule(value, { force = false } = {}) {
       const sections = this.dialog.form.parameterSections
       if (!sections || !sections.line_cut) {
@@ -833,6 +862,7 @@ export default {
       }
       this.$set(sections.line_cut, 'break_spacing_rule', nextRule)
     },
+    // 预拉取基础下拉选项
     prefetchBaseOptions() {
       if (!this.materialOptions.length) {
         this.fetchMaterialOptions()
@@ -841,6 +871,7 @@ export default {
         this.fetchMachineOptions()
       }
     },
+    // 拉取材料下拉选项
     fetchMaterialOptions(keyword = '') {
       this.materialLoading = true
       const params = {
@@ -871,6 +902,7 @@ export default {
           this.materialLoading = false
         })
     },
+    // 拉取机器下拉选项
     fetchMachineOptions(keyword = '') {
       this.machineLoading = true
       const params = {
@@ -901,6 +933,7 @@ export default {
           this.machineLoading = false
         })
     },
+    // 拉取模块下拉选项
     fetchModuleOptions(keyword = '', { machineId } = {}) {
       if (!machineId) {
         this.moduleOptions = []
@@ -935,6 +968,7 @@ export default {
           this.moduleLoading = false
         })
     },
+    // 拉取加工方案下拉选项
     fetchProfileOptions(keyword = '', { machineId, machineModuleId } = {}) {
       if (!machineModuleId) {
         this.profileOptions = []
@@ -972,6 +1006,7 @@ export default {
           this.profileLoading = false
         })
     },
+    // 追加单个材料选项
     appendMaterialOption(material) {
       if (!material || !material.id) {
         return
@@ -984,6 +1019,7 @@ export default {
         this.materialOptions.push(option)
       }
     },
+    // 追加单个机器选项
     appendMachineOption(machine) {
       if (!machine || !machine.id) {
         return
@@ -996,6 +1032,7 @@ export default {
         this.machineOptions.push(option)
       }
     },
+    // 追加单个模块选项
     appendModuleOption(module, machine = {}) {
       if (!module || !module.id) {
         return
@@ -1008,6 +1045,7 @@ export default {
         this.moduleOptions.push(option)
       }
     },
+    // 追加单个加工方案选项
     appendProfileOption(profile) {
       if (!profile || !profile.id) {
         return
@@ -1020,6 +1058,7 @@ export default {
         this.profileOptions.push(option)
       }
     },
+    // 表单校验通过后提交新增或更新
     submitDialog() {
       if (this.dialog.loading) {
         return
@@ -1061,6 +1100,7 @@ export default {
           })
       })
     },
+    // 组装提交所需的 payload 数据
     buildSubmitPayload() {
       const form = this.dialog.form
       const payload = {
@@ -1113,6 +1153,7 @@ export default {
       }
       return payload
     },
+    // 按表单状态构建参数分段 payload
     buildParameterSectionsPayload() {
       const sections = this.dialog.form.parameterSections || {}
       const result = {}
@@ -1244,6 +1285,7 @@ export default {
 
       return result
     },
+    // 将输入转换为数字，非法时返回 null
     parseNumberField(value) {
       if (value === '' || value === null || value === undefined) {
         return null
@@ -1251,12 +1293,14 @@ export default {
       const num = Number(value)
       return Number.isFinite(num) ? num : null
     },
+    // 判断分段对象是否包含有效字段
     hasSectionContent(section) {
       if (!section || typeof section !== 'object') {
         return false
       }
       return Object.keys(section).length > 0
     },
+    // 深拷贝参数分段，避免引用共享
     cloneSectionState(sections) {
       const deepClone = target => {
         if (!target || typeof target !== 'object') {
@@ -1270,6 +1314,7 @@ export default {
       }
       return deepClone(sections)
     },
+    // 根据接口返回映射为表单分段结构
     mapSectionsFromResponse(sections) {
       const result = createDefaultParameterSections()
       if (!sections || typeof sections !== 'object') {
@@ -1420,6 +1465,7 @@ export default {
 
       return result
     },
+    // 统一抽取接口响应中的 data 字段
     resolveResponseData(response) {
       if (!response) {
         return {}
@@ -1433,6 +1479,7 @@ export default {
       }
       return payload || {}
     },
+    // 提取新建后返回的加工配置 ID
     resolveCreatedProfileId(response) {
       const data = this.resolveResponseData(response)
       if (data && typeof data === 'object') {
@@ -1445,6 +1492,7 @@ export default {
       }
       return null
     },
+    // 若存在待上传预览图则在提交后补传
     handlePostSubmitPreviewUpload(profileId) {
       if (!this.dialog.previewFile || !this.dialog.previewPendingUpload) {
         return Promise.resolve()
@@ -1456,12 +1504,26 @@ export default {
       }
       return this.uploadPreviewFile(profileId, this.dialog.previewFile).catch(() => {})
     },
+    // 弹窗关闭后重置表单与校验规则
     resetDialog() {
-      this.dialog.form = createDefaultForm()
+      if (this.$refs.profileForm) {
+        this.$refs.profileForm.clearValidate()
+      }
+      this.dialog.rules = {}
+      const defaults = createDefaultForm()
+      Object.keys(defaults).forEach(key => {
+        this.$set(this.dialog.form, key, defaults[key])
+      })
       this.dialog.loading = false
       this.resetPreviewState()
       this.resetRawOverrides()
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
+      this.$nextTick(() => {
+        this.dialog.rules = cloneRules(this.baseRules)
+        if (this.$refs.profileForm) {
+          this.$refs.profileForm.clearValidate()
+        }
+      })
     }
   }
 }
@@ -1565,5 +1627,8 @@ export default {
   margin-top: 4px;
   font-size: 12px;
   color: #909399;
+}
+.profile-dialog-select--wide {
+  width: 380px;
 }
 </style>

@@ -6,6 +6,7 @@ const route = {
   redirect: '/extension/index',
   alwaysShow: true, // will always show the root menu
   name: 'ExtensionRoot',
+  hidden: true,
   meta: {
     title: 'localExtension',
     icon: 'el-icon-s-cooperation',

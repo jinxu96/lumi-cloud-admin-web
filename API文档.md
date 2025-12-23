@@ -638,6 +638,108 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **接口**：`DELETE /admin-api/machine-modules/{id}`
 - **说明**：删除前需确保无关联加工配置，否则会提示“请先删除该模块下的加工配置”。
 
+## 机器模块加工方案列表
+- **权限标识**：`app-admin.machine-module-profiles.index`
+- **接口**：`GET /admin-api/machine-module-profiles`
+- **说明**：分页查询机器模块下的加工方案组合，可按机器、模块、加工类型筛选。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，支持 `id`、`machine_module_id`、`process_type`、`power_watt`、`sort_order`、`created_at`、`updated_at` |
+| `machine_module_id` | integer | 否 | 筛选指定机器模块下的方案 |
+| `machine_id` | integer | 否 | 筛选指定机器下的方案 |
+| `processing_module` | string | 否 | 精确匹配处理模块标识（如 `laser`） |
+| `processing_mode` | string | 否 | 精确匹配处理模式（如 `vector`、`raster`） |
+| `process_type` | string | 否 | 精确匹配处理类型（如 `cut`、`engrave`） |
+| `keyword` | string | 否 | 模糊查询 `processing_module`、`processing_mode`、`process_type` |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 3,
+		"list": [
+			{
+				"id": 301,
+				"machine_module_id": 23,
+				"processing_module": "laser",
+				"processing_mode": "vector",
+				"process_type": "cut",
+				"power_watt": 10000,
+				"sort_order": 10,
+				"created_at": "2025-12-18 10:00:00",
+				"updated_at": "2025-12-21 11:45:00",
+				"machine_module": {
+					"id": 23,
+					"name": "蓝光 10W 模块",
+					"power_watt": 10000,
+					"machine": {
+						"id": 14,
+						"name": "LumiMaker X1",
+						"slug": "lumimaker-x1"
+					}
+				}
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].processing_module` | string | 处理模块标识，例如 `laser` |
+| `data.list[].processing_mode` | string/null | 处理模式，例如矢量、灰度等 |
+| `data.list[].process_type` | string/null | 处理类型，如切割、雕刻 |
+| `data.list[].power_watt` | integer/null | 对应模块的额定功率 |
+| `data.list[].machine_module` | object/null | 所属机器模块信息，若为空表示尚未绑定模块 |
+| `data.list[].machine_module.machine` | object/null | 模块所属的机器信息 |
+
+## 新增加工方案
+- **权限标识**：`app-admin.machine-module-profiles.store`
+- **接口**：`POST /admin-api/machine-module-profiles`
+- **说明**：给指定机器模块新增一条加工方案；同一模块下，相同的“加工模块 + 加工模式 + 加工类型 + 功率”组合不可重复。
+- **请求方式**：`application/json`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `machine_module_id` | integer | 是 | 目标机器模块 ID |
+| `processing_module` | string | 是 | 处理模块标识（如 `laser`、`blade`） |
+| `processing_mode` | string | 否 | 处理模式（如 `vector`、`raster`），留空表示无需区分 |
+| `process_type` | string | 否 | 处理类型（如 `cut`、`engrave`） |
+| `power_watt` | integer | 否 | 功率（瓦），默认沿用模块自身功率 |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+
+- **成功响应**：返回与“加工方案列表”单项一致的结构。
+
+## 加工方案详情
+- **权限标识**：`app-admin.machine-module-profiles.show`
+- **接口**：`GET /admin-api/machine-module-profiles/{id}`
+- **说明**：查询单条加工方案详情，响应结构同列表项。
+
+## 编辑加工方案
+- **权限标识**：`app-admin.machine-module-profiles.update`
+- **接口**：`PUT /admin-api/machine-module-profiles/{id}` 或 `PATCH /admin-api/machine-module-profiles/{id}`
+- **说明**：更新加工方案的核心参数及排序；如需切换模块，确保新模块已存在。
+- **请求体字段**：与“新增加工方案”一致，但均为可选字段；未提交的字段保持原值。
+- **提示**：如果修改后的“模块 + 模式 + 类型 + 功率”组合已存在，接口会返回错误提示。
+
+## 删除加工方案
+- **权限标识**：`app-admin.machine-module-profiles.destroy`
+- **接口**：`DELETE /admin-api/machine-module-profiles/{id}`
+- **说明**：删除加工方案，删除后与材料加工配置的关联将失效，请确认未被引用再执行。
+
 ## 导入机器模块配置
 - **权限标识**：`app-admin.machine-modules.import`
 - **接口**：`POST /admin-api/machine-modules/import`
@@ -815,6 +917,30 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | `cover` | file | 否 | 封面图片，大小不超过 5 MB，支持常见图片格式 |
 
 - **成功响应**：返回材料列表单项结构；如上传封面会额外附带 `attachment_id` 方便前端追踪附件记录。
+
+## 解绑材料机器模块
+- **权限标识**：`app-admin.materials.detach-modules`
+- **接口**：`DELETE /admin-api/materials/{id}/machine-modules`
+- **说明**：移除材料与所有或指定机器模块的关联，同时清理关联的加工配置。
+- **请求参数**（Query，可选）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `machine_module_id` | integer | 否 | 指定仅解绑某个机器模块；不填表示解绑全部关联 |
+
+- **成功响应**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "解绑成功",
+	"data": {
+		"detached_module_ids": [25],
+		"removed_profile_ids": [17, 18]
+	}
+}
+```
 
 ## 材料详情
 - **权限标识**：`app-admin.materials.show`

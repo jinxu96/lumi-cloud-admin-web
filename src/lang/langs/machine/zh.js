@@ -91,6 +91,7 @@ export default {
     action_create: '新增模块',
     action_edit: '编辑',
     action_view: '详情',
+    action_add_profile: '新增加工方案',
     action_import: '导入配置',
     action_export: '导出配置',
     action_download_template: '下载导入模板',
@@ -135,6 +136,24 @@ export default {
     profile_processing_mode: '加工模式',
     profile_process_type: '加工类型',
     profile_power: '功率 (W)',
-    profile_sort: '排序值'
+    profile_sort: '排序值',
+    profile_actions: '操作',
+    profile_dialog_title: '新增加工方案',
+    profile_dialog_title_edit: '编辑加工方案',
+    profile_dialog_module: '加工模块',
+    profile_dialog_mode: '加工模式',
+    profile_dialog_type: '加工类型',
+    profile_dialog_power: '功率 (W)',
+    profile_dialog_sort: '排序值',
+    profile_dialog_rules_module: '请输入加工模块',
+    message_profile_create_success: '加工方案创建成功',
+    message_profile_create_error: '加工方案创建失败',
+    action_edit_profile: '编辑',
+    action_delete_profile: '删除',
+    message_profile_update_success: '加工方案更新成功',
+    message_profile_update_error: '加工方案更新失败',
+    confirm_profile_delete: '确定要删除该加工方案吗？此操作不可撤销。',
+    message_profile_delete_success: '加工方案删除成功',
+    message_profile_delete_error: '加工方案删除失败'
   }
 }
