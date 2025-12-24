@@ -243,6 +243,39 @@ curl -X GET "https://example.com/admin-api/users/1" \
 | `data.recent_projects` | array | 最近 5 个项目，已按更新时间倒序 |
 | `data.recent_files` | array | 最近 5 次上传文件 |
 
+## 用户文件下载
+- **权限标识**：`app-admin.user-files.download`
+- **接口**：`GET /admin-api/user-files/{id}/download`
+- **说明**：后台获取指定用户上传文件的下载（与预览）链接，返回签名 URL 以满足 OSS 强制下载需求。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `id` | integer | 是 | files 表记录 ID |
+
+- **响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取下载链接成功",
+	"data": {
+		"url": "https://oss-example.aliyuncs.com/users/xxxx?X-Oss-Signature=...",
+		"filename": "demo.svg",
+		"preview_url": "https://cdn.example.com/users/xxxx"
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.url` | string | 已附带 `Content-Disposition=attachment` 的临时签名 URL，直接触发浏览器下载 |
+| `data.filename` | string | 建议保存的文件名，前端可作为下载文件名或展示用 |
+| `data.preview_url` | string/null | 可选预览地址，若下载 URL 生成失败会回退到此地址 |
+
 ## 更新用户信息
 - **权限标识**：`app-admin.users.update`
 - **接口**：`PUT /admin-api/users/{id}`

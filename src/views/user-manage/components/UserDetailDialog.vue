@@ -123,16 +123,15 @@
           <el-table-column prop="created_at" :label="$t('userManage.detail_file_created')" width="180" />
           <el-table-column :label="$t('userManage.detail_file_actions')" width="160" align="center">
             <template slot-scope="{ row }">
-              <template v-if="row.previewable">
+              <div class="file-actions">
                 <el-button
+                  v-if="row.previewable"
                   type="text"
                   size="mini"
                   @click="handlePreview(row)"
                 >
                   {{ $t('userManage.detail_preview_btn') }}
                 </el-button>
-              </template>
-              <template v-else>
                 <el-button
                   type="text"
                   size="mini"
@@ -141,7 +140,7 @@
                 >
                   {{ $t('userManage.detail_download_btn') }}
                 </el-button>
-              </template>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -174,6 +173,7 @@
 </template>
 
 <script>
+import { getUserFileDownload } from '@/api/userManage'
 
 const CDN_DOMAIN = process.env.VUE_APP_FILES_CDN_DOMAIN || ''
 const API_BASE = (process.env.VUE_APP_BASE_API || '').replace(/\/$/, '')
@@ -329,9 +329,11 @@ export default {
     }
   },
   methods: {
+    // 关闭详情弹窗并通知父组件
     handleClose() {
       this.$emit('update:visible', false)
     },
+    // 将项目状态字段映射为可读文案
     formatProjectStatus(status) {
       if (!status) {
         return this.$t('userManage.detail_unknown_status')
@@ -343,6 +345,7 @@ export default {
       }
       return map[status] || status
     },
+    // 将字节数转换为易读的容量文本
     formatFileSize(size) {
       if (!size && size !== 0) {
         return '-'
@@ -362,13 +365,9 @@ export default {
       }
       return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`
     },
+    // 调用签名接口并处理下载动作
     async handleDownload(file) {
       if (!file) {
-        return
-      }
-      const { endpoint, fallbackUrl, fallbackName } = this.getDownloadMeta(file)
-      if (!endpoint && !fallbackUrl) {
-        this.$message.warning(this.$t('userManage.detail_download_missing'))
         return
       }
 
@@ -377,19 +376,43 @@ export default {
         this.downloadStateId = stateKey
       }
 
+      let remoteMeta = null
+      if (file.id) {
+        try {
+          const response = await getUserFileDownload(file.id)
+          remoteMeta = response && response.data ? response.data : null
+        } catch (error) {
+          // 接口错误已由拦截器处理，走默认逻辑。
+        }
+      }
+
+      const { endpoint, fallbackUrl, fallbackName } = this.getDownloadMeta(file, remoteMeta)
+      if (!endpoint && !fallbackUrl) {
+        this.$message.warning(this.$t('userManage.detail_download_missing'))
+        if (stateKey) {
+          this.downloadStateId = null
+        }
+        return
+      }
+
       let fetchedSuccessfully = false
       try {
         if (endpoint) {
-          const response = await fetch(endpoint, { credentials: 'include' })
-          if (!response.ok) {
-            throw new Error(this.$t('userManage.detail_download_expired'))
+          if (!this.isSameOrigin(endpoint)) {
+            this.triggerDownload(endpoint, fallbackName, true)
+            fetchedSuccessfully = true
+          } else {
+            const response = await fetch(endpoint, { credentials: 'include' })
+            if (!response.ok) {
+              throw new Error(this.$t('userManage.detail_download_expired'))
+            }
+            const blob = await response.blob()
+            const objectUrl = window.URL.createObjectURL(blob)
+            const fileName = this.getFileNameFromHeaders(response.headers) || fallbackName
+            this.triggerDownload(objectUrl, fileName || fallbackName, true)
+            window.URL.revokeObjectURL(objectUrl)
+            fetchedSuccessfully = true
           }
-          const blob = await response.blob()
-          const objectUrl = window.URL.createObjectURL(blob)
-          const fileName = this.getFileNameFromHeaders(response.headers) || fallbackName
-          this.triggerDownload(objectUrl, fileName || fallbackName, true)
-          window.URL.revokeObjectURL(objectUrl)
-          fetchedSuccessfully = true
         }
       } catch (error) {
         if (!fallbackUrl) {
@@ -406,6 +429,7 @@ export default {
         this.triggerDownload(fallbackUrl, fallbackName, true)
       }
     },
+    // 打开预览弹窗展示可预览的媒体文件
     handlePreview(file) {
       if (!file.previewable) {
         this.$message.info(this.$t('userManage.detail_preview_unavailable'))
@@ -424,12 +448,14 @@ export default {
         fileName: this.getDownloadFileName(file, url)
       }
     },
+    // 关闭预览弹窗并重置状态
     handlePreviewClose() {
       this.preview.visible = false
       this.preview.url = ''
       this.preview.type = ''
       this.preview.fileName = ''
     },
+    // 通过隐藏超链接触发浏览器下载
     triggerDownload(url, fileName, allowDownloadAttr = false) {
       // 使用临时创建的隐藏链接触发浏览器下载流程。
       const anchor = document.createElement('a')
@@ -443,10 +469,19 @@ export default {
       anchor.click()
       document.body.removeChild(anchor)
     },
-    getDownloadMeta(file) {
-      const fallbackUrl = file.downloadUrl || this.resolveFileUrl(file)
-      const fallbackName = this.getPreferredFileName(file, fallbackUrl)
+    // 汇总下载端点、兜底地址和展示文件名
+    getDownloadMeta(file, remoteMeta) {
+      const remoteUrl = remoteMeta && remoteMeta.url ? remoteMeta.url : ''
+      const remotePreviewUrl = remoteMeta && remoteMeta.preview_url ? remoteMeta.preview_url : ''
+      const remoteFilename = remoteMeta && remoteMeta.filename ? remoteMeta.filename : ''
+
+      let fallbackUrl = remotePreviewUrl || ''
+      if (!fallbackUrl) {
+        fallbackUrl = file.downloadUrl || this.resolveFileUrl(file)
+      }
+      const fallbackName = remoteFilename || this.getPreferredFileName(file, fallbackUrl)
       const candidates = [
+        remoteUrl,
         file.download_api,
         file.download_path,
         file.download_route,
@@ -467,6 +502,7 @@ export default {
         fallbackName
       }
     },
+    // 将接口返回的下载路径规范化为完整 URL
     normalizeEndpoint(endpoint) {
       if (!endpoint) {
         return ''
@@ -490,6 +526,7 @@ export default {
       }
       return `/${normalized}`
     },
+    // 根据文件的备选字段构造预览/下载直链
     resolveFileUrl(file) {
       if (!file) {
         return ''
@@ -515,6 +552,16 @@ export default {
       }
       return `${CDN_DOMAIN.replace(/\/$/, '')}/${normalizedPath}`
     },
+    // 判断目标地址是否与当前站点同源
+    isSameOrigin(target) {
+      try {
+        const parsed = new URL(target, window.location.origin)
+        return parsed.origin === window.location.origin
+      } catch (error) {
+        return false
+      }
+    },
+    // 判定文件是否属于可直接预览的图片或视频
     isPreviewable(file) {
       const mime = file && file.mime_type ? String(file.mime_type) : ''
       if (mime.startsWith('image/')) {
@@ -526,6 +573,7 @@ export default {
       const name = file && file.name ? file.name.toLowerCase() : ''
       return ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].some(ext => name.endsWith(ext))
     },
+    // 推断预览类型以匹配渲染控件
     detectPreviewType(file) {
       const mime = file && file.mime_type ? String(file.mime_type) : ''
       if (mime.startsWith('video/')) {
@@ -540,6 +588,7 @@ export default {
       }
       return 'unknown'
     },
+    // 返回用于提示的文件名（优先对象字段）
     getDownloadFileName(file, url) {
       if (file && file.name) {
         return file.name
@@ -551,10 +600,10 @@ export default {
         return ''
       }
     },
+    // 计算最终展示的文件名，尽量还原原始文件名
     getPreferredFileName(file, url) {
       if (file) {
         if (file.original_name) {
-          console.log(file.original_name)
           return file.original_name
         }
         if (file.name) {
@@ -563,6 +612,7 @@ export default {
       }
       return this.getDownloadFileName(file, url)
     },
+    // 从响应头解析建议文件名，兼容 UTF-8 与 ASCII
     getFileNameFromHeaders(headers) {
       if (!headers) {
         return ''
@@ -744,5 +794,11 @@ export default {
 .preview-empty {
   color: #909399;
   font-size: 14px;
+}
+
+.file-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

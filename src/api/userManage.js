@@ -34,3 +34,11 @@ export function resetUserPassword(id, data) {
     data
   })
 }
+
+export function getUserFileDownload(id) {
+  // 获取用户文件的签名下载链接
+  return request({
+    url: `user-files/${id}/download`,
+    method: 'get'
+  })
+}
