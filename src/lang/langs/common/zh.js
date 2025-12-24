@@ -70,11 +70,13 @@ export default {
   err401: {
     'title': '你没有权限去该页面',
     'content': '你可以进行以下操作解决你的问题',
+    'go_home': '返回首页',
     'relogin': '退出重新登录'
   },
 
   err404: {
-    'content': '点击链接刷新重试或者返回首页'
+    'content': '点击链接刷新重试或者返回首页',
+    'go_home': '返回首页'
   },
 
   // 公用

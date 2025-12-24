@@ -37,19 +37,12 @@
 import checkPermission from '@/utils/permission'
 import PanelGroup from './components/PanelGroup'
 import SystemTable from './components/SystemTable'
-import RaddarChart from './components/RaddarChart'
-import PieChart from './components/PieChart'
-import BarChart from './components/BarChart'
 
 export default {
   name: 'DashboardAdmin',
   components: {
     PanelGroup,
-    SystemTable,
-
-    RaddarChart,
-    PieChart,
-    BarChart
+    SystemTable
   },
   data() {
     return {

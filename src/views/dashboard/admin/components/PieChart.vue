@@ -3,9 +3,8 @@
 </template>
 
 <script>
-import echarts from 'echarts'
-require('echarts/theme/macarons') // echarts theme
 import resize from '@/utils/mixins/resize'
+import { useEcharts } from '@/utils/echarts'
 
 export default {
   mixins: [resize],
@@ -25,7 +24,8 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null,
+      echarts: null
     }
   },
   mounted() {
@@ -41,7 +41,15 @@ export default {
     this.chart = null
   },
   methods: {
-    initChart() {
+    async initChart() {
+      const echarts = await useEcharts([
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/chart/pie'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/tooltip'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/legend'),
+        () => import(/* webpackChunkName: "echarts-theme" */ 'echarts/theme/macarons')
+      ])
+
+      this.echarts = echarts
       this.chart = echarts.init(this.$el, 'macarons')
 
       this.chart.setOption({

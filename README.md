@@ -4,7 +4,7 @@
 
 ## 简介
 
-本项目是基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin) 的前端项目，部分功能为了适配 larke-admin 进行了优化和调整。
+本项目是基于 [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin) 的前端项目。
 编译工具为 `pnpm`
 
 ## 功能

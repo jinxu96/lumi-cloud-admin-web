@@ -226,7 +226,12 @@ export default {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm)
             .then(response => {
-              this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
+              const isValidRedirect = typeof this.redirect === 'string' && this.redirect.trim() !== '' && this.redirect !== 'undefined' && this.redirect !== 'null'
+              let targetPath = isValidRedirect ? this.redirect : '/'
+              if (targetPath === '/404' || targetPath === '/401') {
+                targetPath = '/'
+              }
+              this.$router.push({ path: targetPath, query: this.otherQuery })
               this.loading = false
             })
             .catch(err => {

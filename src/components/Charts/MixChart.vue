@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import echarts from 'echarts'
 import resize from './mixins/resize'
+import { useEcharts } from '@/utils/echarts'
 
 export default {
   mixins: [resize],
@@ -28,7 +28,8 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null,
+      echarts: null
     }
   },
   mounted() {
@@ -42,7 +43,17 @@ export default {
     this.chart = null
   },
   methods: {
-    initChart() {
+    async initChart() {
+      const echarts = await useEcharts([
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/chart/bar'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/chart/line'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/tooltip'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/legend'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/dataZoom'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/grid')
+      ])
+
+      this.echarts = echarts
       this.chart = echarts.init(document.getElementById(this.id))
       const xData = (function() {
         const data = []

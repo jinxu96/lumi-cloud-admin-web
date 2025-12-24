@@ -9,9 +9,9 @@
       </div>
       <div class="bullshit">
         <div class="bullshit__oops">OOPS!</div>
-        <div class="bullshit__info">All rights reserved
+        <!-- <div class="bullshit__info">All rights reserved
           <a style="color:#20a0ff" href="https://github.com/deatil" target="_blank">larke-admin</a>
-        </div>
+        </div> -->
         <div class="bullshit__headline">{{ message }}</div>
         <div class="bullshit__info">{{ $t('err404.content') }}</div>
         <a href="" class="bullshit__return-home">{{ $t('err404.go_home') }}</a>

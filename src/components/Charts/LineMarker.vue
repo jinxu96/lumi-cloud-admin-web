@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import echarts from 'echarts'
 import resize from './mixins/resize'
+import { useEcharts } from '@/utils/echarts'
 
 export default {
   mixins: [resize],
@@ -28,7 +28,8 @@ export default {
   },
   data() {
     return {
-      chart: null
+      chart: null,
+      echarts: null
     }
   },
   mounted() {
@@ -42,8 +43,17 @@ export default {
     this.chart = null
   },
   methods: {
-    initChart() {
-      this.chart = echarts.init(document.getElementById(this.id))
+    async initChart() {
+      const echarts = await useEcharts([
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/chart/line'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/tooltip'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/legend'),
+        () => import(/* webpackChunkName: "echarts-core" */ 'echarts/lib/component/title'),
+        () => import(/* webpackChunkName: "echarts-theme" */ 'echarts/theme/macarons')
+      ])
+
+      this.echarts = echarts
+      this.chart = echarts.init(document.getElementById(this.id), 'macarons')
 
       this.chart.setOption({
         backgroundColor: '#394056',
@@ -132,7 +142,7 @@ export default {
           },
           areaStyle: {
             normal: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+              color: new this.echarts.graphic.LinearGradient(0, 0, 0, 1, [{
                 offset: 0,
                 color: 'rgba(137, 189, 27, 0.3)'
               }, {
@@ -166,7 +176,7 @@ export default {
           },
           areaStyle: {
             normal: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+              color: new this.echarts.graphic.LinearGradient(0, 0, 0, 1, [{
                 offset: 0,
                 color: 'rgba(0, 136, 212, 0.3)'
               }, {
@@ -200,7 +210,7 @@ export default {
           },
           areaStyle: {
             normal: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+              color: new this.echarts.graphic.LinearGradient(0, 0, 0, 1, [{
                 offset: 0,
                 color: 'rgba(219, 50, 51, 0.3)'
               }, {
