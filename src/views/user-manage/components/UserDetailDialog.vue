@@ -77,10 +77,9 @@
 
       <div class="detail-section">
         <h4>{{ $t('userManage.detail_projects') }}</h4>
-        <el-empty
-          v-if="!recentProjects.length"
-          :description="$t('userManage.detail_empty')"
-        />
+        <div v-if="!recentProjects.length" class="detail-empty">
+          <span>{{ $t('userManage.detail_empty') }}</span>
+        </div>
         <el-timeline v-else>
           <el-timeline-item
             v-for="item in recentProjects"
@@ -97,10 +96,9 @@
 
       <div class="detail-section">
         <h4>{{ $t('userManage.detail_files') }}</h4>
-        <el-empty
-          v-if="!processedFiles.length"
-          :description="$t('userManage.detail_empty')"
-        />
+        <div v-if="!processedFiles.length" class="detail-empty">
+          <span>{{ $t('userManage.detail_empty') }}</span>
+        </div>
         <el-table
           v-else
           :data="processedFiles"
@@ -147,7 +145,9 @@
       </div>
     </div>
 
-    <el-empty v-else :description="$t('userManage.detail_empty')" />
+    <div v-else class="detail-empty">
+      <span>{{ $t('userManage.detail_empty') }}</span>
+    </div>
 
     <el-dialog
       :visible.sync="preview.visible"
@@ -441,11 +441,12 @@ export default {
         return
       }
       const previewType = file.previewType || this.detectPreviewType(file)
+      const previewName = file.original_name || file.name || this.getDownloadFileName(file, url)
       this.preview = {
         visible: true,
         url,
         type: previewType,
-        fileName: this.getDownloadFileName(file, url)
+        fileName: previewName
       }
     },
     // 关闭预览弹窗并重置状态
@@ -733,6 +734,17 @@ export default {
 
 .detail-note {
   margin-top: -8px;
+}
+
+.detail-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: #c0c4cc;
+  background: #f8f9fb;
+  border: 1px dashed #ebeef5;
+  border-radius: 6px;
 }
 
 .detail-section {

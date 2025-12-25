@@ -1333,6 +1333,246 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 - **说明**：下载加工配置导入模板（CSV），包含常用列头及填写提示。
 - **响应**：返回 `material_processing_profiles_template.csv`，默认带 UTF-8 BOM 以兼容 Excel。
 
+# 模板库管理 API
+
+## 模板列表
+- **权限标识**：`app-admin.project-templates.index`
+- **接口**：`GET /admin-api/project-templates`
+- **说明**：分页检索前台项目模板，支持多条件组合筛选与排序。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`created_at`、`updated_at`、`published_at`、`likes_count`、`downloads_count`、`featured_weight`、`featured_at` |
+| `status` | string | 否 | 模板状态，`draft` / `published` |
+| `keyword` | string | 否 | 模糊搜索标题或描述 |
+| `author_id` | integer | 否 | 指定创建者 ID |
+| `machine_module_ids` | array\|string | 否 | 机器模块 ID 列表，支持数组或用逗号分隔的字符串 |
+| `material_ids` | array\|string | 否 | 材料 ID 列表 |
+| `scenario_ids` | array\|string | 否 | 应用场景 ID 列表 |
+| `tags` | array\|string | 否 | 标签集合，全部命中才会返回 |
+| `is_featured` | string | 否 | 是否推荐，接受 `true`/`false`/`1`/`0` |
+| `published_start` | string | 否 | 发布开始时间（日期或完整时间） |
+| `published_end` | string | 否 | 发布结束时间 |
+| `created_start` | string | 否 | 创建开始时间（日期或完整时间） |
+| `created_end` | string | 否 | 创建结束时间 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 42,
+		"list": [
+			{
+				"id": 101,
+				"title": "节日灯笼模板",
+				"description": "适用于 10W 蓝光模块的春节灯笼。",
+				"cover_url": "https://cdn.example.com/projects/cover-101.png",
+				"status": "published",
+				"tags": ["灯笼", "春节"],
+				"published_at": "2025-12-10 09:15:00",
+				"created_at": "2025-12-02 10:00:00",
+				"updated_at": "2025-12-18 13:20:00",
+				"likes_count": 126,
+				"downloads_count": 98,
+				"is_featured": true,
+				"featured_weight": 120,
+				"featured_at": "2025-12-12 08:00:00",
+				"user": {
+					"id": 8,
+					"name": "设计馆"
+				},
+				"file": {
+					"id": 5501,
+					"original_name": "festival-lantern.zip",
+					"size": 7340032,
+					"extension": "zip",
+					"download_url": "https://oss-example.com/path?X-Oss-Signature=..."
+				}
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `list[].likes_count` | integer | 点赞总数 |
+| `list[].downloads_count` | integer | 下载总数 |
+| `list[].user` | object/null | 创建者信息，含 `id`、`name`、`avatar` |
+| `list[].file.download_url` | string/null | 系统生成的临时下载链接 |
+| 其余字段 | — | 与项目模型字段一致 |
+
+## 模板详情
+- **权限标识**：`app-admin.project-templates.show`
+- **接口**：`GET /admin-api/project-templates/{id}`
+- **说明**：返回指定模板的完整信息，包含机器模块、材料、场景与媒体资源等关联数据。
+- **响应结构**：在列表字段基础上新增：
+  - `machine_modules[]`：模块 ID、名称及所属机器。
+  - `materials[]`：材料 ID、名称、编码。
+  - `scenarios[]`：应用场景 ID、名称、编码。
+  - `media[]`：媒体资源列表，含 `media_type`、`url`、`title`、`caption`、`sort_order`、`metadata`。
+
+## 更新模板
+- **权限标识**：`app-admin.project-templates.update`
+- **接口**：`PUT /admin-api/project-templates/{id}`
+- **说明**：更新模板基础信息及关联关系，全部字段可选。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `title` | string | 否 | 模板标题，最大 150 字符 |
+| `description` | string | 否 | 模板描述，markdown 或富文本均可 |
+| `cover_url` | string | 否 | 封面地址 |
+| `cover_metadata` | object | 否 | 封面媒体资源的元数据（需包含 `object_key`，可附带 `disk`、`hash`、尺寸等） |
+| `tags` | array | 否 | 最多 20 个标签，单个不超过 30 字符 |
+| `machine_module_ids` | array | 否 | 关联的机器模块 ID 列表，至少 1 个 |
+| `material_ids` | array | 否 | 关联的材料 ID 列表 |
+| `scenario_ids` | array | 否 | 关联的应用场景 ID 列表 |
+| `media` | array | 否 | 媒体资源列表（最多 20 项） |
+| `media[].media_type` | string | 是 | 媒体类型，`image` / `video` |
+| `media[].url` | string | 是 | 媒体地址 |
+| `media[].title` | string | 否 | 标题 |
+| `media[].caption` | string | 否 | 描述 |
+| `media[].sort_order` | integer | 否 | 排序值，缺省按提交顺序 |
+| `media[].metadata` | object | 否 | 自定义元数据 |
+
+- **提示**：
+	- 当 `cover_url` 未提供且媒体列表不为空时，后端会自动取首张媒体图片补全封面。
+	- `cover_metadata` 与 `media[].metadata` 建议携带 `object_key`、`disk`、`hash` 等信息，便于媒体资源引用计数同步。
+
+## 调整模板状态
+- **权限标识**：`app-admin.project-templates.status`
+- **接口**：`PATCH /admin-api/project-templates/{id}/status`
+- **说明**：上架或下架模板，自动维护 `published_at`。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `status` | string | 是 | `draft` 代表下架，`published` 代表上架 |
+
+## 设置模板推荐
+- **权限标识**：`app-admin.project-templates.feature`
+- **接口**：`PATCH /admin-api/project-templates/{id}/feature`
+- **说明**：控制推荐状态与排序权重。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_featured` | boolean | 是 | 是否推荐 |
+| `featured_weight` | integer | 否 | 推荐排序权重，范围 `0~32767` |
+| `featured_at` | string | 否 | 推荐时间，未填写则默认当前时间 |
+
+## 复制模板
+- **权限标识**：`app-admin.project-templates.duplicate`
+- **接口**：`POST /admin-api/project-templates/{id}/duplicate`
+- **说明**：将模板复制为新项目，可指定归属用户、目标状态与是否拷贝媒体。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `title` | string | 否 | 新模板标题，默认在原标题后追加“ - 副本” |
+| `status` | string | 否 | 新模板状态，默认 `draft` |
+| `target_user_id` | integer | 否 | 指定归属用户 ID，默认沿用原作者 |
+| `copy_media` | boolean | 否 | 是否复制媒体，默认 `true` |
+
+- **响应**：返回新建模板的完整详情。
+
+## 获取模板媒体资源上传凭证
+- **权限标识**：`app-admin.project-templates.upload-signature`
+- **接口**：`POST /admin-api/project-templates/upload/signature`
+- **说明**：获取上传模板封面或媒体到 OSS 所需的临时凭证，前端拿到凭证后可直接使用阿里云 OSS SDK 分片上传。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file_name` | string | 是 | 原始文件名，用于识别扩展名 |
+| `extension` | string | 否 | 文件扩展名，未提供时将根据 `file_name` 推断 |
+| `size` | integer | 是 | 文件大小，单位字节 |
+| `mime_type` | string | 否 | MIME 类型，仅用于记录 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取媒体上传凭证成功",
+	"data": {
+		"object_key": "admin/project-templates/media/2025/12/bb2e3f3d-92e3-4dcd-8b48-6d1cbf8a4e6f.webp",
+		"upload_host": "https://bucket.oss-cn-hangzhou.aliyuncs.com",
+		"bucket": "bucket",
+		"region": "oss-cn-hangzhou",
+		"max_size": 62914560,
+		"allowed_extensions": ["jpg","jpeg","png","webp","gif","mp4","mov","webm"],
+		"preview_url": "https://cdn.example.com/admin/project-templates/media/2025/12/bb2e3f3d-92e3-4dcd-8b48-6d1cbf8a4e6f.webp",
+		"thumbnail_url": null,
+		"credentials": {
+			"access_key_id": "STS.NEs...",
+			"access_key_secret": "******",
+			"security_token": "******",
+			"expiration": "2025-12-25T09:30:00Z",
+			"duration_seconds": 1800,
+			"role_session_name": "lumi-session-abc123"
+		}
+	}
+}
+```
+
+- **提示**：
+  - 上传成功后请在模板保存接口里将 `cover_metadata` 或 `media[].metadata` 的 `object_key` 等信息设置为返回值，以便媒体资源引用计数正常运作。
+
+## 删除模板
+- **权限标识**：`app-admin.project-templates.destroy`
+- **接口**：`DELETE /admin-api/project-templates/{id}`
+- **说明**：软删除指定模板，并触发媒体资源引用释放与相关日志记录。
+- **响应**：`{"success":true,"code":0,"message":"删除成功","data":[]}`。
+
+## 获取模板选项
+- **权限标识**：`app-admin.project-templates.options`
+- **接口**：`GET /admin-api/project-templates/options`
+- **说明**：获取模板编辑所需的机器、模块、材料与场景选项，用于下拉框渲染。
+- **响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"machines": [
+			{
+				"id": 1,
+				"name": "LumiMaker X1",
+				"slug": "lumimaker-x1",
+				"sort_order": 10,
+				"modules": [
+					{"id": 11, "name": "蓝光 10W 模块"}
+				]
+			}
+		],
+		"materials": [
+			{"id": 101, "name": "柚木板", "material_code": "WOOD-TEAK-3MM"}
+		],
+		"scenarios": [
+			{"id": 21, "name": "节日送礼", "code": "festival_gift"}
+		]
+	}
+}
+```
+
+- **说明**：仅返回已启用的记录，默认按 `sort_order` 升序。
+
 ## 其他注意事项
 - 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限，可按按钮粒度选择 `*.status`、`*.import`、`*.export`。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。

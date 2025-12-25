@@ -17,6 +17,8 @@ export default {
     material: 'Materials',
     materialList: 'Material List',
     materialProcessingProfileList: 'Processing Profiles', // Material processing profile list title
+    templateLibrary: 'Template Library',
+    templateLibraryList: 'Template List',
 
     permission: 'Permission',
     admin: 'Admin',

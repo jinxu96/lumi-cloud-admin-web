@@ -25,7 +25,7 @@ export default {
   data() {
     return {
       title: 'Lumi管理后台系统',
-      logo: require('@/assets/larke/larke.png')
+      logo: ''
     }
   }
 }

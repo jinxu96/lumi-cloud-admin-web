@@ -18,6 +18,8 @@ export default {
     material: '材料管理',
     materialList: '材料列表',
     materialProcessingProfileList: '加工配置列表', // 材料加工配置列表页标题
+    templateLibrary: '模板库管理',
+    templateLibraryList: '模板列表',
 
     permission: '权限管理',
     admin: '管理员',
