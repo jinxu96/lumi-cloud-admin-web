@@ -221,6 +221,19 @@ import Pagination from '@/components/Pagination'
 import checkPermission from '@/utils/permission'
 import { uploadFileToOss } from '@/utils/oss'
 
+const DEFAULT_ALLOWED_EXTENSIONS = [
+  'chb',
+  'laser',
+  'dxf',
+  'svg',
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+  'tif',
+  'tiff'
+]
+
 // 用户文件列表页面，支持按用户 ID 查看、上传与删除文件记录。
 export default {
   name: 'UserManageFilesIndex',
@@ -264,7 +277,7 @@ export default {
         name: ''
       },
       // 后端实时返回的上传白名单扩展名列表
-      allowedExtensions: []
+      allowedExtensions: [...DEFAULT_ALLOWED_EXTENSIONS]
     }
   },
   computed: {
