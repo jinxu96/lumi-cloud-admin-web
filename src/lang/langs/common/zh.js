@@ -26,6 +26,7 @@ export default {
     adminIndex: '管理员列表',
     userManage: '用户管理',
     userManageList: '用户列表',
+    userManageFiles: '用户文件列表',
     authGroup: '管理分组',
     authGroupTree: '分组结构',
     authRule: '权限路由',

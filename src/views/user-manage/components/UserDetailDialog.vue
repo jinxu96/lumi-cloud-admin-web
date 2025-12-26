@@ -461,11 +461,10 @@ export default {
       // 使用临时创建的隐藏链接触发浏览器下载流程。
       const anchor = document.createElement('a')
       anchor.href = url
-      anchor.target = '_blank'
       if (allowDownloadAttr && fileName) {
         anchor.download = fileName
       }
-      anchor.rel = 'noopener'
+      anchor.style.display = 'none'
       document.body.appendChild(anchor)
       anchor.click()
       document.body.removeChild(anchor)

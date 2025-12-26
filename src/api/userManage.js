@@ -42,3 +42,47 @@ export function getUserFileDownload(id) {
     method: 'get'
   })
 }
+
+export function getUserFiles(userId, params) {
+  // 查询指定用户的文件列表
+  return request({
+    url: `users/${userId}/files`,
+    method: 'get',
+    params
+  })
+}
+
+export function getAllUserFiles(params) {
+  // 查询全部用户文件，可按用户关键字、ID 或文件信息筛选
+  return request({
+    url: 'user-files',
+    method: 'get',
+    params
+  })
+}
+
+export function createUserFile(userId, payload) {
+  // 上传新文件给指定用户
+  return request({
+    url: `users/${userId}/files`,
+    method: 'post',
+    data: payload
+  })
+}
+
+export function updateUserFile(id, payload) {
+  // 更新用户文件备注或内容
+  return request({
+    url: `user-files/${id}`,
+    method: 'put',
+    data: payload
+  })
+}
+
+export function deleteUserFile(id) {
+  // 删除指定用户文件
+  return request({
+    url: `user-files/${id}`,
+    method: 'delete'
+  })
+}

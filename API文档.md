@@ -366,6 +366,123 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 
 > 提示：密码重置后将删除该用户的所有 Sanctum Token，前台需要重新登录。
 
+## 用户文件列表
+- **权限标识**：`app-admin.user-files.index`
+- **接口**：`GET /admin-api/users/{userId}/files`
+- **说明**：分页查看指定用户的文件，并返回当前空间占用情况。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `userId` | integer | 是 | 用户 ID |
+
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `search` | string | 否 | 按原始文件名或备注模糊搜索 |
+| `page` | integer | 否 | 页码，默认 `1` |
+| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
+
+- **响应字段补充**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.user` | object | 当前查询对应的用户概要，含 `id`、`name`、`email` |
+| `data.page` | integer | 当前页码 |
+| `data.limit` | integer | 每页数量 |
+| `data.total` | integer | 总记录数 |
+| `data.list[].id` | integer | 文件记录 ID |
+| `data.list[].original_name` | string/null | 上传时的原始文件名 |
+| `data.list[].name` | string | 存储使用的文件名 |
+| `data.list[].size` | integer | 文件大小（字节） |
+| `data.list[].extension` | string | 统一为小写的文件扩展名 |
+| `data.list[].comment` | string/null | 运营备注 |
+| `data.list[].created_at` | string/null | 上传时间 |
+| `data.list[].updated_at` | string/null | 最近更新时间 |
+| `data.list[].download_url` | string/null | 临时下载链接，优先带签名 |
+| `data.list[].preview_url` | string/null | 预览链接（若存在） |
+| `data.usage.used_bytes` | integer | 已使用空间（字节） |
+| `data.usage.quota_bytes` | integer | 当前可用总额度（字节） |
+| `data.usage.remaining_bytes` | integer | 剩余空间（字节，最小为 0） |
+
+### 全部用户文件列表
+- **权限标识**：`app-admin.user-files.all`
+- **接口**：`GET /admin-api/user-files`
+- **说明**：跨用户查看全部文件，可按用户或文件关键字过滤。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `user` | string | 否 | 用户名称或邮箱关键字，支持模糊匹配 |
+| `user_id` | integer | 否 | 精确指定用户 ID |
+| `search` | string | 否 | 文件名称或备注关键字 |
+| `page` | integer | 否 | 页码，默认 `1` |
+| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
+
+- **响应字段补充**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].user` | object/null | 所属用户概要，含 `id`、`name`、`email`，若用户已被删除则为 null |
+
+## 新增用户文件
+- **权限标识**：`app-admin.user-files.store`
+- **接口**：`POST /admin-api/users/{userId}/files`
+- **说明**：为指定用户上传文件，接口会自动校验空间配额并记录文件信息。
+- **请求方式**：`multipart/form-data`
+- **路径参数**：同“用户文件列表”。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 待上传文件，遵循文件类型白名单与大小限制 |
+| `comment` | string | 否 | 备注信息，最长 1000 字符 |
+
+- **成功响应**：返回与“用户文件列表”单项一致的结构。
+- **失败场景**：
+	- 上传类型不在白名单或缺少扩展名。
+	- 文件尺寸超过后台配置的单文件上限。
+	- 用户剩余空间不足（将返回提示信息）。
+
+## 替换或备注用户文件
+- **权限标识**：`app-admin.user-files.update`
+- **接口**：`PUT /admin-api/user-files/{id}` 或 `PATCH /admin-api/user-files/{id}`
+- **说明**：可仅更新备注，也可以重新上传文件覆盖原文件，系统会同步调整用户配额。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `id` | integer | 是 | 文件记录 ID |
+
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 否 | 新文件，上传后会删除旧文件并重新统计配额 |
+| `comment` | string | 否 | 备注信息，最长 1000 字符 |
+
+- **响应**：返回最新的文件信息（同列表结构）。
+- **提示**：
+	- 若只提交 `comment`，文件内容保持不变。
+	- 当提交新文件时，接口会先释放旧文件占用空间，再写入新文件并更新配额。
+
+## 删除用户文件
+- **权限标识**：`app-admin.user-files.destroy`
+- **接口**：`DELETE /admin-api/user-files/{id}`
+- **说明**：删除文件记录，并清理 OSS 存储与用户配额占用。
+- **路径参数**：同“替换或备注用户文件”。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "删除成功",
+	"data": []
+}
+```
+
 # 机器管理 API
 
 ## 机器列表

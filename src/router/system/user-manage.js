@@ -11,7 +11,8 @@ const route = {
     title: 'userManage',
     icon: 'el-icon-user',
     roles: [
-      'app-admin.users.index'
+      'app-admin.users.index',
+      'app-admin.user-files.all'
     ]
   },
   children: [
@@ -24,6 +25,17 @@ const route = {
         title: 'userManageList',
         roles: [
           'app-admin.users.index'
+        ]
+      }
+    },
+    {
+      path: 'files',
+      component: () => import('@/views/user-manage/files/index.vue'),
+      name: 'UserManageFiles',
+      meta: {
+        title: 'userManageFiles',
+        roles: [
+          'app-admin.user-files.all'
         ]
       }
     }

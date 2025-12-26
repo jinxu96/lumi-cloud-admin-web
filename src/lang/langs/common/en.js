@@ -25,6 +25,7 @@ export default {
     adminIndex: 'AdminIndex',
     userManage: 'User Management',
     userManageList: 'User List',
+    userManageFiles: 'User Files',
     authGroup: 'AuthGroup',
     authGroupTree: 'AuthGroupTree',
     authRule: 'AuthRule',
