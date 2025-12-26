@@ -386,7 +386,7 @@ export default {
         label: machine.name,
         children: (machine.modules || []).map(module => ({
           id: module.id,
-          label: module.name
+          label: this.composeModuleLabel(module)
         }))
       })).filter(group => group.children.length)
     },
@@ -460,6 +460,23 @@ export default {
     }
   },
   methods: {
+    // 组装机台模块标签 (名称 + 功率)
+    composeModuleLabel(module) {
+      const name = module && module.name ? module.name : ''
+      const rawPower = module ? module.power_watt : null
+      const hasPower = rawPower === 0 || rawPower === '0' || !!rawPower
+      if (!hasPower) {
+        return name
+      }
+      const parsed = Number(rawPower)
+      if (Number.isNaN(parsed)) {
+        return name
+      }
+      if (!name) {
+        return `${parsed}W`
+      }
+      return `${name} · ${parsed}W`
+    },
     // 根据媒体类型动态返回 accept 字符串
     getMediaAcceptValue(item) {
       const isVideo = item && item.media_type === 'video'

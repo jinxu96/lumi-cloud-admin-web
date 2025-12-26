@@ -28,6 +28,7 @@ export default {
     'table_title': 'Title',
     'table_tags': 'Tags',
     'table_author': 'Author',
+    'table_cover': 'Cover',
     'table_status': 'Status',
     'table_featured': 'Featured',
     'table_featured_weight': 'Featured Weight',

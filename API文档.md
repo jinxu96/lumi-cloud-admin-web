@@ -1546,28 +1546,77 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 ```json
 {
-	"success": true,
-	"code": 0,
-	"message": "获取成功",
-	"data": {
-		"machines": [
-			{
-				"id": 1,
-				"name": "LumiMaker X1",
-				"slug": "lumimaker-x1",
-				"sort_order": 10,
-				"modules": [
-					{"id": 11, "name": "蓝光 10W 模块"}
-				]
-			}
-		],
-		"materials": [
-			{"id": 101, "name": "柚木板", "material_code": "WOOD-TEAK-3MM"}
-		],
-		"scenarios": [
-			{"id": 21, "name": "节日送礼", "code": "festival_gift"}
-		]
-	}
+    "success": true,
+    "code": 0,
+    "message": "获取成功",
+    "data": {
+        "machines": [
+            {
+                "id": 16,
+                "name": "EM-Smart Mopa",
+                "slug": "Mopa-2024",
+                "sort_order": 1,
+                "modules": [
+                    {
+                        "id": 25,
+                        "machine_id": 16,
+                        "name": "标准头",
+                        "power_watt": 60,
+                        "color_hex": null,
+                        "description": "类型: 标准头 | 单一功率示例",
+                        "is_active": true,
+                        "sort_order": 1,
+                        "created_at": "2025-12-23T02:05:05.000000Z",
+                        "updated_at": "2025-12-23T02:05:05.000000Z"
+                    }
+                ]
+            },
+            {
+                "id": 17,
+                "name": "EM-Smart Nova",
+                "slug": "Nova-2024",
+                "sort_order": 1,
+                "modules": [
+                    {
+                        "id": 26,
+                        "machine_id": 17,
+                        "name": "标准头",
+                        "power_watt": 25,
+                        "color_hex": null,
+                        "description": "便携式",
+                        "is_active": true,
+                        "sort_order": 1,
+                        "created_at": "2025-12-23T06:02:42.000000Z",
+                        "updated_at": "2025-12-23T06:02:42.000000Z"
+                    }
+                ]
+            }
+        ],
+        "materials": [
+            {
+                "id": 20,
+                "name": "仿胡桃木中密度纤维板",
+                "material_code": "3-5-98-00870",
+                "sku_code": "3-5-98-00870",
+                "sort_order": 1,
+                "warnings": []
+            }
+        ],
+        "scenarios": [
+            {
+                "id": 1,
+                "name": "激光加工",
+                "code": "laser-processing",
+                "sort_order": 1
+            },
+            {
+                "id": 2,
+                "name": "刀片切割",
+                "code": "blade-cutting",
+                "sort_order": 2
+            },
+        ]
+    }
 }
 ```
 

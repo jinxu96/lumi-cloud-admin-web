@@ -11,6 +11,21 @@
     >
       <el-table-column prop="id" label="ID" width="80" align="center" />
 
+      <el-table-column :label="$t('templateLibrary.table_cover')" width="140" align="center">
+        <template slot-scope="{ row }">
+          <el-image
+            v-if="getCoverUrl(row)"
+            :src="getCoverUrl(row)"
+            fit="cover"
+            class="cover-thumb"
+            :preview-src-list="[getCoverUrl(row)]"
+          >
+            <div slot="error" class="cover-thumb-placeholder">-</div>
+          </el-image>
+          <span v-else class="cover-thumb-empty">-</span>
+        </template>
+      </el-table-column>
+
       <el-table-column :label="$t('templateLibrary.table_title')" min-width="220">
         <template slot-scope="{ row }">
           <div class="template-title">
@@ -233,12 +248,55 @@ export default {
       this.$emit('update:page', page)
       this.$emit('update:limit', limit)
       this.$emit('pagination', { page, limit })
+    },
+    // 解析封面地址，兼容多种返回结构
+    getCoverUrl(row) {
+      if (!row) {
+        return ''
+      }
+      if (row.cover_url) {
+        return row.cover_url
+      }
+      if (row.cover && (row.cover.preview_url || row.cover.url)) {
+        return row.cover.preview_url || row.cover.url
+      }
+      if (row.cover_media && (row.cover_media.preview_url || row.cover_media.url)) {
+        return row.cover_media.preview_url || row.cover_media.url
+      }
+      if (Array.isArray(row.media)) {
+        const coverItem = row.media.find(item => item && (item.is_cover || item.media_type === 'image'))
+        if (coverItem) {
+          return coverItem.preview_url || coverItem.url || ''
+        }
+      }
+      return ''
     }
   }
 }
 </script>
 
 <style scoped>
+.cover-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
+}
+
+.cover-thumb-placeholder,
+.cover-thumb-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  border: 1px dashed #dcdfe6;
+  color: #c0c4cc;
+  font-size: 14px;
+}
+
 .template-title__text {
   font-weight: 600;
 }

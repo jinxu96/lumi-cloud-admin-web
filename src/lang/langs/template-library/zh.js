@@ -28,6 +28,7 @@ export default {
     'table_title': '模板标题',
     'table_tags': '标签',
     'table_author': '作者',
+    'table_cover': '封面图',
     'table_status': '状态',
     'table_featured': '推荐',
     'table_featured_weight': '推荐权重',

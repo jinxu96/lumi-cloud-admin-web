@@ -329,7 +329,7 @@ export default {
       this.duplicate.currentId = row.id
       this.duplicate.form = {
         title: row.title || '',
-        status: row.status || 'draft',
+        status: 'draft',
         target_user_id: row.user && row.user.id ? row.user.id : '',
         copy_media: true
       }

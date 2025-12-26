@@ -15,8 +15,7 @@
       <el-form-item :label="$t('templateLibrary.duplicate_form_status')" prop="status">
         <el-select
           v-model="localForm.status"
-          clearable
-          :placeholder="$t('templateLibrary.duplicate_status_placeholder')"
+          :disabled="true"
         >
           <el-option
             v-for="item in statusOptions"
@@ -83,8 +82,7 @@ export default {
   computed: {
     statusOptions() {
       return [
-        { value: 'draft', label: this.$t('templateLibrary.status_draft') },
-        { value: 'published', label: this.$t('templateLibrary.status_published') }
+        { value: 'draft', label: this.$t('templateLibrary.status_draft') }
       ]
     }
   },
@@ -111,7 +109,7 @@ export default {
     createLocalForm(source = {}) {
       return {
         title: source.title || '',
-        status: source.status || '',
+        status: 'draft',
         targetUserId: source.target_user_id || source.targetUserId || '',
         copyMedia: typeof source.copy_media === 'boolean' ? source.copy_media : !!source.copyMedia
       }
