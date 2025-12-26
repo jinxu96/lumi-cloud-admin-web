@@ -212,12 +212,14 @@
 import {
   getAllUserFiles,
   getUserFiles,
-  createUserFile,
   deleteUserFile,
-  getUserFileDownload
+  getUserFileDownload,
+  getUserFileUploadSignature,
+  completeUserFileDirectUpload
 } from '@/api/userManage'
 import Pagination from '@/components/Pagination'
 import checkPermission from '@/utils/permission'
+import { uploadFileToOss } from '@/utils/oss'
 
 // 用户文件列表页面，支持按用户 ID 查看、上传与删除文件记录。
 export default {
@@ -252,7 +254,8 @@ export default {
         comment: '',
         fileList: [],
         file: null,
-        submitting: false
+        submitting: false,
+        progress: 0
       },
       previewDialog: {
         visible: false,
@@ -260,8 +263,8 @@ export default {
         url: '',
         name: ''
       },
-      // 上传白名单扩展名
-      allowedExtensions: ['chb', 'laser', 'dxf', 'svg', 'png', 'jpg', 'jpeg', 'webp', 'tif', 'tiff']
+      // 后端实时返回的上传白名单扩展名列表
+      allowedExtensions: []
     }
   },
   computed: {
@@ -292,6 +295,13 @@ export default {
     // 生成 accept 属性字符串
     acceptTypes() {
       return this.allowedExtensions.map(ext => `.${ext}`).join(',')
+    },
+    // 拼装白名单展示文案
+    allowedExtensionsDisplay() {
+      if (!this.allowedExtensions.length) {
+        return '-'
+      }
+      return this.allowedExtensions.map(ext => ext.toUpperCase()).join(' / ')
     }
   },
   created() {
@@ -430,19 +440,22 @@ export default {
     handleUploadFileChange(file, fileList) {
       // 仅保留最新文件，方便控制上传队列
       const ext = this.getFileExtension(file && file.name)
-      if (!this.isAllowedExtension(ext)) {
-        this.$message.warning(this.$t('userManage.files_upload_type_limited'))
+      if (this.allowedExtensions.length && !this.isAllowedExtension(ext)) {
+        this.$message.warning(this.$t('userManage.files_upload_type_limited', { types: this.allowedExtensionsDisplay }))
         this.uploadDialog.fileList = []
         this.uploadDialog.file = null
         return
       }
+      const rawFile = file && file.raw ? file.raw : file
       this.uploadDialog.fileList = fileList.slice(-1)
-      this.uploadDialog.file = file.raw
+      this.uploadDialog.file = rawFile
+      this.uploadDialog.progress = 0
     },
     // 移除待上传文件时重置状态
     handleUploadFileRemove() {
       this.uploadDialog.fileList = []
       this.uploadDialog.file = null
+      this.uploadDialog.progress = 0
     },
     // 关闭上传弹窗时重置表单
     resetUploadDialog() {
@@ -450,35 +463,100 @@ export default {
       this.uploadDialog.fileList = []
       this.uploadDialog.file = null
       this.uploadDialog.submitting = false
+      this.uploadDialog.progress = 0
     },
-    // 提交上传请求
+    // 提交上传请求：申请凭证 -> 直传 OSS -> 通知后端入库
     async submitUpload() {
       if (!this.uploadDialog.file) {
         this.$message.warning(this.$t('userManage.files_select_file_required'))
         return
       }
-      // 校验扩展名是否在允许列表
-      const fileExt = this.getFileExtension(this.uploadDialog.file && this.uploadDialog.file.name)
-      if (!this.isAllowedExtension(fileExt)) {
-        this.$message.warning(this.$t('userManage.files_upload_type_limited'))
+      const userId = Number(this.filters.userId)
+      if (!userId) {
+        this.$message.warning(this.$t('userManage.files_user_required'))
+        return
+      }
+      const file = this.uploadDialog.file
+      const fileExt = this.getFileExtension(file && file.name)
+      if (!fileExt) {
+        this.$message.warning(this.$t('userManage.files_upload_type_limited', { types: this.allowedExtensionsDisplay }))
         return
       }
       this.uploadDialog.submitting = true
+      this.uploadDialog.progress = 0
       try {
-        const formData = new FormData()
-        formData.append('file', this.uploadDialog.file)
-        const comment = this.uploadDialog.comment && this.uploadDialog.comment.trim()
-        if (comment) {
-          formData.append('comment', comment)
+        const signature = await this.requestUploadSignature(userId, file, fileExt)
+        if (this.allowedExtensions.length && !this.isAllowedExtension(fileExt)) {
+          this.$message.warning(this.$t('userManage.files_upload_type_limited', { types: this.allowedExtensionsDisplay }))
+          return
         }
-        await createUserFile(this.filters.userId, formData)
+        let uploadResult
+        try {
+          uploadResult = await uploadFileToOss(signature, file, percent => {
+            this.uploadDialog.progress = percent
+          })
+        } catch (error) {
+          const message = this.$t('userManage.files_upload_direct_failed')
+          const wrapped = new Error(message)
+          wrapped.userMessage = message
+          throw wrapped
+        }
+        const comment = this.uploadDialog.comment && this.uploadDialog.comment.trim()
+        const payload = {
+          object_key: uploadResult.objectKey || signature.object_key,
+          original_name: file.name,
+          size: file.size,
+          extension: fileExt
+        }
+        if (comment) {
+          payload.comment = comment
+        }
+        try {
+          await completeUserFileDirectUpload(userId, payload)
+        } catch (error) {
+          const message = error && error.userMessage
+            ? error.userMessage
+            : (error && error.message ? error.message : this.$t('userManage.files_upload_complete_failed'))
+          const wrapped = new Error(message)
+          wrapped.userMessage = message
+          throw wrapped
+        }
         this.$message.success(this.$t('userManage.files_upload_success'))
         this.uploadDialog.visible = false
         this.fetchList()
       } catch (error) {
-        this.$message.error(this.$t('userManage.files_upload_failure'))
+        const message = error && error.userMessage
+          ? error.userMessage
+          : (error && error.message ? error.message : this.$t('userManage.files_upload_failure'))
+        this.$message.error(message)
       } finally {
         this.uploadDialog.submitting = false
+        this.uploadDialog.progress = 0
+      }
+    },
+    // 调用后端接口获取直传凭证，并根据返回更新白名单
+    async requestUploadSignature(userId, file, extension) {
+      try {
+        const { data } = await getUserFileUploadSignature(userId, {
+          file_name: file.name,
+          size: file.size,
+          extension
+        })
+        if (!data) {
+          const message = this.$t('userManage.files_upload_signature_failed')
+          const error = new Error(message)
+          error.userMessage = message
+          throw error
+        }
+        this.updateAllowedExtensions(data.allowed_extensions)
+        return data
+      } catch (error) {
+        const message = error && error.userMessage
+          ? error.userMessage
+          : (error && error.message ? error.message : this.$t('userManage.files_upload_signature_failed'))
+        const wrapped = new Error(message)
+        wrapped.userMessage = message
+        throw wrapped
       }
     },
     // 删除单条文件记录
@@ -611,6 +689,16 @@ export default {
       link.click()
       document.body.removeChild(link)
     },
+    // 更新后端返回的扩展名白名单
+    updateAllowedExtensions(list) {
+      if (!Array.isArray(list)) {
+        return
+      }
+      const normalized = list
+        .map(item => (item || '').toString().trim().toLowerCase())
+        .filter(Boolean)
+      this.allowedExtensions = Array.from(new Set(normalized))
+    },
     // 从文件名中获取扩展名
     getFileExtension(name) {
       if (!name || typeof name !== 'string') {
@@ -626,6 +714,9 @@ export default {
     isAllowedExtension(ext) {
       if (!ext) {
         return false
+      }
+      if (!this.allowedExtensions.length) {
+        return true
       }
       return this.allowedExtensions.includes(ext.toLowerCase())
     }

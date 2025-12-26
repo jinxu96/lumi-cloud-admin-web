@@ -62,7 +62,7 @@ export function getAllUserFiles(params) {
 }
 
 export function createUserFile(userId, payload) {
-  // 上传新文件给指定用户
+  // 上传新文件给指定用户（表单直传）
   return request({
     url: `users/${userId}/files`,
     method: 'post',
@@ -84,5 +84,23 @@ export function deleteUserFile(id) {
   return request({
     url: `user-files/${id}`,
     method: 'delete'
+  })
+}
+
+export function getUserFileUploadSignature(userId, data) {
+  // 获取用户文件直传 OSS 所需的临时凭证
+  return request({
+    url: `users/${userId}/files/signature`,
+    method: 'post',
+    data
+  })
+}
+
+export function completeUserFileDirectUpload(userId, data) {
+  // 通知后端直传完成，写入数据库并刷新配额
+  return request({
+    url: `users/${userId}/files/direct-complete`,
+    method: 'post',
+    data
   })
 }

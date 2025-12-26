@@ -35,17 +35,43 @@ export async function uploadFileToOss(signature, file, onProgress) {
   const rawRegion = signature.region || ''
   const region = rawRegion.startsWith('oss-') ? rawRegion : (rawRegion ? `oss-${rawRegion}` : undefined)
 
+  // 如果后端未直接返回 bucket，则尝试从 upload_host 自动推断
+  let bucket = signature.bucket || ''
+  if ((!bucket || !region) && signature.upload_host) {
+    try {
+      const url = new URL(signature.upload_host)
+      const host = url.hostname
+      const segments = host.split('.')
+      if (segments.length >= 4) {
+        bucket = bucket || segments[0]
+        const hostRegion = segments[1] // 例如 oss-cn-beijing
+        if (!rawRegion && hostRegion.startsWith('oss-')) {
+          signature.region = hostRegion
+        }
+      }
+    } catch (error) {
+      // ignore URL parse errors, rely on后端提供字段
+    }
+  }
+
+  if (!bucket) {
+    throw new Error('OSS bucket missing in upload signature')
+  }
+  signature.bucket = bucket
+
+  const finalRegionValue = signature.region || region
+
   // 组装 ali-oss 客户端配置
   const clientOptions = {
     accessKeyId: signature.credentials.access_key_id,
     accessKeySecret: signature.credentials.access_key_secret,
     stsToken: signature.credentials.security_token,
-    bucket: signature.bucket,
+    bucket,
     secure: true
   }
 
-  if (region) {
-    clientOptions.region = region
+  if (finalRegionValue) {
+    clientOptions.region = finalRegionValue
   }
 
   // 根据签名返回的上传域名决定 endpoint 与是否使用自定义域名模式
