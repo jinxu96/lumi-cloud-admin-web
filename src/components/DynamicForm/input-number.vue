@@ -61,7 +61,7 @@ export default {
       clearTimeout(this.timer)
       this.timer = setTimeout(() => {
         this.updateValue(value)
-      }, 500)
+      }, 80)
     },
     updateValue(valueStr) {
       const result = this.parse(valueStr, this.value)

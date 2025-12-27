@@ -141,12 +141,15 @@ export default {
     'duplicate_form_status': 'Status',
     'duplicate_form_target_user': 'Target User ID',
     'duplicate_form_target_placeholder': 'Leave empty to reuse original author',
+    'duplicate_form_target_file': 'Target User File',
+    'duplicate_form_target_file_placeholder': 'Search and pick a file under the target user',
     'duplicate_form_copy_media': 'Copy media assets',
     'duplicate_form_copy_media_hint': 'Enable to keep original media files',
     'duplicate_status_placeholder': 'Choose status',
     'duplicate_form_cancel': 'Cancel',
     'duplicate_form_confirm': 'Confirm',
     'duplicate_rule_title': 'Please enter new template title',
-    'duplicate_rule_status': 'Please choose status'
+    'duplicate_rule_status': 'Please choose status',
+    'duplicate_rule_file': 'Please choose a target file'
   }
 }

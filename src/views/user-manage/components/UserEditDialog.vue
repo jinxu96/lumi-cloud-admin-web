@@ -41,9 +41,6 @@
       <el-form-item :label="$t('userManage.form_email_verified')">
         <el-switch v-model="form.email_verified" />
       </el-form-item>
-      <el-form-item :label="$t('userManage.form_blocked')">
-        <el-switch v-model="form.is_blocked" />
-      </el-form-item>
     </el-form>
 
     <span slot="footer" class="dialog-footer">
@@ -125,8 +122,7 @@ export default {
         email: '',
         avatar: '',
         upload_quota_mb: 0,
-        email_verified: false,
-        is_blocked: false
+        email_verified: false
       }
     },
     handleClose() {

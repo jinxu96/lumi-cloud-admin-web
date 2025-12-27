@@ -266,6 +266,12 @@ export default {
           label: this.$t('userManage.table_blocked'),
           value: this.detailData.is_blocked ? this.$t('userManage.option_yes') : this.$t('userManage.option_no'),
           type: this.detailData.is_blocked ? 'danger' : 'success'
+        },
+        {
+          key: 'project_publish_banned',
+          label: this.$t('userManage.table_project_publish_banned'),
+          value: this.detailData.is_project_publish_banned ? this.$t('userManage.option_yes') : this.$t('userManage.option_no'),
+          type: this.detailData.is_project_publish_banned ? 'warning' : 'success'
         }
       ]
       return tags
@@ -582,8 +588,13 @@ export default {
       if (mime.startsWith('image/')) {
         return 'image'
       }
-      const name = file && file.name ? file.name.toLowerCase() : ''
-      if (['.mp4', '.webm', '.mov', '.m4v'].some(ext => name.endsWith(ext))) {
+      const name = (file && (file.name || file.original_name)) ? (file.name || file.original_name).toLowerCase() : ''
+      const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.ico', '.heic', '.heif', '.avif']
+      if (imageExts.some(ext => name.endsWith(ext))) {
+        return 'image'
+      }
+      const videoExts = ['.mp4', '.webm', '.mov', '.m4v', '.avi', '.mkv']
+      if (videoExts.some(ext => name.endsWith(ext))) {
         return 'video'
       }
       return 'unknown'

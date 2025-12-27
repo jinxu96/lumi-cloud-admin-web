@@ -5,6 +5,7 @@ export default {
     search_email_verified: 'Email verified',
     search_has_google: 'Google linked',
     search_blocked: 'Blocked status',
+    search_project_publish_banned: 'Project publishing',
     search_order: 'Order',
     search_btn: 'Search',
     search_reset: 'Reset',
@@ -21,6 +22,7 @@ export default {
     table_email_verified: 'Email verified',
     table_google: 'Google',
     table_blocked: 'Blocked',
+    table_project_publish_banned: 'Project publish banned',
     table_projects: 'Projects',
     table_files: 'Files',
     table_quota: 'Quota (MB)',
@@ -30,6 +32,10 @@ export default {
     table_detail: 'Detail',
     table_update: 'Edit',
     table_reset_password: 'Reset password',
+    table_block: 'Block',
+    table_unblock: 'Unblock',
+    table_forbid_project_publish: 'Forbid publishing',
+    table_allow_project_publish: 'Allow publishing',
 
     dialog_detail: 'User detail',
     dialog_edit: 'Edit user',
@@ -105,12 +111,25 @@ export default {
 
     message_update_success: 'User updated',
     message_password_success: 'Password reset successfully',
+    message_block_success: 'User blocked',
+    message_block_failure: 'Failed to block user, please try again later',
+    message_unblock_success: 'User unblocked',
+    message_unblock_failure: 'Failed to unblock user, please try again later',
+    message_forbid_project_publish_success: 'User publishing disabled',
+    message_forbid_project_publish_failure: 'Failed to disable publishing, please try again later',
+    message_allow_project_publish_success: 'User publishing restored',
+    message_allow_project_publish_failure: 'Failed to restore publishing, please try again later',
 
     rules_name_required: 'Username is required',
     rules_email_required: 'Email is required',
     rules_email_format: 'Invalid email address',
     rules_password_required: 'Password is required',
     rules_password_length: 'Password length must be 8-128',
-    rules_password_confirm: 'Passwords do not match'
+    rules_password_confirm: 'Passwords do not match',
+    confirm_block: 'Block user "{name}"?',
+    confirm_unblock: 'Unblock user "{name}"?',
+    confirm_forbid_project_publish: 'Disable project publishing for "{name}"?',
+    confirm_allow_project_publish: 'Allow "{name}" to publish projects again?',
+    permission_denied: 'You do not have permission for this action'
   }
 }

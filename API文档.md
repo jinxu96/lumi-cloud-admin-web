@@ -14,6 +14,60 @@
 }
 ```
 
+## 重新生成预览任务（用户）
+
+- **endpoint**: `POST /api/files/{id}/preview`
+- **认证**: `Authorization: Bearer {token}` (Sanctum)
+- **参数**:
+  - Path: `id` (required) 文件ID
+  - Body(JSON): `force` (optional boolean) 是否在重新排队前清空已有预览结果，默认为 `false`
+- **说明**:
+  - 仅文件所有者可以触发。
+  - 成功后会将设计预览任务放入队列，前端可结合文件 `preview_status` 轮询最新状态。
+- **返回示例**:
+```json
+{
+  "code": 0,
+  "message": "预览任务已提交",
+  "data": {
+    "queued": true
+  }
+}
+```
+- **示例**:
+```bash
+curl -X POST http://localhost:8000/api/files/1/preview \
+  -H "Authorization: Bearer {your_api_token}" \
+  -H "Content-Type: application/json" \
+  -d '{"force": true}'
+```
+
+## 后台触发预览任务（域名白名单）
+
+- **endpoint**: `POST /api/admin/files/{id}/preview`
+- **访问限制**: 请求域名需命中 `services.admin_panel.allowed_domains` 配置（或 `ADMIN_PANEL_ALLOWED_DOMAINS` 环境变量），无需用户登录。
+- **参数**:
+  - Path: `id` (required) 文件ID
+  - Body(JSON): `force` (optional boolean) 同上，控制是否清空旧预览
+- **说明**:
+  - 调用前确保文件已上传并支持预览格式。
+- **返回示例**:
+```json
+{
+  "code": 0,
+  "message": "预览任务已提交",
+  "data": {
+    "queued": true
+  }
+}
+```
+- **示例**:
+```bash
+curl -X POST https://admin.example.com/api/admin/files/1/preview \
+  -H "Content-Type: application/json" \
+  -d '{"force": false}'
+```
+
 ## 用户列表
 - **权限标识**：`app-admin.users.index`
 - **接口**：`GET /admin-api/users`
@@ -24,11 +78,12 @@
 | -- | -- | -- | -- |
 | `start` | integer | 否 | 起始偏移量，默认 `0` |
 | `limit` | integer | 否 | 每页条数，默认 `20`，最大 `100` |
-| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`（亦兼容 `字段_ASC/字段_DESC`），可选 `id`、`name`、`email`、`created_at`、`updated_at`、`projects_count`、`files_count` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`（亦兼容 `字段_ASC/字段_DESC`），可选 `id`、`name`、`email`、`created_at`、`updated_at`、`projects_count`、`files_count`、`is_blocked`、`is_project_publish_banned` |
 | `keyword` | string | 否 | 模糊搜索（用户名或邮箱） |
 | `email_verified` | boolean | 否 | 邮箱是否已验证（`true`/`false`） |
 | `has_google` | boolean | 否 | 是否已绑定 Google（`true`/`false`） |
 | `is_blocked` | boolean | 否 | 是否只查看被封禁或未封禁用户 |
+| `is_project_publish_banned` | boolean | 否 | 是否只查看被禁止发布项目或未被禁止的用户 |
 | `created_start` | string | 否 | 创建时间起始（YYYY-MM-DD 或完整 ISO 时间） |
 | `created_end` | string | 否 | 创建时间结束 |
 
@@ -60,6 +115,7 @@ curl -X GET "https://example.com/admin-api/users?limit=10&keyword=john&order=id_
 				"email_verified": true,
 				"email_verified_at": "2025-12-01 08:00:00",
 				"is_blocked": false,
+				"is_project_publish_banned": false,
 				"upload_quota_bytes": 10737418240,
 				"upload_quota_mb": 10240,
 				"upload_quota_bytes_custom": 10737418240,
@@ -83,6 +139,7 @@ curl -X GET "https://example.com/admin-api/users?limit=10&keyword=john&order=id_
 				"email_verified": false,
 				"email_verified_at": null,
 				"is_blocked": true,
+				"is_project_publish_banned": true,
 				"upload_quota_bytes": 8589934592,
 				"upload_quota_mb": 8192,
 				"upload_quota_bytes_custom": null,
@@ -120,6 +177,7 @@ curl -X GET "https://example.com/admin-api/users?limit=10&keyword=john&order=id_
 | `data.list[].email_verified` | boolean | 邮箱是否已验证 |
 | `data.list[].email_verified_at` | string/null | 邮箱验证时间 |
 | `data.list[].is_blocked` | boolean | 是否已被封禁（封禁后不可登录） |
+| `data.list[].is_project_publish_banned` | boolean | 是否被禁止发布项目模板 |
 | `data.list[].upload_quota_bytes` | integer/null | 实际生效的上传额度（字节），如果配置也为空则返回 null |
 | `data.list[].upload_quota_mb` | number/null | 实际生效上传额度（MB），保留两位小数，便于直接展示 |
 | `data.list[].upload_quota_bytes_custom` | integer/null | 用户表中的自定义额度，null 表示继承默认值 |
@@ -132,6 +190,188 @@ curl -X GET "https://example.com/admin-api/users?limit=10&keyword=john&order=id_
 | `data.list[].projects_downloads_sum` | integer | 用户项目下载总数 |
 | `data.list[].created_at` | string | 用户创建时间 |
 | `data.list[].updated_at` | string | 最近更新时间 |
+
+## 用户文件列表
+- **权限标识**：`app-admin.user-files.index`
+- **接口**：`GET /admin-api/users/{userId}/files`
+- **说明**：分页查看指定用户的文件，并返回当前空间占用情况。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `userId` | integer | 是 | 用户 ID |
+
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `search` | string | 否 | 按原始文件名或备注模糊搜索 |
+| `page` | integer | 否 | 页码，默认 `1` |
+| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
+
+- **响应字段补充**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.user` | object | 当前查询对应的用户概要，含 `id`、`name`、`email` |
+| `data.page` | integer | 当前页码 |
+| `data.limit` | integer | 每页数量 |
+| `data.total` | integer | 总记录数 |
+| `data.list[].id` | integer | 文件记录 ID |
+| `data.list[].original_name` | string/null | 上传时的原始文件名 |
+| `data.list[].name` | string | 存储使用的文件名 |
+| `data.list[].size` | integer | 文件大小（字节） |
+| `data.list[].extension` | string | 统一为小写的文件扩展名 |
+| `data.list[].comment` | string/null | 运营备注 |
+| `data.list[].created_at` | string/null | 上传时间 |
+| `data.list[].updated_at` | string/null | 最近更新时间 |
+| `data.list[].download_url` | string/null | 临时下载链接，优先带签名 |
+| `data.list[].preview_url` | string/null | 预览链接（若存在） |
+| `data.usage.used_bytes` | integer | 已使用空间（字节） |
+| `data.usage.quota_bytes` | integer | 当前可用总额度（字节） |
+| `data.usage.remaining_bytes` | integer | 剩余空间（字节，最小为 0） |
+
+### 全部用户文件列表
+- **权限标识**：`app-admin.user-files.all`
+- **接口**：`GET /admin-api/user-files`
+- **说明**：跨用户查看全部文件，可按用户或文件关键字过滤。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `user` | string | 否 | 用户名称或邮箱关键字，支持模糊匹配 |
+| `user_id` | integer | 否 | 精确指定用户 ID |
+| `search` | string | 否 | 文件名称或备注关键字 |
+| `page` | integer | 否 | 页码，默认 `1` |
+| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
+
+- **响应字段补充**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].user` | object/null | 所属用户概要，含 `id`、`name`、`email`，若用户已被删除则为 null |
+
+### 获取用户文件直传凭证
+- **权限标识**：`app-admin.user-files.signature`
+- **接口**：`POST /admin-api/users/{userId}/files/signature`
+- **说明**：为指定用户申请 OSS 直传所需的临时凭证，前端拿到数据后可直接向 OSS 上传文件。
+- **路径参数**：同“用户文件列表”。
+- **请求体字段**（`application/json`）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file_name` | string | 是 | 原始文件名，用于识别扩展名 |
+| `size` | integer | 是 | 文件大小（字节） |
+| `extension` | string | 否 | 指定扩展名，需属于响应中的 `allowed_extensions`，留空时自动从 `file_name` 推断 |
+
+- **成功响应**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取上传凭证成功",
+	"data": {
+		"object_key": "users/xxxx/files/2025/12/uuid.laser",
+		"upload_host": "https://bucket.oss-cn-hangzhou.aliyuncs.com",
+		"max_size": 104857600,
+		"allowed_extensions": ["chb","laser","dxf","svg","png","jpg","jpeg","webp","tif","tiff","pdf"],
+		"credentials": {
+			"access_key_id": "LTAIxxxx",
+			"access_key_secret": "xxxx",
+			"security_token": "xxxx",
+			"expiration": "2025-12-26T12:30:00Z",
+			"duration_seconds": 1800,
+			"role_session_name": "lumi-admin"
+		}
+	}
+}
+```
+
+- **提示**：
+	- 返回的 `object_key` 需原样用于 OSS 直传，禁止修改目录结构。
+	- 若返回 `upload_host` 为 `null`，可直接使用 OSS SDK 默认 Endpoint。
+	- `allowed_extensions` 为后端实时白名单，前端需据此限制文件上传并在确认接口中填写相同扩展名。
+	- 上传前会校验文件大小与剩余配额，若失败请重新申请凭证。
+
+### 确认用户文件直传
+- **权限标识**：`app-admin.user-files.complete`
+- **接口**：`POST /admin-api/users/{userId}/files/direct-complete`
+- **说明**：前端直传成功后调用此接口写入数据库、刷新配额并触发预览任务。
+- **路径参数**：同“用户文件列表”。
+- **请求体字段**（`application/json`）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `object_key` | string | 是 | OSS 对象路径，需与凭证返回值一致 |
+| `original_name` | string | 是 | 上传时的原始文件名 |
+| `size` | integer | 是 | 文件大小（字节） |
+| `extension` | string | 是 | 文件扩展名，小写，必须在凭证返回的 `allowed_extensions` 中 |
+| `comment` | string | 否 | 运营备注，最长 1000 字符 |
+
+- **成功响应**：同“新增用户文件”接口。
+- **提示**：
+	- 接口会校验 `object_key` 是否属于当前用户并确认 OSS 上已存在该文件。
+	- 同一 `object_key` 重复请求会直接返回既有记录。
+
+## 新增用户文件
+- **权限标识**：`app-admin.user-files.store`
+- **接口**：`POST /admin-api/users/{userId}/files`
+- **说明**：为指定用户上传文件，接口会自动校验空间配额并记录文件信息。
+- **请求方式**：`multipart/form-data`
+- **路径参数**：同“用户文件列表”。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 待上传文件，遵循文件类型白名单与大小限制 |
+| `comment` | string | 否 | 备注信息，最长 1000 字符 |
+
+- **成功响应**：返回与“用户文件列表”单项一致的结构。
+- **额外说明**：
+	- 当上传扩展名为 `.laser` 的文件时，接口在保存成功后会自动调用前台提供的 `/api/admin/files/{id}/preview` 以重新排队生成预览；若调用失败会记录日志但不影响本次上传结果。
+- **失败场景**：
+	- 上传类型不在白名单或缺少扩展名。
+	- 文件尺寸超过后台配置的单文件上限。
+	- 用户剩余空间不足（将返回提示信息）。
+
+## 替换或备注用户文件
+- **权限标识**：`app-admin.user-files.update`
+- **接口**：`PUT /admin-api/user-files/{id}` 或 `PATCH /admin-api/user-files/{id}`
+- **说明**：可仅更新备注，也可以重新上传文件覆盖原文件，系统会同步调整用户配额。
+- **路径参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `id` | integer | 是 | 文件记录 ID |
+
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 否 | 新文件，上传后会删除旧文件并重新统计配额 |
+| `comment` | string | 否 | 备注信息，最长 1000 字符 |
+
+- **响应**：返回最新的文件信息（同列表结构）。
+- **提示**：
+	- 若只提交 `comment`，文件内容保持不变。
+	- 当提交新文件时，接口会先释放旧文件占用空间，再写入新文件并更新配额。
+
+## 删除用户文件
+- **权限标识**：`app-admin.user-files.destroy`
+- **接口**：`DELETE /admin-api/user-files/{id}`
+- **说明**：删除文件记录，并清理 OSS 存储与用户配额占用。
+- **路径参数**：同“替换或备注用户文件”。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "删除成功",
+	"data": []
+}
+```
 
 ## 用户详情
 - **权限标识**：`app-admin.users.show`
@@ -166,6 +406,7 @@ curl -X GET "https://example.com/admin-api/users/1" \
 		"email_verified": true,
 		"email_verified_at": "2025-12-01 08:00:00",
 		"is_blocked": false,
+		"is_project_publish_banned": false,
 		"upload_quota_bytes": 10737418240,
 		"upload_quota_mb": 10240,
 		"upload_quota_bytes_custom": 10737418240,
@@ -229,6 +470,7 @@ curl -X GET "https://example.com/admin-api/users/1" \
 | `data.email_verified` | boolean | 邮箱是否已验证 |
 | `data.email_verified_at` | string/null | 邮箱验证时间 |
 | `data.is_blocked` | boolean | 是否被封禁（封禁后后端会清理 Token） |
+| `data.is_project_publish_banned` | boolean | 是否被禁止发布项目模板 |
 | `data.upload_quota_bytes` | integer/null | 实际生效的上传额度（字节），若系统与用户均未设置则为 null |
 | `data.upload_quota_mb` | number/null | 实际生效上传额度（MB，保留两位） |
 | `data.upload_quota_bytes_custom` | integer/null | 用户表中的自定义额度，null 表示继承默认值 |
@@ -296,6 +538,7 @@ curl -X GET "https://example.com/admin-api/users/1" \
 | `upload_quota_bytes` | integer/null | 否 | 上传额度（字节），null 表示使用系统默认值 |
 | `email_verified` | boolean | 否 | 是否将邮箱标记为已验证 |
 | `is_blocked` | boolean | 否 | 是否封禁账号，设为 `true` 时会立即清理现有 Token |
+| `is_project_publish_banned` | boolean | 否 | 是否禁止发布项目模板 |
 
 - **请求示例**：
 
@@ -346,8 +589,6 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 
 - **成功响应示例**：
 
-- **成功响应示例**：
-
 ```json
 {
 	"success": true,
@@ -364,124 +605,51 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 | `message` | string | 固定为“密码已重置” |
 | `data` | array | 空数组 |
 
-> 提示：密码重置后将删除该用户的所有 Sanctum Token，前台需要重新登录。
+> 提示：密码重置后将删除该用户的所有 Sanctum Token，需要重新登录。
 
-## 用户文件列表
-- **权限标识**：`app-admin.user-files.index`
-- **接口**：`GET /admin-api/users/{userId}/files`
-- **说明**：分页查看指定用户的文件，并返回当前空间占用情况。
-- **路径参数**：
-
-| 参数名 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `userId` | integer | 是 | 用户 ID |
-
-- **查询参数**：
-
-| 参数名 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `search` | string | 否 | 按原始文件名或备注模糊搜索 |
-| `page` | integer | 否 | 页码，默认 `1` |
-| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
-
-- **响应字段补充**：
-
-| 字段 | 类型 | 说明 |
-| -- | -- | -- |
-| `data.user` | object | 当前查询对应的用户概要，含 `id`、`name`、`email` |
-| `data.page` | integer | 当前页码 |
-| `data.limit` | integer | 每页数量 |
-| `data.total` | integer | 总记录数 |
-| `data.list[].id` | integer | 文件记录 ID |
-| `data.list[].original_name` | string/null | 上传时的原始文件名 |
-| `data.list[].name` | string | 存储使用的文件名 |
-| `data.list[].size` | integer | 文件大小（字节） |
-| `data.list[].extension` | string | 统一为小写的文件扩展名 |
-| `data.list[].comment` | string/null | 运营备注 |
-| `data.list[].created_at` | string/null | 上传时间 |
-| `data.list[].updated_at` | string/null | 最近更新时间 |
-| `data.list[].download_url` | string/null | 临时下载链接，优先带签名 |
-| `data.list[].preview_url` | string/null | 预览链接（若存在） |
-| `data.usage.used_bytes` | integer | 已使用空间（字节） |
-| `data.usage.quota_bytes` | integer | 当前可用总额度（字节） |
-| `data.usage.remaining_bytes` | integer | 剩余空间（字节，最小为 0） |
-
-### 全部用户文件列表
-- **权限标识**：`app-admin.user-files.all`
-- **接口**：`GET /admin-api/user-files`
-- **说明**：跨用户查看全部文件，可按用户或文件关键字过滤。
-- **查询参数**：
-
-| 参数名 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `user` | string | 否 | 用户名称或邮箱关键字，支持模糊匹配 |
-| `user_id` | integer | 否 | 精确指定用户 ID |
-| `search` | string | 否 | 文件名称或备注关键字 |
-| `page` | integer | 否 | 页码，默认 `1` |
-| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `100` |
-
-- **响应字段补充**：
-
-| 字段 | 类型 | 说明 |
-| -- | -- | -- |
-| `data.list[].user` | object/null | 所属用户概要，含 `id`、`name`、`email`，若用户已被删除则为 null |
-
-## 新增用户文件
-- **权限标识**：`app-admin.user-files.store`
-- **接口**：`POST /admin-api/users/{userId}/files`
-- **说明**：为指定用户上传文件，接口会自动校验空间配额并记录文件信息。
-- **请求方式**：`multipart/form-data`
-- **路径参数**：同“用户文件列表”。
-- **请求体字段**：
-
-| 字段 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `file` | file | 是 | 待上传文件，遵循文件类型白名单与大小限制 |
-| `comment` | string | 否 | 备注信息，最长 1000 字符 |
-
-- **成功响应**：返回与“用户文件列表”单项一致的结构。
-- **失败场景**：
-	- 上传类型不在白名单或缺少扩展名。
-	- 文件尺寸超过后台配置的单文件上限。
-	- 用户剩余空间不足（将返回提示信息）。
-
-## 替换或备注用户文件
-- **权限标识**：`app-admin.user-files.update`
-- **接口**：`PUT /admin-api/user-files/{id}` 或 `PATCH /admin-api/user-files/{id}`
-- **说明**：可仅更新备注，也可以重新上传文件覆盖原文件，系统会同步调整用户配额。
-- **路径参数**：
-
-| 参数名 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `id` | integer | 是 | 文件记录 ID |
-
-- **请求体字段**：
-
-| 字段 | 类型 | 是否必填 | 说明 |
-| -- | -- | -- | -- |
-| `file` | file | 否 | 新文件，上传后会删除旧文件并重新统计配额 |
-| `comment` | string | 否 | 备注信息，最长 1000 字符 |
-
-- **响应**：返回最新的文件信息（同列表结构）。
+## 禁止用户发布项目模板
+- **权限标识**：`app-admin.users.forbid-project-publish`
+- **接口**：`POST /admin-api/users/{id}/project-publish/forbid`
+- **说明**：禁止指定用户发布新的项目模板。
+- **路径参数**：同“更新用户信息”。
+- **请求体**：无需请求体。
+- **成功响应**：同“用户列表”单项结构，并附带 `stats`。
 - **提示**：
-	- 若只提交 `comment`，文件内容保持不变。
-	- 当提交新文件时，接口会先释放旧文件占用空间，再写入新文件并更新配额。
+	- 接口幂等，若用户已处于禁止状态会直接返回当前信息。
+	- 成功后操作日志会记录限制原因，前台需根据 `is_project_publish_banned` 控制发布入口。
 
-## 删除用户文件
-- **权限标识**：`app-admin.user-files.destroy`
-- **接口**：`DELETE /admin-api/user-files/{id}`
-- **说明**：删除文件记录，并清理 OSS 存储与用户配额占用。
-- **路径参数**：同“替换或备注用户文件”。
-- **成功响应示例**：
+## 解除项目发布限制
+- **权限标识**：`app-admin.users.allow-project-publish`
+- **接口**：`POST /admin-api/users/{id}/project-publish/allow`
+- **说明**：解除项目发布限制，让用户可再次提交项目模板。
+- **路径参数**：同“更新用户信息”。
+- **请求体**：无需请求体。
+- **成功响应**：同“用户列表”单项结构，并附带 `stats`。
+- **提示**：
+	- 接口幂等，若用户本就未被限制会直接返回当前信息。
+	- 日志会记录解除操作，便于事后审计。
 
-```json
-{
-	"success": true,
-	"code": 0,
-	"message": "删除成功",
-	"data": []
-}
-```
+## 封禁用户
+- **权限标识**：`app-admin.users.block`
+- **接口**：`POST /admin-api/users/{id}/block`
+- **说明**：一键封禁用户账号，并清理现有登录令牌。
+- **路径参数**：同“更新用户信息”。
+- **请求体**：无需请求体。
+- **成功响应**：同“用户列表”单项结构，并附带 `stats`。
+- **提示**：
+	- 接口幂等，多次封禁已停用的用户会返回当前状态。
+	- 成功后系统会记录操作日志并清理所有 Sanctum Token，确保封禁即时生效。
+
+## 解除用户封禁
+- **权限标识**：`app-admin.users.unblock`
+- **接口**：`POST /admin-api/users/{id}/unblock`
+- **说明**：解除封禁，让用户恢复登录权限。
+- **路径参数**：同“更新用户信息”。
+- **请求体**：无需请求体。
+- **成功响应**：同“用户列表”单项结构，并附带 `stats`。
+- **提示**：
+	- 接口幂等，若用户当前未封禁会直接返回当前状态。
+	- 操作日志会记录解除封禁的行为，便于追溯。
 
 # 机器管理 API
 
@@ -893,7 +1061,7 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 ## 导入机器模块配置
 - **权限标识**：`app-admin.machine-modules.import`
 - **接口**：`POST /admin-api/machine-modules/import`
-- **说明**：批量导入机器、模块与加工配置，需上传官方模板填写完成的文件。
+- **说明**：批量导入机器、模块与加工配置，需上传官方模板填写完成的文件；模板中的“模块功率(W)”需填写单个数值，不可留空。
 - **请求方式**：`multipart/form-data`
 - **请求体字段**：
 
@@ -1227,6 +1395,19 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 - **提示**：请确保使用最新版的模板（位于 `resources/templates/material_library_import_template.csv`），并按照注释说明填写；其中 JSON 字段需填写合法 JSON 字符串。
 
+## 下载材料库模板
+- **权限标识**：`app-admin.material-library.template`
+- **接口**：`GET /admin-api/material-library/template`
+- **说明**：下载材料库模块配置导入模板，供运营批量填写材料、模块及加工参数。
+- **请求示例**：
+
+```bash
+curl -X GET "https://example.com/admin-api/material-library/template" \
+	-H "Authorization: Bearer <token>" -OJ
+```
+
+- **响应**：返回 `材料库模块配置导入模板.csv`，默认包含 UTF-8 BOM 以确保 Excel 正确识别。
+
 ## 更新材料
 - **权限标识**：`app-admin.materials.update`
 - **接口**：`PUT /admin-api/materials/{id}` 或 `PATCH /admin-api/materials/{id}`
@@ -1283,7 +1464,6 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 - **权限标识**：`app-admin.materials.destroy`
 - **接口**：`DELETE /admin-api/materials/{id}`
 - **说明**：删除材料前需先解除机器模块关联并清理所有加工参数；成功删除后系统会同步移除封面文件及附件记录。
-
 
 # 材料加工配置 API
 
@@ -1448,7 +1628,7 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 - **权限标识**：`app-admin.material-processing-profiles.template`
 - **接口**：`GET /admin-api/material-processing-profiles/template`
 - **说明**：下载加工配置导入模板（CSV），包含常用列头及填写提示。
-- **响应**：返回 `material_processing_profiles_template.csv`，默认带 UTF-8 BOM 以兼容 Excel。
+- **响应**：返回 [material_processing_profiles_template.csv]，默认带 UTF-8 BOM 以兼容 Excel。
 
 # 模板库管理 API
 
@@ -1602,8 +1782,12 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | `status` | string | 否 | 新模板状态，默认 `draft` |
 | `target_user_id` | integer | 否 | 指定归属用户 ID，默认沿用原作者 |
 | `copy_media` | boolean | 否 | 是否复制媒体，默认 `true` |
+| `file_id` | integer | 是 | 目标用户下用于承载副本的文件 ID，必须归属同一用户 |
 
 - **响应**：返回新建模板的完整详情。
+- **提示**：
+	- 可通过 `GET /admin-api/users/{userID}/files` 查询目标用户的文件列表，选择其中一项作为 `file_id`。
+	- 若目标用户下不存在可用文件，请先在“文件管理”上传后再执行复制。
 
 ## 获取模板媒体资源上传凭证
 - **权限标识**：`app-admin.project-templates.upload-signature`
@@ -1663,77 +1847,28 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 ```json
 {
-    "success": true,
-    "code": 0,
-    "message": "获取成功",
-    "data": {
-        "machines": [
-            {
-                "id": 16,
-                "name": "EM-Smart Mopa",
-                "slug": "Mopa-2024",
-                "sort_order": 1,
-                "modules": [
-                    {
-                        "id": 25,
-                        "machine_id": 16,
-                        "name": "标准头",
-                        "power_watt": 60,
-                        "color_hex": null,
-                        "description": "类型: 标准头 | 单一功率示例",
-                        "is_active": true,
-                        "sort_order": 1,
-                        "created_at": "2025-12-23T02:05:05.000000Z",
-                        "updated_at": "2025-12-23T02:05:05.000000Z"
-                    }
-                ]
-            },
-            {
-                "id": 17,
-                "name": "EM-Smart Nova",
-                "slug": "Nova-2024",
-                "sort_order": 1,
-                "modules": [
-                    {
-                        "id": 26,
-                        "machine_id": 17,
-                        "name": "标准头",
-                        "power_watt": 25,
-                        "color_hex": null,
-                        "description": "便携式",
-                        "is_active": true,
-                        "sort_order": 1,
-                        "created_at": "2025-12-23T06:02:42.000000Z",
-                        "updated_at": "2025-12-23T06:02:42.000000Z"
-                    }
-                ]
-            }
-        ],
-        "materials": [
-            {
-                "id": 20,
-                "name": "仿胡桃木中密度纤维板",
-                "material_code": "3-5-98-00870",
-                "sku_code": "3-5-98-00870",
-                "sort_order": 1,
-                "warnings": []
-            }
-        ],
-        "scenarios": [
-            {
-                "id": 1,
-                "name": "激光加工",
-                "code": "laser-processing",
-                "sort_order": 1
-            },
-            {
-                "id": 2,
-                "name": "刀片切割",
-                "code": "blade-cutting",
-                "sort_order": 2
-            },
-        ]
-    }
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"machines": [
+			{
+				"id": 1,
+				"name": "LumiMaker X1",
+				"slug": "lumimaker-x1",
+				"sort_order": 10,
+				"modules": [
+					{"id": 11, "name": "蓝光 10W 模块"}
+				]
+			}
+		],
+		"materials": [
+			{"id": 101, "name": "柚木板", "material_code": "WOOD-TEAK-3MM"}
+		],
+		"scenarios": [
+			{"id": 21, "name": "节日送礼", "code": "festival_gift"}
+		]
+	}
 }
 ```
 

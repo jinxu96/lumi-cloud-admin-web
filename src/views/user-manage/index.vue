@@ -57,6 +57,20 @@
           </el-select>
         </div>
 
+        <div class="filter-item filter-labeled">
+          <span class="filter-label">{{ $t('userManage.search_project_publish_banned') }}</span>
+          <el-select
+            v-model="listQuery.is_project_publish_banned"
+            clearable
+            style="width: 150px;"
+            @change="handleFilter"
+          >
+            <el-option :label="$t('userManage.option_all')" value="" />
+            <el-option :label="$t('userManage.option_yes')" value="true" />
+            <el-option :label="$t('userManage.option_no')" value="false" />
+          </el-select>
+        </div>
+
         <el-select
           v-model="listQuery.order"
           :placeholder="$t('userManage.search_order')"
@@ -123,6 +137,14 @@
           </template>
         </el-table-column>
 
+        <el-table-column width="150" align="center" :label="$t('userManage.table_project_publish_banned')">
+          <template slot-scope="{ row }">
+            <el-tag :type="row.is_project_publish_banned ? 'warning' : 'success'">
+              {{ row.is_project_publish_banned ? $t('userManage.option_yes') : $t('userManage.option_no') }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column width="120" align="center" :label="$t('userManage.table_projects')">
           <template slot-scope="{ row }">
             <span>{{ row.projects_count }}</span>
@@ -153,7 +175,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" width="280" align="center" :label="$t('userManage.table_actions')">
+        <el-table-column fixed="right" width="480" align="center" :label="$t('userManage.table_actions')">
           <template slot-scope="{ row }">
             <el-button
               v-waves
@@ -189,6 +211,62 @@
               @click="handlePassword(row)"
             >
               {{ $t('userManage.table_reset_password') }}
+            </el-button>
+
+            <el-button
+              v-if="!row.is_blocked"
+              v-waves
+              size="mini"
+              type="danger"
+              icon="el-icon-lock"
+              :plain="!checkPermission(['app-admin.users.block'])"
+              :disabled="!checkPermission(['app-admin.users.block'])"
+              :loading="block.loading && block.currentId === row.id"
+              @click="handleBlock(row)"
+            >
+              {{ $t('userManage.table_block') }}
+            </el-button>
+
+            <el-button
+              v-else
+              v-waves
+              size="mini"
+              type="success"
+              icon="el-icon-unlock"
+              :plain="!checkPermission(['app-admin.users.unblock'])"
+              :disabled="!checkPermission(['app-admin.users.unblock'])"
+              :loading="unblock.loading && unblock.currentId === row.id"
+              @click="handleUnblock(row)"
+            >
+              {{ $t('userManage.table_unblock') }}
+            </el-button>
+
+            <el-button
+              v-if="!row.is_project_publish_banned"
+              v-waves
+              size="mini"
+              type="warning"
+              icon="el-icon-remove-outline"
+              :plain="!checkPermission(['app-admin.users.forbid-project-publish'])"
+              :disabled="!checkPermission(['app-admin.users.forbid-project-publish'])"
+              :loading="forbidPublish.loading && forbidPublish.currentId === row.id"
+              @click="handleForbidProjectPublish(row)"
+            >
+              {{ $t('userManage.table_forbid_project_publish') }}
+            </el-button>
+
+            <el-button
+              v-else
+              v-waves
+              size="mini"
+              type="primary"
+              icon="el-icon-circle-check"
+              :plain="!checkPermission(['app-admin.users.allow-project-publish'])"
+              :disabled="!checkPermission(['app-admin.users.allow-project-publish'])"
+              :loading="allowPublish.loading && allowPublish.currentId === row.id"
+              @click="handleAllowProjectPublish(row)"
+            >
+              {{ $t('userManage.table_allow_project_publish') }}
             </el-button>
           </template>
         </el-table-column>
@@ -237,7 +315,11 @@ import {
   getUsers,
   getUserDetail,
   updateUser,
-  resetUserPassword
+  resetUserPassword,
+  blockUser,
+  unblockUser,
+  forbidUserProjectPublish,
+  allowUserProjectPublish
 } from '@/api/userManage'
 import UserDetailDialog from './components/UserDetailDialog'
 import UserEditDialog from './components/UserEditDialog'
@@ -245,14 +327,14 @@ import UserPasswordDialog from './components/UserPasswordDialog'
 
 // 用户管理页面核心容器，负责列表渲染及详情/编辑/密码弹窗联动。
 
+// 创建用户编辑弹窗的初始表单数据，避免字段缺失
 const createDefaultEditForm = () => ({
   id: '',
   name: '',
   email: '',
   avatar: '',
   upload_quota_mb: 0,
-  email_verified: false,
-  is_blocked: false
+  email_verified: false
 })
 
 export default {
@@ -269,6 +351,7 @@ export default {
         email_verified: '',
         has_google: '',
         is_blocked: '',
+        is_project_publish_banned: '',
         order: 'id_DESC',
         limit: 10,
         page: 1
@@ -295,6 +378,22 @@ export default {
         visible: false,
         loading: false,
         currentId: ''
+      },
+      block: {
+        loading: false,
+        currentId: ''
+      },
+      unblock: {
+        loading: false,
+        currentId: ''
+      },
+      forbidPublish: {
+        loading: false,
+        currentId: ''
+      },
+      allowPublish: {
+        loading: false,
+        currentId: ''
       }
     }
   },
@@ -303,6 +402,7 @@ export default {
   },
   methods: {
     checkPermission,
+    // 查询用户列表并应用筛选条件
     getList() {
       this.listLoading = true
       const params = {
@@ -328,6 +428,11 @@ export default {
       } else if (this.listQuery.is_blocked === 'false') {
         params.is_blocked = false
       }
+      if (this.listQuery.is_project_publish_banned === 'true') {
+        params.is_project_publish_banned = true
+      } else if (this.listQuery.is_project_publish_banned === 'false') {
+        params.is_project_publish_banned = false
+      }
 
       getUsers(params)
         .then(res => {
@@ -339,10 +444,12 @@ export default {
           this.listLoading = false
         })
     },
+    // 点击筛选或切换条件时刷新列表
     handleFilter() {
       this.listQuery.page = 1
       this.getList()
     },
+    // 重置筛选条件并返回第一页
     resetFilter() {
       const limit = this.listQuery.limit
       this.listQuery = {
@@ -350,12 +457,14 @@ export default {
         email_verified: '',
         has_google: '',
         is_blocked: '',
+        is_project_publish_banned: '',
         order: 'id_DESC',
         limit,
         page: 1
       }
       this.getList()
     },
+    // 将字节数格式化为可读的 MB 文本
     formatBytesToMB(value) {
       if (!value && value !== 0) {
         return '-'
@@ -373,12 +482,15 @@ export default {
       }
       return mb.toFixed(2)
     },
+    // 用户配额显示使用 MB 单位
     formatQuota(value) {
       return this.formatBytesToMB(value)
     },
+    // 存储占用显示使用 MB 单位
     formatStorage(value) {
       return this.formatBytesToMB(value)
     },
+    // 将字节数转换为 MB 数值，用于编辑表单
     bytesToMBValue(value) {
       if (!value && value !== 0) {
         return 0
@@ -389,6 +501,7 @@ export default {
       }
       return Number((numeric / (1024 * 1024)).toFixed(2))
     },
+    // 将 MB 数值转换为字节，用于提交接口
     mbToBytes(value) {
       if (!value && value !== 0) {
         return 0
@@ -399,6 +512,7 @@ export default {
       }
       return Math.round(numeric * 1024 * 1024)
     },
+    // 打开详情弹窗并拉取用户详情
     handleDetail(row) {
       this.detail.visible = true
       this.detail.loading = true
@@ -412,6 +526,7 @@ export default {
           this.detail.currentId = ''
         })
     },
+    // 监听详情弹窗开关，关闭时清理数据
     handleDetailVisibleChange(value) {
       this.detail.visible = value
       if (!value) {
@@ -419,6 +534,7 @@ export default {
         this.detail.currentId = ''
       }
     },
+    // 打开编辑弹窗并预填用户数据
     handleEdit(row) {
       this.edit.visible = true
       this.edit.loading = true
@@ -434,8 +550,7 @@ export default {
             email: data.email,
             avatar: data.avatar,
             upload_quota_mb: this.bytesToMBValue(data.upload_quota_bytes),
-            email_verified: Boolean(data.email_verified),
-            is_blocked: Boolean(data.is_blocked)
+            email_verified: Boolean(data.email_verified)
           }
         })
         .finally(() => {
@@ -443,6 +558,7 @@ export default {
           this.edit.currentId = ''
         })
     },
+    // 监听编辑弹窗关闭，重置状态
     handleEditVisibleChange(value) {
       this.edit.visible = value
       if (!value && !this.edit.loading) {
@@ -450,6 +566,7 @@ export default {
         this.edit.form = createDefaultEditForm()
       }
     },
+    // 提交编辑表单并更新用户信息
     handleEditSubmit(form) {
       if (!form || !form.id) {
         return
@@ -460,8 +577,7 @@ export default {
         email: form.email,
         avatar: form.avatar,
         upload_quota_bytes: this.mbToBytes(form.upload_quota_mb),
-        email_verified: form.email_verified,
-        is_blocked: form.is_blocked
+        email_verified: form.email_verified
       }
       updateUser(form.id, payload)
         .then(() => {
@@ -474,16 +590,151 @@ export default {
           this.edit.loading = false
         })
     },
+    // 封禁用户账号前确认并调用接口
+    async handleBlock(row) {
+      if (!row || !row.id) {
+        return
+      }
+      if (!this.checkPermission(['app-admin.users.block'])) {
+        this.$message.warning(this.$t('userManage.permission_denied'))
+        return
+      }
+      const displayName = row.name || row.email || `ID ${row.id}`
+      try {
+        await this.$confirm(
+          this.$t('userManage.confirm_block', { name: displayName }),
+          this.$t('common.tips'),
+          { type: 'warning' }
+        )
+      } catch (error) {
+        return
+      }
+      this.block.loading = true
+      this.block.currentId = row.id
+      try {
+        await blockUser(row.id)
+        this.$message.success(this.$t('userManage.message_block_success'))
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_block_failure')
+        this.$message.error(message)
+      } finally {
+        this.block.loading = false
+        this.block.currentId = ''
+      }
+    },
+    // 解除封禁前确认并调用接口
+    async handleUnblock(row) {
+      if (!row || !row.id) {
+        return
+      }
+      if (!this.checkPermission(['app-admin.users.unblock'])) {
+        this.$message.warning(this.$t('userManage.permission_denied'))
+        return
+      }
+      const displayName = row.name || row.email || `ID ${row.id}`
+      try {
+        await this.$confirm(
+          this.$t('userManage.confirm_unblock', { name: displayName }),
+          this.$t('common.tips'),
+          { type: 'info' }
+        )
+      } catch (error) {
+        return
+      }
+      this.unblock.loading = true
+      this.unblock.currentId = row.id
+      try {
+        await unblockUser(row.id)
+        this.$message.success(this.$t('userManage.message_unblock_success'))
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_unblock_failure')
+        this.$message.error(message)
+      } finally {
+        this.unblock.loading = false
+        this.unblock.currentId = ''
+      }
+    },
+    // 禁止用户发布项目模板
+    async handleForbidProjectPublish(row) {
+      if (!row || !row.id) {
+        return
+      }
+      if (!this.checkPermission(['app-admin.users.forbid-project-publish'])) {
+        this.$message.warning(this.$t('userManage.permission_denied'))
+        return
+      }
+      const displayName = row.name || row.email || `ID ${row.id}`
+      try {
+        await this.$confirm(
+          this.$t('userManage.confirm_forbid_project_publish', { name: displayName }),
+          this.$t('common.tips'),
+          { type: 'warning' }
+        )
+      } catch (error) {
+        return
+      }
+      this.forbidPublish.loading = true
+      this.forbidPublish.currentId = row.id
+      try {
+        await forbidUserProjectPublish(row.id)
+        this.$message.success(this.$t('userManage.message_forbid_project_publish_success'))
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_forbid_project_publish_failure')
+        this.$message.error(message)
+      } finally {
+        this.forbidPublish.loading = false
+        this.forbidPublish.currentId = ''
+      }
+    },
+    // 允许用户重新发布项目模板
+    async handleAllowProjectPublish(row) {
+      if (!row || !row.id) {
+        return
+      }
+      if (!this.checkPermission(['app-admin.users.allow-project-publish'])) {
+        this.$message.warning(this.$t('userManage.permission_denied'))
+        return
+      }
+      const displayName = row.name || row.email || `ID ${row.id}`
+      try {
+        await this.$confirm(
+          this.$t('userManage.confirm_allow_project_publish', { name: displayName }),
+          this.$t('common.tips'),
+          { type: 'info' }
+        )
+      } catch (error) {
+        return
+      }
+      this.allowPublish.loading = true
+      this.allowPublish.currentId = row.id
+      try {
+        await allowUserProjectPublish(row.id)
+        this.$message.success(this.$t('userManage.message_allow_project_publish_success'))
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_allow_project_publish_failure')
+        this.$message.error(message)
+      } finally {
+        this.allowPublish.loading = false
+        this.allowPublish.currentId = ''
+      }
+    },
+    // 打开重置密码弹窗
     handlePassword(row) {
       this.password.visible = true
       this.password.currentId = row.id
     },
+    // 监听密码弹窗关闭清理状态
     handlePasswordVisibleChange(value) {
       this.password.visible = value
       if (!value && !this.password.loading) {
         this.password.currentId = ''
       }
     },
+    // 提交重置密码请求
     handlePasswordSubmit(form) {
       if (!this.password.currentId) {
         return

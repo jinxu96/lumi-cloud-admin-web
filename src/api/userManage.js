@@ -35,6 +35,38 @@ export function resetUserPassword(id, data) {
   })
 }
 
+export function blockUser(id) {
+  // 封禁指定用户账号
+  return request({
+    url: `users/${id}/block`,
+    method: 'post'
+  })
+}
+
+export function unblockUser(id) {
+  // 解除指定用户封禁状态
+  return request({
+    url: `users/${id}/unblock`,
+    method: 'post'
+  })
+}
+
+export function forbidUserProjectPublish(id) {
+  // 禁止指定用户发布项目模板
+  return request({
+    url: `users/${id}/project-publish/forbid`,
+    method: 'post'
+  })
+}
+
+export function allowUserProjectPublish(id) {
+  // 解除指定用户项目发布限制
+  return request({
+    url: `users/${id}/project-publish/allow`,
+    method: 'post'
+  })
+}
+
 export function getUserFileDownload(id) {
   // 获取用户文件的签名下载链接
   return request({

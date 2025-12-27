@@ -141,12 +141,15 @@ export default {
     'duplicate_form_status': '模板状态',
     'duplicate_form_target_user': '目标用户 ID',
     'duplicate_form_target_placeholder': '留空则沿用原作者',
+    'duplicate_form_target_file': '目标用户文件',
+    'duplicate_form_target_file_placeholder': '请选择并搜索目标用户的文件',
     'duplicate_form_copy_media': '复制媒体资源',
     'duplicate_form_copy_media_hint': '开启后会保留原媒体文件',
     'duplicate_status_placeholder': '请选择新模板状态',
     'duplicate_form_cancel': '取消',
     'duplicate_form_confirm': '确认复制',
     'duplicate_rule_title': '请填写新模板标题',
-    'duplicate_rule_status': '请选择新模板状态'
+    'duplicate_rule_status': '请选择新模板状态',
+    'duplicate_rule_file': '请选择目标用户文件'
   }
 }

@@ -5,6 +5,7 @@ export default {
     search_email_verified: '邮箱验证',
     search_has_google: 'Google 绑定',
     search_blocked: '封禁状态',
+    search_project_publish_banned: '项目发布限制',
     search_order: '排序',
     search_btn: '搜索',
     search_reset: '重置',
@@ -21,6 +22,7 @@ export default {
     table_email_verified: '邮箱验证',
     table_google: 'Google',
     table_blocked: '封禁状态',
+    table_project_publish_banned: '禁止发布项目',
     table_projects: '项目',
     table_files: '文件',
     table_quota: '上传额度 (MB)',
@@ -30,6 +32,10 @@ export default {
     table_detail: '详情',
     table_update: '编辑',
     table_reset_password: '重置密码',
+    table_block: '封禁',
+    table_unblock: '解封',
+    table_forbid_project_publish: '禁发项目',
+    table_allow_project_publish: '允许项目发布',
 
     dialog_detail: '用户详情',
     dialog_edit: '编辑用户',
@@ -105,12 +111,25 @@ export default {
 
     message_update_success: '用户信息更新成功',
     message_password_success: '密码重置成功',
+    message_block_success: '封禁成功',
+    message_block_failure: '封禁失败，请稍后重试',
+    message_unblock_success: '解封成功',
+    message_unblock_failure: '解封失败，请稍后重试',
+    message_forbid_project_publish_success: '已禁止该用户发布项目',
+    message_forbid_project_publish_failure: '禁止发布失败，请稍后重试',
+    message_allow_project_publish_success: '已解除项目发布限制',
+    message_allow_project_publish_failure: '解除项目发布限制失败，请稍后重试',
 
     rules_name_required: '请输入用户名',
     rules_email_required: '请输入邮箱',
     rules_email_format: '请输入正确的邮箱格式',
     rules_password_required: '请输入密码',
     rules_password_length: '密码长度需 8-128 位',
-    rules_password_confirm: '两次输入的密码不一致'
+    rules_password_confirm: '两次输入的密码不一致',
+    confirm_block: '确认封禁用户「{name}」吗？',
+    confirm_unblock: '确认解除用户「{name}」的封禁吗？',
+    confirm_forbid_project_publish: '确认禁止用户「{name}」发布项目吗？',
+    confirm_allow_project_publish: '确认解除用户「{name}」的项目发布限制吗？',
+    permission_denied: '暂无执行该操作的权限'
   }
 }

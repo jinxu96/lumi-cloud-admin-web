@@ -331,7 +331,8 @@ export default {
         title: row.title || '',
         status: 'draft',
         target_user_id: row.user && row.user.id ? row.user.id : '',
-        copy_media: true
+        copy_media: true,
+        file_id: ''
       }
     },
     // 打开编辑弹窗并加载所需数据
