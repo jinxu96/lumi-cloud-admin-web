@@ -335,6 +335,7 @@ import {
 } from './utils'
 import './index.scss'
 
+// 构造默认的查询参数集合
 const createDefaultQuery = () => ({
   keyword: '',
   material_id: '',
@@ -353,6 +354,7 @@ export default {
   components: { Pagination, ProfileDialog },
   directives: { waves },
   data() {
+    // 初始化页面所需的响应式状态
     return {
       list: [],
       total: 0,
@@ -375,6 +377,7 @@ export default {
     }
   },
   created() {
+    // 初始化排序选项并加载列表
     this.orderOptions = [
       { key: 'created_at__DESC', label: this.$t('materialProcessingProfile.order_created_desc') },
       { key: 'created_at__ASC', label: this.$t('materialProcessingProfile.order_created_asc') },
@@ -388,24 +391,33 @@ export default {
     this.getList()
   },
   methods: {
+    // 权限校验函数
     checkPermission,
+    // 组合加工方案标题
     formatProfileTitle,
+    // 组合材料下拉标签
     formatMaterialLabel,
+    // 组合机器下拉标签
     formatMachineLabel,
+    // 组合模块下拉标签
     formatModuleLabel,
+    // 打开新增弹窗
     openCreate() {
       if (this.$refs.profileDialog) {
         this.$refs.profileDialog.openCreate()
       }
     },
+    // 打开编辑弹窗
     openEdit(row) {
       if (this.$refs.profileDialog) {
         this.$refs.profileDialog.openEdit(row)
       }
     },
+    // 处理子弹窗保存事件
     handleDialogSaved() {
       this.getList()
     },
+    // 拉取加工配置列表数据
     getList() {
       this.listLoading = true
       const params = {
@@ -444,10 +456,12 @@ export default {
           this.listLoading = false
         })
     },
+    // 搜索条件变更时重置页码并查询
     handleFilter() {
       this.listQuery.page = 1
       this.getList()
     },
+    // 恢复筛选条件默认值
     resetFilter() {
       const limit = this.listQuery.limit
       this.listQuery = {
@@ -456,22 +470,27 @@ export default {
       }
       this.getList()
     },
+    // 远程搜索材料
     handleMaterialRemote(query) {
       this.fetchMaterialOptions(query)
     },
+    // 下拉展开时加载材料选项
     handleMaterialVisible(visible) {
       if (visible && !this.materialOptions.length) {
         this.fetchMaterialOptions()
       }
     },
+    // 远程搜索机器
     handleMachineRemote(query) {
       this.fetchMachineOptions(query)
     },
+    // 下拉展开时加载机器选项
     handleMachineVisible(visible) {
       if (visible && !this.machineOptions.length) {
         this.fetchMachineOptions()
       }
     },
+    // 远程搜索模块
     handleModuleRemote(query) {
       if (!this.listQuery.machine_id) {
         this.moduleOptions = []
@@ -479,11 +498,13 @@ export default {
       }
       this.fetchModuleOptions(query, { machineId: this.listQuery.machine_id })
     },
+    // 下拉展开时加载模块选项
     handleModuleVisible(visible) {
       if (visible && this.listQuery.machine_id) {
         this.fetchModuleOptions('', { machineId: this.listQuery.machine_id })
       }
     },
+    // 远程搜索加工方案
     handleProfileRemote(query) {
       if (!this.listQuery.machine_module_id) {
         this.profileOptions = []
@@ -494,6 +515,7 @@ export default {
         machineModuleId: this.listQuery.machine_module_id
       })
     },
+    // 下拉展开时加载加工方案选项
     handleProfileVisible(visible) {
       if (visible && this.listQuery.machine_module_id) {
         this.fetchProfileOptions('', {
@@ -502,6 +524,7 @@ export default {
         })
       }
     },
+    // 机器筛选变化时清理级联并刷新
     handleMachineFilterChange(value) {
       this.listQuery.machine_id = value || ''
       this.listQuery.machine_module_id = ''
@@ -514,6 +537,7 @@ export default {
       }
       this.handleFilter()
     },
+    // 模块筛选变化时联动加工方案
     handleModuleFilterChange(value) {
       this.listQuery.machine_module_id = value || ''
       this.listQuery.machine_module_profile_id = ''
@@ -527,10 +551,12 @@ export default {
       }
       this.handleFilter()
     },
+    // 加工方案筛选变更后刷新
     handleProfileFilterChange(value) {
       this.listQuery.machine_module_profile_id = value || ''
       this.handleFilter()
     },
+    // 触发导入文件选择
     handleImportClick() {
       if (this.importing) {
         return
@@ -540,6 +566,7 @@ export default {
         this.$refs.importInput.click()
       }
     },
+    // 处理导入文件上传
     handleImportChange(event) {
       const file = event && event.target && event.target.files ? event.target.files[0] : null
       if (!file) {
@@ -550,8 +577,20 @@ export default {
       this.importing = true
       importMaterialLibrary(formData)
         .then(res => {
-          const message = res && res.message ? res.message : this.$t('materialProcessingProfile.message_import_success')
-          this.$message.success(message)
+          const successMessage = res && res.message ? res.message : this.$t('materialProcessingProfile.message_import_success')
+          const errors = Array.isArray(res && res.data && res.data.errors) ? res.data.errors.filter(Boolean) : []
+          const errorCount = errors.length
+          if (errorCount > 0) {
+            const warningMessage = this.$t('materialProcessingProfile.message_import_partial', { count: errorCount })
+            this.$message.warning(warningMessage)
+            const errorHtml = this.buildImportErrorHtml(errors)
+            this.$alert(errorHtml, this.$t('materialProcessingProfile.title_import_errors', { count: errorCount }), {
+              type: 'warning',
+              dangerouslyUseHTMLString: true
+            })
+          } else {
+            this.$message.success(successMessage)
+          }
           this.getList()
         })
         .catch(err => {
@@ -565,6 +604,21 @@ export default {
           }
         })
     },
+    // 构造导入错误弹窗内容
+    buildImportErrorHtml(errors) {
+      return errors
+        .map((item, index) => {
+          const safeText = String(item || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+          return `${index + 1}. ${safeText}`
+        })
+        .join('<br>')
+    },
+    // 拉取材料下拉选项
     fetchMaterialOptions(keyword = '') {
       this.materialLoading = true
       const params = {
@@ -594,6 +648,7 @@ export default {
           this.materialLoading = false
         })
     },
+    // 拉取机器下拉选项
     fetchMachineOptions(keyword = '') {
       this.machineLoading = true
       const params = {
@@ -623,6 +678,7 @@ export default {
           this.machineLoading = false
         })
     },
+    // 拉取模块下拉选项
     fetchModuleOptions(keyword = '', { machineId } = {}) {
       if (!machineId) {
         this.moduleOptions = []
@@ -656,6 +712,7 @@ export default {
           this.moduleLoading = false
         })
     },
+    // 拉取加工方案下拉选项
     fetchProfileOptions(keyword = '', { machineId, machineModuleId } = {}) {
       if (!machineModuleId) {
         this.profileOptions = []
@@ -692,6 +749,7 @@ export default {
           this.profileLoading = false
         })
     },
+    // 下载模板文件
     downloadTemplate() {
       if (this.templateLoading) {
         return
@@ -716,6 +774,7 @@ export default {
           this.templateLoading = false
         })
     },
+    // 删除单条加工配置
     handleDelete(row) {
       if (!row || !row.id) {
         return
@@ -736,6 +795,7 @@ export default {
           })
       }).catch(() => {})
     },
+    // 将 Blob 响应转换为下载
     downloadBlob(response, fallbackName) {
       if (!response) {
         return

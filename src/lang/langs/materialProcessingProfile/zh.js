@@ -53,6 +53,8 @@ export default {
     message_template_error: '模板下载失败',
     message_import_success: '导入完成',
     message_import_error: '导入失败',
+    message_import_partial: '导入完成，但有 {count} 条数据处理失败',
+    title_import_errors: '导入异常（{count} 条）',
     dialog_create_title: '新增加工配置',
     dialog_edit_title: '编辑加工配置',
     form_material: '关联材料',

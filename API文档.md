@@ -1136,6 +1136,116 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 # 材料管理 API
 
+## 材料分类列表
+- **权限标识**：`app-admin.material-categories.index`
+- **接口**：`GET /admin-api/material-categories`
+- **说明**：分页查询材料分类信息，支持关键词模糊搜索，默认按排序值升序。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`sort_order`、`created_at`、`updated_at` |
+| `keyword` | string | 否 | 模糊搜索分类名称和描述 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 3,
+		"list": [
+			{
+				"id": 11,
+				"name": "木材",
+				"description": "常见木材材料",
+				"sort_order": 10,
+				"created_at": "2025-01-10 09:30:00",
+				"updated_at": "2025-01-15 14:05:00"
+			}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].name` | string | 分类名称 |
+| `data.list[].description` | string/null | 分类描述 |
+| `data.list[].sort_order` | integer | 排序权重，数值越小越靠前 |
+
+## 新增材料分类
+- **权限标识**：`app-admin.material-categories.store`
+- **接口**：`POST /admin-api/material-categories`
+- **说明**：创建材料分类，用于在材料列表中引用。
+- **请求体字段**（`application/json`）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 是 | 分类名称，最大 60 字符 |
+| `description` | string | 否 | 分类描述，最大 240 字符 |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+
+- **成功响应**：返回材料分类详情结构。
+
+## 材料分类详情
+- **权限标识**：`app-admin.material-categories.show`
+- **接口**：`GET /admin-api/material-categories/{id}`
+- **说明**：查询材料分类的基础信息。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"id": 11,
+		"name": "木材",
+		"description": "常见木材材料",
+		"sort_order": 10,
+		"created_at": "2025-01-10 09:30:00",
+		"updated_at": "2025-01-15 14:05:00"
+	}
+}
+```
+
+## 更新材料分类
+- **权限标识**：`app-admin.material-categories.update`
+- **接口**：`PUT /admin-api/material-categories/{id}`
+- **说明**：更新材料分类的名称、描述或排序值。
+- **请求体字段**（`application/json`，至少提交一个字段）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 否 | 分类名称，最大 60 字符 |
+| `description` | string | 否 | 分类描述，最大 240 字符 |
+| `sort_order` | integer | 否 | 排序值 |
+
+- **成功响应**：返回更新后的材料分类详情结构。
+
+## 删除材料分类
+- **权限标识**：`app-admin.material-categories.destroy`
+- **接口**：`DELETE /admin-api/material-categories/{id}`
+- **说明**：删除指定的材料分类；删除前请确保没有材料引用该分类，以免造成数据不一致。
+- **成功响应**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "删除成功"
+}
+```
+
 ## 材料列表
 - **权限标识**：`app-admin.materials.index`
 - **接口**：`GET /admin-api/materials`
@@ -1146,9 +1256,10 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | -- | -- | -- | -- |
 | `start` | integer | 否 | 起始偏移量，默认 `0` |
 | `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
-| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`material_code`、`sku_code`、`category`、`brand`、`thickness_mm`、`sort_order`、`created_at`、`updated_at` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`material_code`、`sku_code`、`material_category_id`、`brand`、`thickness_mm`、`sort_order`、`created_at`、`updated_at` |
 | `keyword` | string | 否 | 模糊查询材料名称、物料编码或 SKU |
-| `category` | string | 否 | 精确匹配材料分类 |
+| `material_category_id` | integer | 否 | 按材料分类 ID 精确筛选 |
+| `category` | string | 否 | **兼容字段**：按分类名称精确筛选（建议改用 `material_category_id`） |
 | `brand` | string | 否 | 精确匹配品牌 |
 | `is_active` | boolean/string | 否 | 是否启用，接受 `true`/`false`/`1`/`0` 等值 |
 | `is_public` | boolean/string | 否 | 是否在材料库对外公开 |
@@ -1171,7 +1282,14 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 				"name": "柚木板",
 				"material_code": "WOOD-TEAK-3MM",
 				"sku_code": "SKU-8810",
-				"category": "wood",
+				"material_category_id": 6,
+				"category": "木材",
+				"material_category": {
+					"id": 6,
+					"name": "木材",
+					"description": "常规木质材料",
+					"sort_order": 10
+				},
 				"brand": "Lumi",
 				"spec": "300×500×3mm",
 				"thickness_mm": 3,
@@ -1200,6 +1318,9 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | -- | -- | -- |
 | `data.list[].material_code` | string/null | 材料编号，供导入导出或仓储系统使用 |
 | `data.list[].sku_code` | string/null | SKU 码，便于与商城对接 |
+| `data.list[].material_category_id` | integer/null | 材料所属分类 ID，未绑定分类时返回 `null` |
+| `data.list[].category` | string/null | 材料分类名称，兼容旧字段 |
+| `data.list[].material_category` | object/null | 分类详情，包含 `id`、`name`、`description`、`sort_order` |
 | `data.list[].spec` | string/null | 规格描述或尺寸 |
 | `data.list[].thickness_mm` | number/null | 厚度（毫米），精度保留到小数位 |
 | `data.list[].package_contents` | array | 套装内包含的物件列表（JSON 数组） |
@@ -1220,7 +1341,8 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | `name` | string | 是 | 材料名称，最大 120 字符 |
 | `material_code` | string | 否 | 材料编号，最大 60 字符，建议唯一 |
 | `sku_code` | string | 否 | SKU 码，最大 60 字符 |
-| `category` | string | 否 | 材料分类，最大 60 字符 |
+| `material_category_id` | integer | 否 | 材料分类 ID，需先在“材料分类”模块创建 |
+| `category` | string | 否 | **兼容字段**：分类名称（仅保留读取，建议改用 `material_category_id`） |
 | `brand` | string | 否 | 品牌名称，最大 60 字符 |
 | `spec` | string | 否 | 规格描述，最大 120 字符 |
 | `thickness_mm` | number | 否 | 材料厚度（毫米），范围 `0~1000` |
@@ -1276,7 +1398,14 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 		"name": "柚木板",
 		"material_code": "WOOD-TEAK-3MM",
 		"sku_code": "SKU-8810",
-		"category": "wood",
+		"material_category_id": 6,
+		"category": "木材",
+		"material_category": {
+			"id": 6,
+			"name": "木材",
+			"description": "常规木质材料",
+			"sort_order": 10
+		},
 		"brand": "Lumi",
 		"spec": "300×500×3mm",
 		"thickness_mm": 3,
@@ -1393,7 +1522,7 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 }
 ```
 
-- **提示**：请确保使用最新版的模板（位于 `resources/templates/material_library_import_template.csv`），并按照注释说明填写；其中 JSON 字段需填写合法 JSON 字符串。
+- **提示**：请确保使用最新版的模板（位于 `resources/templates/material_library_import_template.csv`），并按照注释说明填写；其中 JSON 字段需填写合法 JSON 字符串；**材料分类列必须填写后台已存在的分类名称**，否则导入将提示错误。
 
 ## 下载材料库模板
 - **权限标识**：`app-admin.material-library.template`
@@ -1503,7 +1632,15 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 				"material": {
 					"id": 101,
 					"name": "柚木板",
-					"material_code": "WOOD-TEAK-3MM"
+					"material_code": "WOOD-TEAK-3MM",
+					"material_category_id": 6,
+					"category": "木材",
+					"material_category": {
+						"id": 6,
+						"name": "木材",
+						"description": "常规木质材料",
+						"sort_order": 10
+					}
 				},
 				"machine_module_profile": {
 					"id": 301,
@@ -1542,7 +1679,7 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 
 | 字段 | 类型 | 说明 |
 | -- | -- | -- |
-| `material` | object/null | 包含材料 ID、名称、编码等基础信息 |
+| `material` | object/null | 包含材料 ID、名称、编号及 `material_category_id`、`material_category` 等分类信息 |
 | `machine_module_profile` | object/null | 包含加工方案及所属机器模块、机型信息 |
 | `power_percent` | integer | 激光功率百分比 |
 | `speed_mm_per_sec` | number/null | 运动速度（毫米/秒） |
@@ -1629,6 +1766,90 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 - **接口**：`GET /admin-api/material-processing-profiles/template`
 - **说明**：下载加工配置导入模板（CSV），包含常用列头及填写提示。
 - **响应**：返回 [material_processing_profiles_template.csv]，默认带 UTF-8 BOM 以兼容 Excel。
+
+# 应用场景管理 API
+
+## 场景列表
+- **权限标识**：`app-admin.application-scenarios.index`
+- **接口**：`GET /admin-api/application-scenarios`
+- **说明**：分页查询应用场景，支持按关键词与启用状态筛选，默认按排序值升序。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`name`、`code`、`sort_order`、`is_active`、`created_at`、`updated_at` |
+| `keyword` | string | 否 | 模糊搜索名称、编码或描述 |
+| `is_active` | string | 否 | 是否启用，接受 `true`/`false`/`1`/`0` 等值（其余非空值视为禁用） |
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.list[].id` | integer | 场景 ID |
+| `data.list[].name` | string | 场景名称 |
+| `data.list[].code` | string | 场景编码，唯一 |
+| `data.list[].icon_url` | string/null | 图标地址 |
+| `data.list[].description` | string/null | 场景描述 |
+| `data.list[].is_active` | boolean | 是否启用 |
+| `data.list[].sort_order` | integer | 排序值，越小越靠前 |
+| `data.list[].created_at` | string/null | 创建时间 |
+| `data.list[].updated_at` | string/null | 最近更新时间 |
+
+## 新增应用场景
+- **权限标识**：`app-admin.application-scenarios.store`
+- **接口**：`POST /admin-api/application-scenarios`
+- **说明**：创建新的应用场景，编码需全局唯一。
+- **请求体字段**（`application/json`）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 是 | 场景名称，最大 120 字符 |
+| `code` | string | 是 | 场景编码，最大 60 字符，需唯一 |
+| `icon_url` | string | 否 | 图标地址，最大 255 字符 |
+| `description` | string | 否 | 场景描述 |
+| `is_active` | boolean | 否 | 是否启用，默认 `true` |
+| `sort_order` | integer | 否 | 排序值，默认 `0` |
+
+- **成功响应**：返回场景详情结构（同“场景列表”单项）。
+
+## 应用场景详情
+- **权限标识**：`app-admin.application-scenarios.show`
+- **接口**：`GET /admin-api/application-scenarios/{id}`
+- **说明**：查看指定应用场景的详细信息。
+
+## 更新应用场景
+- **权限标识**：`app-admin.application-scenarios.update`
+- **接口**：`PUT /admin-api/application-scenarios/{id}` 或 `PATCH /admin-api/application-scenarios/{id}`
+- **说明**：更新应用场景基础信息；当提交内容与当前数据一致时，接口将返回“无需更新”。
+- **请求体字段**（`application/json`，至少包含一个字段）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `name` | string | 否 | 场景名称，最大 120 字符 |
+| `code` | string | 否 | 场景编码，最大 120 字符，需保持唯一 |
+| `icon_url` | string | 否 | 图标地址，最大 512 字符 |
+| `description` | string | 否 | 场景描述 |
+| `is_active` | boolean | 否 | 是否启用 |
+| `sort_order` | integer | 否 | 排序值，最小为 `0` |
+
+## 调整应用场景状态
+- **权限标识**：`app-admin.application-scenarios.status`
+- **接口**：`PATCH /admin-api/application-scenarios/{id}/status`
+- **说明**：单独切换场景的启用状态，便于细粒度授权。
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_active` | boolean | 是 | `true` 为启用，`false` 为停用 |
+
+- **返回结果**：成功后返回最新的场景详情。
+
+## 删除应用场景
+- **权限标识**：`app-admin.application-scenarios.destroy`
+- **接口**：`DELETE /admin-api/application-scenarios/{id}`
+- **说明**：删除应用场景前需确保未被项目引用；若关联项目数量大于 0，接口会返回提示信息并拒绝删除。
 
 # 模板库管理 API
 
@@ -1782,12 +2003,10 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 | `status` | string | 否 | 新模板状态，默认 `draft` |
 | `target_user_id` | integer | 否 | 指定归属用户 ID，默认沿用原作者 |
 | `copy_media` | boolean | 否 | 是否复制媒体，默认 `true` |
-| `file_id` | integer | 是 | 目标用户下用于承载副本的文件 ID，必须归属同一用户 |
+| `file_id` | integer | 是 | 目标用户下的文件 ID，必须归属同一用户 |
 
 - **响应**：返回新建模板的完整详情。
-- **提示**：
-	- 可通过 `GET /admin-api/users/{userID}/files` 查询目标用户的文件列表，选择其中一项作为 `file_id`。
-	- 若目标用户下不存在可用文件，请先在“文件管理”上传后再执行复制。
+- **提示**：若目标用户下不存在可用文件，请先在“文件管理”上传后再执行复制。
 
 ## 获取模板媒体资源上传凭证
 - **权限标识**：`app-admin.project-templates.upload-signature`

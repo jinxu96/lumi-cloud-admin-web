@@ -11,7 +11,8 @@ const route = {
     title: 'material',
     icon: 'el-icon-collection-tag',
     roles: [
-      'app-admin.materials.index'
+      'app-admin.materials.index',
+      'app-admin.material-categories.index'
     ]
   },
   children: [
@@ -24,6 +25,18 @@ const route = {
         icon: 'el-icon-tickets',
         roles: [
           'app-admin.materials.index'
+        ]
+      }
+    },
+    {
+      path: '/material/categories',
+      component: () => import('@/views/material-category/index.vue'),
+      name: 'MaterialCategoryList',
+      meta: {
+        title: 'materialCategoryList',
+        icon: 'el-icon-notebook-2',
+        roles: [
+          'app-admin.material-categories.index'
         ]
       }
     },

@@ -17,9 +17,12 @@ export default {
     machineModuleList: '模块列表',
     material: '材料管理',
     materialList: '材料列表',
+    materialCategoryList: '材料分类列表',
     materialProcessingProfileList: '加工配置列表', // 材料加工配置列表页标题
     templateLibrary: '模板库管理',
     templateLibraryList: '模板列表',
+    applicationScenario: '应用场景管理',
+    applicationScenarioList: '应用场景列表',
 
     permission: '权限管理',
     admin: '管理员',
@@ -89,6 +92,7 @@ export default {
 
     'tips': '提示',
     'ok': '确定',
+    'confirm': '确认',
     'cancel': '取消',
     'save': '提交',
     'loading': '加载中...',

@@ -53,6 +53,8 @@ export default {
     message_template_error: 'Template download failed',
     message_import_success: 'Import completed',
     message_import_error: 'Import failed',
+    message_import_partial: 'Import completed, but {count} rows failed',
+    title_import_errors: 'Import errors ({count})',
     dialog_create_title: 'Create Processing Profile',
     dialog_edit_title: 'Edit Processing Profile',
     form_material: 'Material',

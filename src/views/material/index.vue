@@ -26,14 +26,24 @@
           @keyup.enter.native="handleFilter"
         />
 
-        <el-input
-          v-model="listQuery.category"
+        <el-select
+          v-model="listQuery.material_category_id"
           :placeholder="$t('material.search_category')"
           clearable
+          filterable
+          :loading="categoryLoading"
           class="filter-item"
-          style="width: 160px;margin-right: 12px;"
-          @keyup.enter.native="handleFilter"
-        />
+          style="width: 200px;margin-right: 12px;"
+          @visible-change="handleCategoryVisible"
+          @change="handleFilter"
+        >
+          <el-option
+            v-for="item in categoryOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
 
         <el-input
           v-model="listQuery.brand"
@@ -250,14 +260,29 @@
         <el-form-item :label="$t('material.form_name')" prop="name">
           <el-input v-model="dialog.form.name" maxlength="120" show-word-limit />
         </el-form-item>
-        <el-form-item :label="$t('material.form_material_code')">
+        <el-form-item :label="$t('material.form_material_code')" prop="material_code">
           <el-input v-model="dialog.form.material_code" maxlength="60" />
         </el-form-item>
         <el-form-item :label="$t('material.form_sku_code')">
           <el-input v-model="dialog.form.sku_code" maxlength="60" />
         </el-form-item>
         <el-form-item :label="$t('material.form_category')">
-          <el-input v-model="dialog.form.category" maxlength="60" />
+          <el-select
+            v-model="dialog.form.material_category_id"
+            :placeholder="$t('material.form_category_placeholder')"
+            clearable
+            filterable
+            :loading="categoryLoading"
+            style="width: 100%;"
+            @visible-change="handleCategoryVisible"
+          >
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item :label="$t('material.form_brand')">
           <el-input v-model="dialog.form.brand" maxlength="60" />
@@ -462,6 +487,7 @@ import waves from '@/directive/waves'
 import checkPermission from '@/utils/permission'
 import Pagination from '@/components/Pagination'
 import { getMaterials, createMaterial, updateMaterial, deleteMaterial, updateMaterialStatus, uploadMaterialCover, detachMaterialModules } from '@/api/materials'
+import { getMaterialCategories } from '@/api/materialCategories'
 
 const toInputText = (value) => {
   if (value === null || value === undefined) {
@@ -595,7 +621,7 @@ const createDefaultForm = () => ({
   name: '',
   material_code: '',
   sku_code: '',
-  category: '',
+  material_category_id: '',
   brand: '',
   spec: '',
   thickness_mm: null,
@@ -669,7 +695,7 @@ export default {
       listLoading: false,
       listQuery: {
         keyword: '',
-        category: '',
+        material_category_id: '',
         brand: '',
         is_active: '',
         is_public: '',
@@ -678,6 +704,8 @@ export default {
         page: 1
       },
       orderOptions: [],
+      categoryOptions: [],
+      categoryLoading: false,
       uploadPlaceholderAction: '/noop-upload',
       loading: {
         delete: '',
@@ -693,6 +721,7 @@ export default {
         form: createDefaultForm(),
         rules: {
           name: [{ required: true, message: this.$t('material.form_rules_name'), trigger: 'blur' }],
+          material_code: [{ required: true, message: this.$t('material.form_rules_material_code'), trigger: 'blur' }],
           package_contents: [{ validator: (rule, value, callback) => this.validatePackageContents(rule, value, callback), trigger: 'change' }]
         }
       }
@@ -712,6 +741,7 @@ export default {
       { key: 'sort_order__ASC', label: this.$t('material.order_sort_asc') },
       { key: 'sort_order__DESC', label: this.$t('material.order_sort_desc') }
     ]
+    this.fetchCategoryOptions()
     this.getList()
   },
   beforeDestroy() {
@@ -730,8 +760,11 @@ export default {
       if (this.listQuery.keyword) {
         params.keyword = this.listQuery.keyword
       }
-      if (this.listQuery.category) {
-        params.category = this.listQuery.category
+      if (this.listQuery.material_category_id) {
+        const categoryId = Number(this.listQuery.material_category_id)
+        if (Number.isFinite(categoryId)) {
+          params.material_category_id = categoryId
+        }
       }
       if (this.listQuery.brand) {
         params.brand = this.listQuery.brand
@@ -752,6 +785,65 @@ export default {
           this.listLoading = false
         })
     },
+    // 获取材料分类选项
+    fetchCategoryOptions() {
+      this.categoryLoading = true
+      const params = {
+        start: 0,
+        limit: 200,
+        order: 'sort_order__ASC'
+      }
+      getMaterialCategories(params)
+        .then(res => {
+          const list = res && res.data && Array.isArray(res.data.list) ? res.data.list : []
+          const mapped = list.map(item => ({
+            value: String(item.id),
+            label: item && item.name ? item.name : `#${item.id}`
+          }))
+          const preservedValues = [
+            this.listQuery && this.listQuery.material_category_id ? String(this.listQuery.material_category_id) : '',
+            this.dialog && this.dialog.form && this.dialog.form.material_category_id
+              ? String(this.dialog.form.material_category_id)
+              : ''
+          ].filter(value => value !== '')
+
+          preservedValues.forEach(value => {
+            if (mapped.some(option => option.value === value)) {
+              return
+            }
+            const preserved = this.categoryOptions.find(option => option.value === value)
+            if (preserved) {
+              mapped.push(preserved)
+            } else {
+              mapped.push({ value, label: `#${value}` })
+            }
+          })
+
+          this.categoryOptions = mapped
+        })
+        .finally(() => {
+          this.categoryLoading = false
+        })
+    },
+    ensureCategoryOption(value, label) {
+      if (value === undefined || value === null || value === '') {
+        return
+      }
+      const optionValue = String(value)
+      if (this.categoryOptions.some(item => item.value === optionValue)) {
+        return
+      }
+      const optionLabel = label && String(label).trim() ? String(label).trim() : `#${optionValue}`
+      this.categoryOptions = this.categoryOptions.concat({
+        value: optionValue,
+        label: optionLabel
+      })
+    },
+    handleCategoryVisible(visible) {
+      if (visible && this.categoryOptions.length === 0 && !this.categoryLoading) {
+        this.fetchCategoryOptions()
+      }
+    },
     // 应用筛选条件
     handleFilter() {
       this.listQuery.page = 1
@@ -762,7 +854,7 @@ export default {
       const limit = this.listQuery.limit
       this.listQuery = {
         keyword: '',
-        category: '',
+        material_category_id: '',
         brand: '',
         is_active: '',
         is_public: '',
@@ -779,6 +871,9 @@ export default {
       this.dialog.coverFile = null
       this.dialog.coverPreview = ''
       this.dialog.form = createDefaultForm()
+      if (!this.categoryOptions.length && !this.categoryLoading) {
+        this.fetchCategoryOptions()
+      }
       this.$nextTick(() => {
         if (this.$refs.materialForm) {
           this.$refs.materialForm.clearValidate()
@@ -797,12 +892,19 @@ export default {
       const packageContents = normalizePackageContents(row.package_contents)
       const tags = normalizeStringArray(row.tags)
       const warnings = normalizeWarnings(row.warnings)
+      const materialCategoryId = row && row.material_category_id ? String(row.material_category_id) : ''
+      if (materialCategoryId) {
+        const categoryName = row && row.material_category && row.material_category.name
+          ? row.material_category.name
+          : (row && row.category ? String(row.category) : '')
+        this.ensureCategoryOption(materialCategoryId, categoryName)
+      }
       this.dialog.form = {
         id: row.id,
         name: toInputText(row.name),
         material_code: toInputText(row.material_code),
         sku_code: toInputText(row.sku_code),
-        category: toInputText(row.category),
+        material_category_id: materialCategoryId,
         brand: toInputText(row.brand),
         spec: toInputText(row.spec),
         thickness_mm: typeof row.thickness_mm === 'number' ? row.thickness_mm : (row.thickness_mm ? Number(row.thickness_mm) : null),
@@ -968,7 +1070,6 @@ export default {
           name: (baseForm.name || '').trim(),
           material_code: (baseForm.material_code || '').trim(),
           sku_code: (baseForm.sku_code || '').trim(),
-          category: (baseForm.category || '').trim(),
           brand: (baseForm.brand || '').trim(),
           spec: (baseForm.spec || '').trim(),
           color: (baseForm.color || '').trim(),
@@ -978,6 +1079,15 @@ export default {
           is_active: Boolean(baseForm.is_active),
           is_public: Boolean(baseForm.is_public),
           sort_order: Number(baseForm.sort_order) || 0
+        }
+
+        if (baseForm.material_category_id !== '' && baseForm.material_category_id !== null && baseForm.material_category_id !== undefined) {
+          const parsedCategoryId = Number(baseForm.material_category_id)
+          if (!Number.isNaN(parsedCategoryId)) {
+            payload.material_category_id = parsedCategoryId
+          }
+        } else {
+          payload.material_category_id = null
         }
 
         if (baseForm.thickness_mm !== null && baseForm.thickness_mm !== undefined && baseForm.thickness_mm !== '') {

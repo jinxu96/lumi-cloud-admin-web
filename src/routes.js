@@ -3,10 +3,12 @@
 export default {
   UserManageRoot: 110010,
   MachineRoot: 110020,
-  MaterialRoot: 110025,
-  MaterialList: 110026,
+  MaterialRoot: 110021,
+  MaterialList: 110022,
   // 材料加工配置页面在侧边栏中的排序权重
-  MaterialProcessingProfileList: 110027,
+  MaterialProcessingProfileList: 110023,
+  ApplicationScenarioRoot: 110024,
+  ApplicationScenarioList: 110025,
   TemplateLibraryRoot: 110028,
   TemplateLibraryList: 110029,
   Permission: 110030,

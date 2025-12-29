@@ -16,9 +16,12 @@ export default {
     machineModuleList: 'Module List',
     material: 'Materials',
     materialList: 'Material List',
+    materialCategoryList: 'Material Categories',
     materialProcessingProfileList: 'Processing Profiles', // Material processing profile list title
     templateLibrary: 'Template Library',
     templateLibraryList: 'Template List',
+    applicationScenario: 'Application Scenarios',
+    applicationScenarioList: 'Scenario List',
 
     permission: 'Permission',
     admin: 'Admin',
@@ -85,6 +88,7 @@ export default {
   common: {
     'tips': 'Tips',
     'ok': 'Ok',
+    'confirm': 'Confirm',
     'cancel': 'Cancel',
     'save': 'Save',
     'loading': 'Loading...',
