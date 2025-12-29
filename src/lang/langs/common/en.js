@@ -22,6 +22,8 @@ export default {
     templateLibraryList: 'Template List',
     applicationScenario: 'Application Scenarios',
     applicationScenarioList: 'Scenario List',
+    userLog: 'User Logs',
+    userLogList: 'Log List',
 
     permission: 'Permission',
     admin: 'Admin',

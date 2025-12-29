@@ -12,6 +12,8 @@ export default {
   TemplateLibraryRoot: 110028,
   TemplateLibraryList: 110029,
   Permission: 110030,
+  UserLogRoot: 110037,
+  UserLogList: 110038,
   OperationLog: 110039,
   System: 110040,
   // LocalExtension: 110050,

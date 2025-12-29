@@ -16,6 +16,7 @@ import machine from './system/machine'
 import material from './system/material'
 import applicationScenario from './system/application-scenario'
 import templateLibrary from './system/template-library'
+import userLog from './system/user-log'
 
 /**
  * constantRoutes
@@ -106,6 +107,7 @@ export const asyncRoutes = [
   system,
   attachment,
   permission,
+  userLog,
   machine,
   material,
   applicationScenario,

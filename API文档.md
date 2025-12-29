@@ -2093,6 +2093,60 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 
 - **说明**：仅返回已启用的记录，默认按 `sort_order` 升序。
 
+# 用户日志 API
+
+## 日志列表
+- **权限标识**：`app-admin.user-logs.index`
+- **接口**：`GET /admin-api/user-logs`
+- **说明**：在筛选条件满足时分页返回用户 API 请求日志，时间范围必填。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `created_start` | string | 是 | 起始时间（日期或完整时间），必填 |
+| `created_end` | string | 是 | 结束时间，必填；系统默认补全至当日 23:59:59 |
+| `start` | integer | 否 | 偏移量，默认 `0` |
+| `limit` | integer | 否 | 每页数量，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `created_at`、`duration_ms`、`response_status`、`id` |
+| `user_id` | integer | 否 | 指定用户 ID |
+| `user_keyword` | string | 否 | 用户名称或邮箱关键字模糊匹配 |
+| `path` | string | 否 | 接口路径模糊匹配 |
+| `method` | string | 否 | 请求方法（GET/POST...），不区分大小写 |
+| `response_status` | integer | 否 | HTTP 状态码，100~599 |
+| `ip` | string | 否 | 访问 IP，模糊匹配 |
+| `request_id` | string | 否 | 请求唯一 ID |
+| `min_duration` | integer | 否 | 最小耗时（毫秒），过滤慢请求 |
+
+- **响应字段**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.start` | integer | 起始偏移量 |
+| `data.limit` | integer | 每页数量 |
+| `data.total` | integer | 符合条件的日志条数 |
+| `data.list[].id` | integer | 日志 ID |
+| `data.list[].created_at` | string | 记录时间 |
+| `data.list[].request_id` | string | 请求唯一标识 |
+| `data.list[].method` | string | 请求方法 |
+| `data.list[].path` | string | 接口路径 |
+| `data.list[].query` | array\|string\|null | 查询参数，解析失败时保留原始字符串 |
+| `data.list[].request_body` | array\|string\|null | 请求体内容 |
+| `data.list[].response_status` | integer | HTTP 状态码 |
+| `data.list[].response_body` | array\|string\|null | 响应内容（截取前端自行处理） |
+| `data.list[].duration_ms` | integer | 耗时（毫秒） |
+| `data.list[].ip` | string | 客户端 IP |
+| `data.list[].user_agent` | string | User-Agent |
+| `data.list[].user` | object\|null | 用户信息，含 `id`、`name`、`email` |
+
+- **提示**：未提供时间范围时接口会返回参数错误，避免误拉取整表。
+
+## 导出日志
+- **权限标识**：`app-admin.user-logs.export`
+- **接口**：`GET /admin-api/user-logs/export`
+- **说明**：依据相同筛选条件导出 CSV，限制最多 5000 条；若数据为空或超出限制会返回错误提示。
+- **请求参数**：同“日志列表”，但不支持 `start`、`limit`。
+- **响应**：下载 `user_logs_YYYYMMDD_HHMMSS.csv` 文件，列包含 ID、请求 ID、时间、用户、接口、状态码、耗时、IP 及请求/响应数据。
+
 ## 其他注意事项
 - 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限，可按按钮粒度选择 `*.status`、`*.import`、`*.export`。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。

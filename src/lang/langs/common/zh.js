@@ -23,6 +23,8 @@ export default {
     templateLibraryList: '模板列表',
     applicationScenario: '应用场景管理',
     applicationScenarioList: '应用场景列表',
+    userLog: '用户日志',
+    userLogList: '用户日志列表',
 
     permission: '权限管理',
     admin: '管理员',

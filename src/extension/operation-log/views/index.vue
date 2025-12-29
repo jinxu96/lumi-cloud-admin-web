@@ -597,9 +597,9 @@ export default {
     },
     handleDelete(index, row) {
       const thiz = this
-      this.$confirm(this.$t('确认要删除该日志吗？'), this.$t('提示'), {
-        confirmButtonText: this.$t('确定'),
-        cancelButtonText: this.$t('取消'),
+      this.$confirm(this.$t('确认要删除该日志吗？'), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
         type: 'warning'
       }).then(() => {
         thiz.loading.delete = row.id
@@ -622,9 +622,9 @@ export default {
       }).catch(() => {})
     },
     handleDeleteList() {
-      this.$confirm(this.$t('确认要删除选中的日志吗？'), this.$t('提示'), {
-        confirmButtonText: this.$t('确定'),
-        cancelButtonText: this.$t('取消'),
+      this.$confirm(this.$t('确认要删除选中的日志吗？'), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
         type: 'warning'
       }).then(() => {
         if (this.selectedData.length < 1) {
@@ -662,9 +662,9 @@ export default {
       })
     },
     handleClear() {
-      this.$confirm(this.$t('确认要清空一个月之前的日志吗？'), this.$t('提示'), {
-        confirmButtonText: this.$t('确定'),
-        cancelButtonText: this.$t('取消'),
+      this.$confirm(this.$t('确认要清空一个月之前的日志吗？'), this.$t('common.tips'), {
+        confirmButtonText: this.$t('common.ok'),
+        cancelButtonText: this.$t('common.cancel'),
         type: 'warning'
       }).then(() => {
         clearLog().then(res => {
