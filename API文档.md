@@ -1165,6 +1165,7 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 				"id": 11,
 				"name": "木材",
 				"description": "常见木材材料",
+				"icon_url": "https://static.example.com/icons/material-wood.png",
 				"sort_order": 10,
 				"created_at": "2025-01-10 09:30:00",
 				"updated_at": "2025-01-15 14:05:00"
@@ -1180,6 +1181,7 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 | -- | -- | -- |
 | `data.list[].name` | string | 分类名称 |
 | `data.list[].description` | string/null | 分类描述 |
+| `data.list[].icon_url` | string/null | 分类图标 URL |
 | `data.list[].sort_order` | integer | 排序权重，数值越小越靠前 |
 
 ## 新增材料分类
@@ -1190,8 +1192,9 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 | 字段 | 类型 | 是否必填 | 说明 |
 | -- | -- | -- | -- |
-| `name` | string | 是 | 分类名称，最大 60 字符 |
-| `description` | string | 否 | 分类描述，最大 240 字符 |
+| `name` | string | 是 | 分类名称，最大 120 字符 |
+| `description` | string | 否 | 分类描述，最大 255 字符 |
+| `icon_url` | string | 否 | 分类图标 URL，最大 512 字符 |
 | `sort_order` | integer | 否 | 排序值，默认 `0` |
 
 - **成功响应**：返回材料分类详情结构。
@@ -1211,6 +1214,7 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 		"id": 11,
 		"name": "木材",
 		"description": "常见木材材料",
+		"icon_url": "https://static.example.com/icons/material-wood.png",
 		"sort_order": 10,
 		"created_at": "2025-01-10 09:30:00",
 		"updated_at": "2025-01-15 14:05:00"
@@ -1226,8 +1230,9 @@ curl -X GET "https://example.com/admin-api/machine-modules/template" \
 
 | 字段 | 类型 | 是否必填 | 说明 |
 | -- | -- | -- | -- |
-| `name` | string | 否 | 分类名称，最大 60 字符 |
-| `description` | string | 否 | 分类描述，最大 240 字符 |
+| `name` | string | 否 | 分类名称，最大 120 字符 |
+| `description` | string | 否 | 分类描述，最大 255 字符 |
+| `icon_url` | string | 否 | 分类图标 URL，最大 512 字符 |
 | `sort_order` | integer | 否 | 排序值 |
 
 - **成功响应**：返回更新后的材料分类详情结构。

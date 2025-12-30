@@ -54,6 +54,21 @@
         :empty-text="$t('materialCategory.empty_text')"
       >
         <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column width="120" align="center" :label="$t('materialCategory.table_icon')">
+          <template slot-scope="{ row }">
+            <div class="category-icon">
+              <el-image
+                v-if="row.icon_url"
+                :src="row.icon_url"
+                fit="contain"
+                :preview-src-list="[row.icon_url]"
+              >
+                <div slot="error" class="icon-placeholder">--</div>
+              </el-image>
+              <div v-else class="icon-placeholder">--</div>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column min-width="240" :label="$t('materialCategory.table_name')">
           <template slot-scope="{ row }">
             <div class="category-name">
@@ -129,6 +144,20 @@
         <el-form-item :label="$t('materialCategory.form_description')">
           <el-input v-model="dialog.form.description" type="textarea" :rows="3" maxlength="240" show-word-limit />
         </el-form-item>
+        <el-form-item :label="$t('materialCategory.form_icon_url')">
+          <el-input v-model="dialog.form.icon_url" maxlength="255" @input="handleDialogIconChange" />
+          <div class="dialog-icon-preview">
+            <el-image
+              v-if="dialog.previewIcon"
+              :src="dialog.previewIcon"
+              fit="contain"
+              :preview-src-list="[dialog.previewIcon]"
+            >
+              <div slot="error" class="icon-placeholder">--</div>
+            </el-image>
+            <div v-else class="icon-placeholder">--</div>
+          </div>
+        </el-form-item>
         <el-form-item :label="$t('materialCategory.form_sort')">
           <el-input-number
             v-model="dialog.form.sort_order"
@@ -166,6 +195,7 @@ const createDefaultForm = () => ({
   id: '',
   name: '',
   description: '',
+  icon_url: '',
   sort_order: 0
 })
 
@@ -200,6 +230,7 @@ export default {
         loading: false,
         isEdit: false,
         form: createDefaultForm(),
+        previewIcon: '',
         rules: {
           name: [{ required: true, message: this.$t('materialCategory.form_rules_name'), trigger: 'blur' }]
         }
@@ -253,6 +284,7 @@ export default {
       this.dialog.visible = true
       this.dialog.isEdit = false
       this.dialog.form = createDefaultForm()
+      this.dialog.previewIcon = ''
     },
     // 打开编辑弹窗并填充选中数据
     openEdit(row) {
@@ -265,18 +297,25 @@ export default {
         id: row.id,
         name: row.name,
         description: row.description || '',
+        icon_url: row.icon_url || '',
         sort_order: Number.isFinite(row.sort_order) ? row.sort_order : Number(row.sort_order) || 0
       }
+      this.dialog.previewIcon = row.icon_url || ''
     },
     // 组装分类提交载荷，保证类型正确
     buildPayload() {
-      const { name, description, sort_order: sortOrder } = this.dialog.form
+      const { name, description, icon_url: iconUrl, sort_order: sortOrder } = this.dialog.form
       const payload = {
         name: name ? name.trim() : '',
         description: description ? description.trim() : '',
+        icon_url: iconUrl ? iconUrl.trim() : '',
         sort_order: Number.isFinite(sortOrder) ? sortOrder : Number(sortOrder) || 0
       }
       return payload
+    },
+    // 监听弹窗内图标地址变动，实时更新预览
+    handleDialogIconChange(value) {
+      this.dialog.previewIcon = value ? value.trim() : ''
     },
     // 提交表单，根据状态调用新增或更新接口
     submitDialog() {
@@ -339,6 +378,7 @@ export default {
       this.dialog.form = createDefaultForm()
       this.dialog.isEdit = false
       this.dialog.loading = false
+      this.dialog.previewIcon = ''
     }
   }
 }
@@ -372,6 +412,41 @@ export default {
 .category-name__description {
   color: #909399;
   font-size: 12px;
+}
+.category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.category-icon >>> .el-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  border: 1px solid #ebeef5;
+  overflow: hidden;
+}
+.icon-placeholder {
+  width: 60px;
+  height: 60px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  font-size: 12px;
+}
+.dialog-icon-preview {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.dialog-icon-preview >>> .el-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  border: 1px solid #ebeef5;
 }
 .dialog-footer {
   display: flex;
