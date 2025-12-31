@@ -49,6 +49,15 @@
       <el-row :gutter="32">
         <el-col :xs="24" :sm="24" :lg="24">
           <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.materialDetailUsageTitle') }}</div>
+            <material-detail-usage-chart :chart-data="analytics.materialDetailUsage" height="360px" />
+          </div>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="32">
+        <el-col :xs="24" :sm="24" :lg="24">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
             <div class="chart-title">{{ $t('dashboard.machineUsageTitle') }}</div>
             <machine-usage-chart :chart-data="analytics.machineUsage" height="360px" />
           </div>
@@ -68,6 +77,7 @@ import UserTrendChart from './components/UserTrendChart'
 import ProjectTrendChart from './components/ProjectTrendChart'
 import TopTemplatesChart from './components/TopTemplatesChart'
 import MaterialUsageChart from './components/MaterialUsageChart'
+import MaterialDetailUsageChart from './components/MaterialDetailUsageChart'
 import MachineUsageChart from './components/MachineUsageChart'
 import { getAnalytics as getDashboardAnalytics } from '@/api/dashboard'
 
@@ -80,6 +90,7 @@ export default {
     ProjectTrendChart,
     TopTemplatesChart,
     MaterialUsageChart,
+    MaterialDetailUsageChart,
     MachineUsageChart
   },
   data() {
@@ -106,6 +117,7 @@ export default {
         projectTrend: [],
         topTemplates: [],
         materialUsage: [],
+        materialDetailUsage: [],
         machineUsage: []
       }
     }
@@ -196,6 +208,7 @@ export default {
         this.analytics.projectTrend = data.project_trend || []
         this.analytics.topTemplates = data.top_templates || []
         this.analytics.materialUsage = data.material_usage || []
+        this.analytics.materialDetailUsage = data.material_detail_usage || []
         this.analytics.machineUsage = data.machine_usage || []
       } catch (error) {
         console.error('Failed to load dashboard analytics', error)

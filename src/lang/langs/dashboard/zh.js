@@ -28,6 +28,11 @@ export default {
     'templateDownloads': '下载量',
     'templateLikes': '点赞数',
     'materialUsageTitle': '材料分类使用',
+    'materialDetailUsageTitle': '具体材料使用',
+    'materialDetailUsageSeries': '引用项目数',
+    'materialCodeLabel': '材料编码',
+    'unknownMaterial': '未知材料',
+    'unknownMaterialCode': '未提供',
     'machineUsageTitle': '机器引用情况',
     'unknownMachine': '未知机器',
 
