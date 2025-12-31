@@ -115,6 +115,10 @@ export default {
 
     'confirm_logout': '确认要退出登录吗？',
 
-    'close_page': '关闭页面'
+    'close_page': '关闭页面',
+
+    'range_separator': '至',
+    'range_start_time': '开始时间',
+    'range_end_time': '结束时间'
   }
 }

@@ -14,6 +14,102 @@
 }
 ```
 
+## 控制台统计
+- **权限标识**：`app-admin.dashboard.stats`
+- **接口**：`GET /admin-api/dashboard/stats`
+- **说明**：聚合返回控制台卡片所需的统计数据，默认缓存 30 秒。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"admin_total": 2,
+		"attachment_total": 6,
+		"extension_total": 1,
+		"auth_group_total": 2,
+		"user_total": 132
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.admin_total` | integer | 后台管理员数量 |
+| `data.attachment_total` | integer | 附件总数 |
+| `data.extension_total` | integer | 已启用扩展数量（`status=1`） |
+| `data.auth_group_total` | integer | 管理员分组数量 |
+| `data.user_total` | integer | 前台注册用户数量 |
+
+## 控制台趋势分析
+- **权限标识**：`app-admin.dashboard.analytics`
+- **接口**：`GET /admin-api/dashboard/analytics`
+- **说明**：返回控制台图表所需的趋势与榜单数据，可通过 `days` 参数（7-90，默认 30）控制统计范围。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `days` | integer | 否 | 统计天数，默认 `30`，取值范围 `7`-`90` |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"range": {
+			"start_date": "2025-12-02",
+			"end_date": "2025-12-31",
+			"days": 30
+		},
+		"user_trend": [
+			{"date": "2025-12-02", "new_users": 3},
+			{"date": "2025-12-03", "new_users": 5}
+		],
+		"project_trend": [
+			{"date": "2025-12-02", "created": 1, "published": 0}
+		],
+		"top_templates": [
+			{"id": 101, "title": "圣诞贺卡", "likes_count": 36, "downloads_count": 124, "published_at": "2025-12-15 08:00:00"}
+		],
+		"material_usage": [
+			{"category_id": 11, "name": "木材", "project_count": 18}
+		],
+		"machine_usage": [
+			{"machine_id": 3, "machine_name": "Lumi X2", "project_count": 22}
+		]
+	}
+}
+```
+
+- **字段说明**：
+
+| 字段 | 类型 | 说明 |
+| -- | -- | -- |
+| `data.range.start_date` | string | 统计开始日期（含） |
+| `data.range.end_date` | string | 统计结束日期（含） |
+| `data.range.days` | integer | 实际统计天数 |
+| `data.user_trend[]` | array | 用户新增趋势（按天） |
+| `data.user_trend[].date` | string | 日期 |
+| `data.user_trend[].new_users` | integer | 当天新增前台用户数 |
+| `data.project_trend[]` | array | 模板创建/发布趋势（按天） |
+| `data.project_trend[].created` | integer | 当天新创建模板数 |
+| `data.project_trend[].published` | integer | 当天发布模板数 |
+| `data.top_templates[]` | array | 下载量排名前 10 的模板 |
+| `data.top_templates[].likes_count` | integer | 点赞总数 |
+| `data.top_templates[].downloads_count` | integer | 下载总数 |
+| `data.material_usage[]` | array | 材料分类使用榜（按模板数量） |
+| `data.material_usage[].project_count` | integer | 使用该分类的模板数量 |
+| `data.machine_usage[]` | array | 机器使用榜（按模板数量） |
+| `data.machine_usage[].machine_id` | integer | 机器 ID |
+| `data.machine_usage[].machine_name` | string | 机器名称 |
+
 ## 重新生成预览任务（用户）
 
 - **endpoint**: `POST /api/files/{id}/preview`

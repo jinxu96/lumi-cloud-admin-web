@@ -40,16 +40,16 @@
 
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel">
-        <div class="card-panel-icon-wrapper icon-component">
-          <svg-icon icon-class="component" class-name="card-panel-icon" />
+        <div class="card-panel-icon-wrapper icon-user">
+          <i class="el-icon-user card-panel-icon" />
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            {{ $t('dashboard.extensions') }}
+            {{ $t('dashboard.users') }}
           </div>
           <count-to
             :start-val="0"
-            :end-val="extensions"
+            :end-val="users"
             :duration="3200"
             class="card-panel-num"
           />
@@ -80,12 +80,8 @@
 
 <script>
 import CountTo from 'vue-count-to'
-import permission from '@/directive/permission/index.js'
 import checkPermission from '@/utils/permission'
-import { getList as getAdminList } from '@/api/admin'
-import { getAttachmentList } from '@/api/attachment'
-import { getList as getExtensionList } from '@/api/extension'
-import { getGroupList } from '@/api/authGroup'
+import { getStats as getDashboardStats } from '@/api/dashboard'
 
 export default {
   components: {
@@ -95,7 +91,7 @@ export default {
     return {
       admins: 0,
       attachments: 0,
-      extensions: 0,
+      users: 0,
       groups: 0
     }
   },
@@ -104,48 +100,17 @@ export default {
   },
   methods: {
     async initData() {
-      const thiz = this
-
-      if (checkPermission(['larke-admin.admin.index'])) {
-        // 管理员
-        await getAdminList({
-          start: 1,
-          limit: 0
-        }).then(response => {
-          thiz.admins = response.data.total
-        })
+      if (!checkPermission(['app-admin.dashboard.stats'])) {
+        return
       }
 
-      if (checkPermission(['larke-admin.attachment.index'])) {
-        // 附件
-        await getAttachmentList({
-          start: 1,
-          limit: 0
-        }).then(response => {
-          thiz.attachments = response.data.total
-        })
-      }
-
-      if (checkPermission(['larke-admin.extension.index'])) {
-        // 启用扩展
-        await getExtensionList({
-          status: 'open',
-          start: 1,
-          limit: 0
-        }).then(response => {
-          thiz.extensions = response.data.total
-        })
-      }
-
-      if (checkPermission(['larke-admin.auth-group.index'])) {
-        // 管理分组
-        await getGroupList({
-          start: 1,
-          limit: 0
-        }).then(response => {
-          thiz.groups = response.data.total
-        })
-      }
+      // 控制台统计数据聚合请求
+      const response = await getDashboardStats()
+      const stats = response.data || {}
+      this.admins = stats.admin_total || 0
+      this.attachments = stats.attachment_total || 0
+      this.users = stats.user_total || 0
+      this.groups = stats.auth_group_total || 0
     }
   }
 }
@@ -183,12 +148,12 @@ export default {
         background: #36a3f7;
       }
 
-      .icon-component {
-        background: #34bfa3;
-      }
-
       .icon-operation {
         background: #f4516c;
+      }
+
+      .icon-user {
+        background: #7d68ff;
       }
     }
 
@@ -200,12 +165,12 @@ export default {
       color: #36a3f7;
     }
 
-    .icon-component {
-      color: #34bfa3;
-    }
-
     .icon-operation {
       color: #f4516c;
+    }
+
+    .icon-user {
+      color: #7d68ff;
     }
 
     .card-panel-icon-wrapper {

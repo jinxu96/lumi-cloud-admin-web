@@ -53,9 +53,8 @@ export function uploadAttachment(data) {
 
 export function getAttachmentDownloadUrl(code) {
   const baseUrl = process.env.VUE_APP_BASE_API
-  if (baseUrl.substring(baseUrl.length, baseUrl.length - 1) == '/') {
+  if (baseUrl.endsWith('/')) {
     return baseUrl.substring(0, baseUrl.length - 1) + '/attachment/download/' + code
-  } else {
-    return baseUrl + '/attachment/download/' + code
   }
+  return baseUrl + '/attachment/download/' + code
 }

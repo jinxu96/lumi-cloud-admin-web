@@ -111,6 +111,10 @@ export default {
 
     'confirm_logout': 'Confirm logout?',
 
-    'close_page': 'Close'
+    'close_page': 'Close',
+
+    'range_separator': 'to',
+    'range_start_time': 'Start Time',
+    'range_end_time': 'End Time'
   }
 }

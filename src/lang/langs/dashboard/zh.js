@@ -16,8 +16,20 @@ export default {
 
     'admins': '管理员',
     'attachments': '附件',
-    'extensions': '启用扩展',
+    'users': '用户',
     'groups': '管理分组',
+
+    'userTrendTitle': '用户新增趋势',
+    'userTrendLegend': '每日新增用户',
+    'projectTrendTitle': '模板创建 / 发布趋势',
+    'projectTrendCreated': '创建数量',
+    'projectTrendPublished': '发布数量',
+    'topTemplatesTitle': '热门模板榜',
+    'templateDownloads': '下载量',
+    'templateLikes': '点赞数',
+    'materialUsageTitle': '材料分类使用',
+    'machineUsageTitle': '机器引用情况',
+    'unknownMachine': '未知机器',
 
     'system_info': '系统信息',
     'version': '当前版本',

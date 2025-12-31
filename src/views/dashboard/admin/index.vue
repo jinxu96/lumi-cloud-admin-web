@@ -9,25 +9,52 @@
       }) }}
     </el-card>
 
-    <panel-group />
+    <panel-group v-if="canViewStats" />
 
-    <el-row :gutter="32">
-      <!-- <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <raddar-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <pie-chart />
-        </div>
-      </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
-        <div class="chart-wrapper">
-          <bar-chart />
-        </div>
-      </el-col> -->
-    </el-row>
+    <!-- 控制台趋势分析图表区域 -->
+    <template v-if="canViewAnalytics">
+      <el-row :gutter="32">
+        <el-col :xs="24" :sm="24" :lg="24">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.userTrendTitle') }}</div>
+            <user-trend-chart :chart-data="analytics.userTrend" height="320px" />
+          </div>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="32">
+        <el-col :xs="24" :sm="24" :lg="24">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.projectTrendTitle') }}</div>
+            <project-trend-chart :chart-data="analytics.projectTrend" height="320px" />
+          </div>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="32">
+        <el-col :xs="24" :sm="24" :lg="12">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.topTemplatesTitle') }}</div>
+            <top-templates-chart :chart-data="analytics.topTemplates" height="360px" />
+          </div>
+        </el-col>
+        <el-col :xs="24" :sm="24" :lg="12">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.materialUsageTitle') }}</div>
+            <material-usage-chart :chart-data="analytics.materialUsage" height="320px" />
+          </div>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="32">
+        <el-col :xs="24" :sm="24" :lg="24">
+          <div v-loading="analyticsLoading" class="chart-wrapper">
+            <div class="chart-title">{{ $t('dashboard.machineUsageTitle') }}</div>
+            <machine-usage-chart :chart-data="analytics.machineUsage" height="360px" />
+          </div>
+        </el-col>
+      </el-row>
+    </template>
 
     <component :is="currentSystem" />
   </div>
@@ -37,12 +64,23 @@
 import checkPermission from '@/utils/permission'
 import PanelGroup from './components/PanelGroup'
 import SystemTable from './components/SystemTable'
+import UserTrendChart from './components/UserTrendChart'
+import ProjectTrendChart from './components/ProjectTrendChart'
+import TopTemplatesChart from './components/TopTemplatesChart'
+import MaterialUsageChart from './components/MaterialUsageChart'
+import MachineUsageChart from './components/MachineUsageChart'
+import { getAnalytics as getDashboardAnalytics } from '@/api/dashboard'
 
 export default {
   name: 'DashboardAdmin',
   components: {
     PanelGroup,
-    SystemTable
+    SystemTable,
+    UserTrendChart,
+    ProjectTrendChart,
+    TopTemplatesChart,
+    MaterialUsageChart,
+    MachineUsageChart
   },
   data() {
     return {
@@ -53,7 +91,23 @@ export default {
 
       timer: '',
 
-      currentSystem: 'SystemTable'
+      currentSystem: 'SystemTable',
+
+      // 控制台统计与趋势分析权限
+      canViewStats: false,
+      canViewAnalytics: false,
+      analyticsLoading: false,
+      analyticsParams: {
+        days: 30
+      },
+      // 统一缓存图表使用的数据结构
+      analytics: {
+        userTrend: [],
+        projectTrend: [],
+        topTemplates: [],
+        materialUsage: [],
+        machineUsage: []
+      }
     }
   },
   created() {
@@ -70,6 +124,12 @@ export default {
 
     if (!checkPermission(['larke-admin.system.info'])) {
       this.currentSystem = ''
+    }
+
+    this.canViewStats = checkPermission(['app-admin.dashboard.stats'])
+    this.canViewAnalytics = checkPermission(['app-admin.dashboard.analytics'])
+    if (this.canViewAnalytics) {
+      this.fetchAnalytics()
     }
   },
   beforeDestroy() {
@@ -124,6 +184,24 @@ export default {
     },
     getNickname() {
       this.nickname = this.$store.getters.nickname
+    },
+    async fetchAnalytics() {
+      this.analyticsLoading = true
+      try {
+        // 控制台趋势分析
+        const response = await getDashboardAnalytics(this.analyticsParams)
+        const data = response.data || {}
+        // 各图表按接口字段拆分数据来源
+        this.analytics.userTrend = data.user_trend || []
+        this.analytics.projectTrend = data.project_trend || []
+        this.analytics.topTemplates = data.top_templates || []
+        this.analytics.materialUsage = data.material_usage || []
+        this.analytics.machineUsage = data.machine_usage || []
+      } catch (error) {
+        console.error('Failed to load dashboard analytics', error)
+      } finally {
+        this.analyticsLoading = false
+      }
     }
   }
 }
@@ -139,6 +217,14 @@ export default {
     background: #fff;
     padding: 16px 16px 0;
     margin-bottom: 32px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
   }
 }
 
