@@ -81,6 +81,9 @@
 		"material_usage": [
 			{"category_id": 11, "name": "木材", "project_count": 18}
 		],
+		"material_detail_usage": [
+			{"material_id": 101, "material_name": "胡桃木板", "material_code": "WOOD-001", "project_count": 12}
+		],
 		"machine_usage": [
 			{"machine_id": 3, "machine_name": "Lumi X2", "project_count": 22}
 		]
@@ -106,6 +109,9 @@
 | `data.top_templates[].downloads_count` | integer | 下载总数 |
 | `data.material_usage[]` | array | 材料分类使用榜（按模板数量） |
 | `data.material_usage[].project_count` | integer | 使用该分类的模板数量 |
+| `data.material_detail_usage[]` | array | 材料使用榜（按模板数量） |
+| `data.material_detail_usage[].material_code` | string/null | 材料编码 |
+| `data.material_detail_usage[].project_count` | integer | 使用该材料的模板数量 |
 | `data.machine_usage[]` | array | 机器使用榜（按模板数量） |
 | `data.machine_usage[].machine_id` | integer | 机器 ID |
 | `data.machine_usage[].machine_name` | string | 机器名称 |
