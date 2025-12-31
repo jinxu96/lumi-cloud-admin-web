@@ -87,7 +87,7 @@ export default {
           top: 24,
           left: '3%',
           right: '4%',
-          bottom: 40,
+          bottom: 56,
           containLabel: true
         },
         legend: {
@@ -98,8 +98,9 @@ export default {
         dataZoom: [
           {
             type: 'slider',
-            height: 18,
+            height: 28,
             bottom: 8,
+            handleSize: '120%',
             start: 0,
             end: data.length > 0 ? 100 : 0
           },
