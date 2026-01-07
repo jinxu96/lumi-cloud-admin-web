@@ -2,7 +2,7 @@
   <el-dialog
     :title="$t('templateLibrary.edit_dialog_title')"
     :visible.sync="innerVisible"
-    width="720px"
+    width="860px"
     :close-on-click-modal="false"
     :destroy-on-close="false"
     @close="handleClose"
@@ -10,266 +10,22 @@
   >
     <div v-loading="loading">
       <el-form ref="editForm" :model="localForm" :rules="rules" label-width="110px">
-        <el-form-item :label="$t('templateLibrary.edit_form_title')" prop="title">
-          <el-input v-model="localForm.title" maxlength="150" show-word-limit />
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_description')">
-          <el-input
-            v-model="localForm.description"
-            type="textarea"
-            :rows="4"
-            maxlength="2000"
-            show-word-limit
-          />
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_tags')">
-          <el-select
-            v-model="localForm.tags"
-            multiple
-            filterable
-            allow-create
-            default-first-option
-            :placeholder="$t('templateLibrary.edit_tags_placeholder')"
-            style="width: 100%;"
-          >
-            <el-option
-              v-for="tag in localForm.tags"
-              :key="tag"
-              :label="tag"
-              :value="tag"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_machine_modules')" prop="machineModuleIds">
-          <el-select v-model="localForm.machineModuleIds" multiple filterable style="width: 100%;">
-            <el-option-group
-              v-for="group in moduleOptions"
-              :key="group.label"
-              :label="group.label"
-            >
-              <el-option
-                v-for="item in group.children"
-                :key="item.id"
-                :label="item.label"
-                :value="item.id"
-              />
-            </el-option-group>
-          </el-select>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_materials')">
-          <el-select v-model="localForm.materialIds" multiple filterable style="width: 100%;">
-            <el-option
-              v-for="item in materialOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_scenarios')">
-          <el-select v-model="localForm.scenarioIds" multiple filterable style="width: 100%;">
-            <el-option
-              v-for="item in scenarioOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_cover_url')">
-          <el-input
-            v-model="localForm.coverUrl"
-            :placeholder="$t('templateLibrary.edit_form_cover_placeholder')"
-            clearable
-          />
-          <div class="upload-actions">
-            <template v-if="canUpload">
-              <el-upload
-                class="upload-trigger"
-                action="#"
-                :show-file-list="false"
-                :disabled="uploadingCover"
-                :http-request="handleCoverUpload"
-                :accept="coverAcceptValue"
-              >
-                <el-button type="primary" plain :loading="uploadingCover">
-                  {{ uploadingCover
-                    ? $t('templateLibrary.edit_uploading_file')
-                    : (localForm.coverUrl
-                      ? $t('templateLibrary.edit_cover_reupload')
-                      : $t('templateLibrary.edit_cover_upload')) }}
-                </el-button>
-              </el-upload>
-              <div v-if="uploadingCover" class="upload-progress-wrapper">
-                <el-progress
-                  class="upload-progress-bar"
-                  :percentage="coverUploadProgress"
-                  :stroke-width="4"
-                  :show-text="false"
-                />
-                <span class="upload-progress-text">{{ coverUploadProgress }}%</span>
-              </div>
-            </template>
-            <template v-else>
-              <el-button type="primary" plain disabled>
-                {{ $t('templateLibrary.edit_cover_upload') }}
-              </el-button>
-              <div class="upload-disabled-tip">{{ $t('templateLibrary.edit_upload_permission_denied') }}</div>
-            </template>
-            <div class="upload-hint">{{ coverUploadHintText }}</div>
-          </div>
-          <div v-if="coverPreviewUrl" class="cover-preview">
-            <el-image :src="coverPreviewUrl" fit="cover" class="cover-preview-image" :preview-src-list="[coverPreviewUrl]">
-              <div slot="error" class="cover-preview-placeholder">-</div>
-            </el-image>
-          </div>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_cover_metadata')">
-          <el-input
-            v-model="localForm.coverMetadataText"
-            type="textarea"
-            :rows="4"
-            :placeholder="$t('templateLibrary.edit_metadata_placeholder')"
-          />
-          <div class="form-item-tip">{{ $t('templateLibrary.edit_metadata_tip') }}</div>
-        </el-form-item>
-
-        <el-form-item :label="$t('templateLibrary.edit_form_media_list')">
-          <div v-if="!localForm.media.length" class="media-editor-empty">
-            {{ $t('templateLibrary.edit_media_empty') }}
-          </div>
-
-          <div v-else class="media-editor-list">
-            <div
-              v-for="(item, index) in localForm.media"
-              :key="item.__key"
-              class="media-editor-card"
-            >
-              <div class="media-editor-header">
-                <span class="media-editor-index">#{{ index + 1 }}</span>
-                <el-button
-                  type="text"
-                  icon="el-icon-delete"
-                  :disabled="item._uploading"
-                  @click.prevent="removeMediaItem(index)"
-                >
-                  {{ $t('templateLibrary.edit_media_remove') }}
-                </el-button>
-              </div>
-
-              <div class="media-editor-body">
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_file') }}</span>
-                  <div class="media-upload-actions">
-                    <template v-if="canUpload">
-                      <el-upload
-                        class="upload-trigger"
-                        action="#"
-                        :show-file-list="false"
-                        :disabled="item._uploading"
-                        :http-request="uploadOptions => handleMediaUpload(uploadOptions, index)"
-                        :accept="getMediaAcceptValue(item)"
-                      >
-                        <el-button type="primary" plain :loading="item._uploading">
-                          {{ item._uploading
-                            ? $t('templateLibrary.edit_uploading_file')
-                            : (item.url
-                              ? $t('templateLibrary.edit_media_replace')
-                              : $t('templateLibrary.edit_media_upload')) }}
-                        </el-button>
-                      </el-upload>
-                      <div v-if="item._uploading" class="upload-progress-wrapper">
-                        <el-progress
-                          class="upload-progress-bar"
-                          :percentage="item._uploadProgress"
-                          :stroke-width="4"
-                          :show-text="false"
-                        />
-                        <span class="upload-progress-text">{{ item._uploadProgress }}%</span>
-                      </div>
-                    </template>
-                    <template v-else>
-                      <el-button type="primary" plain disabled>
-                        {{ $t('templateLibrary.edit_media_upload') }}
-                      </el-button>
-                      <div class="upload-disabled-tip">{{ $t('templateLibrary.edit_upload_permission_denied') }}</div>
-                    </template>
-                    <div class="upload-hint">{{ getMediaUploadHint(item) }}</div>
-                  </div>
-                  <div v-if="item.url" class="media-editor-preview">
-                    <el-image
-                      v-if="item.media_type === 'image'"
-                      :src="item.url"
-                      fit="cover"
-                      :preview-src-list="item.url ? [item.url] : []"
-                    >
-                      <div slot="error" class="media-preview-placeholder">-</div>
-                    </el-image>
-                    <video v-else :src="item.url" controls />
-                  </div>
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_type') }}</span>
-                  <el-select v-model="item.media_type" style="width: 140px;" :disabled="item._uploading">
-                    <el-option
-                      v-for="option in mediaTypeOptions"
-                      :key="option.value"
-                      :label="option.label"
-                      :value="option.value"
-                    />
-                  </el-select>
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_url') }}</span>
-                  <el-input v-model="item.url" :placeholder="$t('templateLibrary.edit_media_url_placeholder')" :disabled="item._uploading" />
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_title') }}</span>
-                  <el-input v-model="item.title" :disabled="item._uploading" />
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_caption') }}</span>
-                  <el-input v-model="item.caption" type="textarea" :rows="2" :disabled="item._uploading" />
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_sort_order') }}</span>
-                  <el-input-number v-model="item.sort_order" :min="0" :step="1" :disabled="item._uploading" />
-                </div>
-
-                <div class="media-editor-field">
-                  <span class="media-editor-label">{{ $t('templateLibrary.edit_media_metadata') }}</span>
-                  <el-input
-                    v-model="item.metadataText"
-                    type="textarea"
-                    :rows="3"
-                    :placeholder="$t('templateLibrary.edit_metadata_placeholder')"
-                    :disabled="item._uploading"
-                  />
-                  <div class="form-item-tip">{{ $t('templateLibrary.edit_metadata_tip') }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <el-button type="primary" icon="el-icon-plus" plain @click.prevent="addMediaItem">
-            {{ $t('templateLibrary.edit_media_add') }}
-          </el-button>
-        </el-form-item>
+        <el-tabs v-model="activeTab" class="template-edit-tabs">
+          <el-tab-pane :label="$t('templateLibrary.edit_tab_basic')" name="basic">
+            <template-edit-basic-tab />
+          </el-tab-pane>
+          <el-tab-pane :label="$t('templateLibrary.edit_tab_media')" name="media">
+            <template-edit-media-tab />
+          </el-tab-pane>
+          <el-tab-pane :label="$t('templateLibrary.edit_tab_instruction')" name="instruction">
+            <template-edit-instruction-tab />
+          </el-tab-pane>
+          <el-tab-pane :label="$t('templateLibrary.edit_tab_attachment')" name="attachment">
+            <template-edit-attachment-tab />
+          </el-tab-pane>
+        </el-tabs>
       </el-form>
     </div>
-
     <span slot="footer" class="dialog-footer">
       <el-button @click="handleClose">{{ $t('templateLibrary.edit_form_cancel') }}</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">
@@ -280,6 +36,10 @@
 </template>
 
 <script>
+import TemplateEditBasicTab from './TemplateEditBasicTab.vue'
+import TemplateEditMediaTab from './TemplateEditMediaTab.vue'
+import TemplateEditInstructionTab from './TemplateEditInstructionTab.vue'
+import TemplateEditAttachmentTab from './TemplateEditAttachmentTab.vue'
 import { getProjectTemplateUploadSignature } from '@/api/projectTemplate'
 import { uploadFileToOss, inferMediaTypeByMime } from '@/utils/oss'
 
@@ -288,12 +48,39 @@ const IMAGE_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif']
 const VIDEO_ALLOWED_EXTENSIONS = ['mp4', 'mov', 'webm']
 const IMAGE_MAX_FILE_SIZE = 20 * 1024 * 1024
 const VIDEO_MAX_FILE_SIZE = 60 * 1024 * 1024
+const INSTRUCTION_STEP_LIMIT = 20
+const INSTRUCTION_STEP_SETTINGS_LIMIT = 20
+const INSTRUCTION_STEP_MEDIA_LIMIT = 10
+const INSTRUCTION_FILE_ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'ppt', 'pptx']
+const INSTRUCTION_FILE_MAX_FILE_SIZE = 20 * 1024 * 1024
 
-// 生成媒体列表项使用的临时唯一标识
-const createMediaKey = () => `media-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+// 生成带有指定前缀的随机 key，便于 v-for 渲染追踪
+function createRandomKey(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
 
-// 提取后端返回的关联对象 ID 列表
-const extractRelationIds = (items, candidates = []) => {
+// 构建媒体条目使用的唯一 key
+function createMediaKey() {
+  return createRandomKey('media')
+}
+
+// 构建步骤条目使用的唯一 key
+function createInstructionStepKey() {
+  return createRandomKey('instruction-step')
+}
+
+// 构建步骤参数使用的唯一 key
+function createInstructionSettingKey() {
+  return createRandomKey('instruction-setting')
+}
+
+// 构建步骤媒体使用的唯一 key
+function createInstructionMediaKey() {
+  return createRandomKey('instruction-media')
+}
+
+// 从后端返回列表中提取 id 集合，统一处理驼峰与下划线字段
+function extractRelationIds(items, candidates = []) {
   if (!Array.isArray(items)) {
     return []
   }
@@ -319,8 +106,8 @@ const extractRelationIds = (items, candidates = []) => {
   return Array.from(new Set(ids))
 }
 
-// 解析文件名中的扩展名并统一为小写
-const getFileExtension = (fileName = '') => {
+// 解析文件扩展名并统一为小写
+function getFileExtension(fileName = '') {
   const matched = fileName.split('.').pop()
   if (!matched || matched === fileName) {
     return ''
@@ -328,8 +115,8 @@ const getFileExtension = (fileName = '') => {
   return matched.toLowerCase()
 }
 
-// 去除文件名中的扩展名部分
-const stripExtension = (fileName = '') => {
+// 去除文件扩展名，保留原文件名主体
+function stripExtension(fileName = '') {
   const lastDot = fileName.lastIndexOf('.')
   if (lastDot <= 0) {
     return fileName
@@ -337,8 +124,114 @@ const stripExtension = (fileName = '') => {
   return fileName.slice(0, lastDot)
 }
 
+// 将元数据对象安全序列化为 JSON 字符串
+function stringifyMetadata(metadata) {
+  if (!metadata) {
+    return ''
+  }
+  if (typeof metadata === 'string') {
+    return metadata
+  }
+  try {
+    return JSON.stringify(metadata, null, 2)
+  } catch (error) {
+    return ''
+  }
+}
+
+// 创建步骤参数对的本地状态
+function createInstructionSettingPair(source = {}) {
+  return {
+    __key: source.__key || createInstructionSettingKey(),
+    name: source.label || source.name || '',
+    value: source.value || ''
+  }
+}
+
+// 创建步骤媒体条目的本地状态
+function createInstructionMediaItem(source = {}) {
+  return {
+    __key: source.__key || createInstructionMediaKey(),
+    media_type: source.media_type || source.type || 'image',
+    media_url: source.media_url || source.mediaUrl || source.url || '',
+    external_url: source.external_url || source.externalUrl || '',
+    sort_order: Object.prototype.hasOwnProperty.call(source, 'sort_order') ? source.sort_order : (Object.prototype.hasOwnProperty.call(source, 'sortOrder') ? source.sortOrder : null),
+    metadataText: stringifyMetadata(source.media_metadata || source.metadata || source.metadataText),
+    _uploading: false,
+    _uploadProgress: 0
+  }
+}
+
+// 创建步骤条目的本地状态
+function createInstructionStepItem(source = {}) {
+  const settingsSource = Array.isArray(source.settingsPairs)
+    ? source.settingsPairs
+    : Array.isArray(source.settings)
+      ? source.settings
+      : []
+  const mediaSource = Array.isArray(source.media) ? source.media : []
+  return {
+    __key: source.__key || createInstructionStepKey(),
+    title: source.title || '',
+    description: source.description || '',
+    sort_order: Object.prototype.hasOwnProperty.call(source, 'sort_order') ? source.sort_order : (Object.prototype.hasOwnProperty.call(source, 'sortOrder') ? source.sortOrder : null),
+    settingsPairs: settingsSource.map(item => createInstructionSettingPair(item)),
+    media: mediaSource.map(item => createInstructionMediaItem(item))
+  }
+}
+
+// 构造空步骤，供新增操作复用
+function createEmptyInstructionStep() {
+  return {
+    __key: createInstructionStepKey(),
+    title: '',
+    description: '',
+    sort_order: null,
+    settingsPairs: [],
+    media: []
+  }
+}
+
+// 构造说明文件状态对象
+function createInstructionFileState(source = {}) {
+  return {
+    url: source.url || '',
+    name: source.name || '',
+    metadataText: stringifyMetadata(source.metadata || source.metadataText),
+    _uploading: false,
+    _uploadProgress: 0
+  }
+}
+
+// 构造空的步骤媒体条目
+function createEmptyInstructionMedia() {
+  return {
+    __key: createInstructionMediaKey(),
+    media_type: 'image',
+    media_url: '',
+    external_url: '',
+    sort_order: null,
+    metadataText: '',
+    _uploading: false,
+    _uploadProgress: 0
+  }
+}
+
 export default {
   name: 'TemplateEditDialog',
+  components: {
+    TemplateEditBasicTab,
+    TemplateEditMediaTab,
+    TemplateEditInstructionTab,
+    TemplateEditAttachmentTab
+  },
+  // provide 提供上下文给子标签页复用行为
+  provide() {
+    // 向子组件暴露当前弹窗上下文，便于读取状态与调用方法
+    return {
+      templateEditDialogContext: this
+    }
+  },
   props: {
     visible: {
       type: Boolean,
@@ -370,6 +263,8 @@ export default {
     return {
       innerVisible: this.visible,
       localForm: this.createLocalForm(this.formData),
+      // 默认展示基础信息标签
+      activeTab: 'basic',
       rules: {
         title: [{ required: true, message: this.$t('templateLibrary.edit_rule_title'), trigger: 'blur' }],
         machineModuleIds: [{ type: 'array', required: true, message: this.$t('templateLibrary.edit_rule_modules'), trigger: 'change' }]
@@ -405,6 +300,20 @@ export default {
         { value: 'video', label: this.$t('templateLibrary.edit_media_type_video') }
       ]
     },
+    // 操作说明媒体类型选项
+    instructionMediaTypeOptions() {
+      return [
+        { value: 'image', label: this.$t('templateLibrary.edit_media_type_image') },
+        { value: 'video', label: this.$t('templateLibrary.edit_media_type_video') },
+        { value: 'youtube', label: this.$t('templateLibrary.edit_instruction_media_type_youtube') }
+      ]
+    },
+    instructionDescriptionToolbar() {
+      return [
+        'undo redo | bold italic underline | alignleft aligncenter alignright',
+        'bullist numlist | removeformat'
+      ]
+    },
     // 计算封面展示用的预览地址
     coverPreviewUrl() {
       if (this.localForm.coverUrl) {
@@ -433,6 +342,17 @@ export default {
       return this.$t('templateLibrary.edit_upload_hint', {
         types: IMAGE_ALLOWED_EXTENSIONS.join(', '),
         size: this.formatBytes(IMAGE_MAX_FILE_SIZE)
+      })
+    },
+    instructionFileAcceptValue() {
+      return INSTRUCTION_FILE_ALLOWED_EXTENSIONS
+        .map(item => (item.startsWith('.') ? item : `.${item}`))
+        .join(',')
+    },
+    instructionFileUploadHintText() {
+      return this.$t('templateLibrary.edit_instruction_file_upload_hint', {
+        types: INSTRUCTION_FILE_ALLOWED_EXTENSIONS.join(', '),
+        size: this.formatBytes(INSTRUCTION_FILE_MAX_FILE_SIZE)
       })
     }
   },
@@ -532,6 +452,16 @@ export default {
         }))
         : []
 
+      const instructionStepsSource = Array.isArray(source.instruction_steps)
+        ? source.instruction_steps
+        : Array.isArray(source.instructionSteps)
+          ? source.instructionSteps
+          : []
+      const instructionSteps = instructionStepsSource.map(createInstructionStepItem)
+
+      const instructionFileSource = source.instruction_file || source.instructionFile || null
+      const instructionFile = createInstructionFileState(instructionFileSource || {})
+
       return {
         title: source.title || '',
         description: source.description || '',
@@ -541,7 +471,9 @@ export default {
         scenarioIds,
         coverUrl,
         coverMetadataText: coverMetadata ? JSON.stringify(coverMetadata, null, 2) : '',
-        media
+        media,
+        instructionSteps,
+        instructionFile
       }
     },
     // 关闭对话框
@@ -555,6 +487,7 @@ export default {
       }
       this.localForm = this.createLocalForm()
       this.resetUploadState()
+      this.activeTab = 'basic'
       this.$emit('closed')
     },
     // 清空上传中的状态标记
@@ -566,6 +499,20 @@ export default {
         _uploading: false,
         _uploadProgress: 0
       }))
+      this.localForm.instructionSteps = this.localForm.instructionSteps.map(step => ({
+        ...step,
+        media: Array.isArray(step.media)
+          ? step.media.map(media => ({
+            ...media,
+            _uploading: false,
+            _uploadProgress: 0
+          }))
+          : []
+      }))
+      if (this.localForm.instructionFile) {
+        this.localForm.instructionFile._uploading = false
+        this.localForm.instructionFile._uploadProgress = 0
+      }
     },
     // 将字节数格式化为可读字符串
     formatBytes(value) {
@@ -844,6 +791,144 @@ export default {
           payload.media = []
         }
 
+        const instructionStepsPayload = []
+        let instructionSettingsInvalid = false
+        let instructionMediaMissingLink = false
+        let instructionMetadataInvalid = false
+
+        this.localForm.instructionSteps.forEach(step => {
+          const stepPayload = {}
+
+          const title = step.title && step.title.trim()
+          const description = step.description && step.description.trim()
+          if (title) {
+            stepPayload.title = title
+          }
+          if (description) {
+            stepPayload.description = description
+          }
+          if (step.sort_order !== null && step.sort_order !== undefined && step.sort_order !== '') {
+            stepPayload.sort_order = Number(step.sort_order)
+          }
+
+          const settingsPairs = Array.isArray(step.settingsPairs) ? step.settingsPairs : []
+          const normalizedSettings = settingsPairs
+            .map(pair => ({
+              label: pair && pair.name ? pair.name.trim() : '',
+              value: pair && pair.value ? pair.value.trim() : ''
+            }))
+            .filter(item => item.label || item.value)
+
+          if (normalizedSettings.some(item => !item.label || !item.value)) {
+            instructionSettingsInvalid = true
+          } else if (normalizedSettings.length) {
+            stepPayload.settings = normalizedSettings
+          }
+
+          if (Array.isArray(step.media)) {
+            const mediaList = []
+            step.media.forEach(media => {
+              const type = media.media_type ? media.media_type.trim() : ''
+              const mediaUrl = media.media_url ? media.media_url.trim() : ''
+              const externalUrl = media.external_url ? media.external_url.trim() : ''
+              if (!type) {
+                return
+              }
+              const mediaItem = {
+                media_type: type
+              }
+              if (type === 'youtube') {
+                if (!mediaUrl && !externalUrl) {
+                  instructionMediaMissingLink = true
+                  return
+                }
+              } else if (!mediaUrl) {
+                instructionMediaMissingLink = true
+                return
+              }
+
+              if (mediaUrl) {
+                mediaItem.media_url = mediaUrl
+              }
+              if (externalUrl) {
+                mediaItem.external_url = externalUrl
+              }
+              if (media.sort_order !== null && media.sort_order !== undefined && media.sort_order !== '') {
+                mediaItem.sort_order = Number(media.sort_order)
+              }
+
+              const metadataText = (media.metadataText || '').trim()
+              if (metadataText) {
+                try {
+                  mediaItem.media_metadata = JSON.parse(metadataText)
+                } catch (error) {
+                  instructionMetadataInvalid = true
+                }
+              }
+
+              mediaList.push(mediaItem)
+            })
+
+            if (mediaList.length) {
+              stepPayload.media = mediaList
+            } else if (step.media.length) {
+              stepPayload.media = []
+            }
+          }
+
+          if (Object.keys(stepPayload).length) {
+            instructionStepsPayload.push(stepPayload)
+          }
+        })
+
+        if (instructionSettingsInvalid) {
+          this.$message.error(this.$t('templateLibrary.edit_instruction_settings_invalid'))
+          return
+        }
+        if (instructionMediaMissingLink) {
+          this.$message.error(this.$t('templateLibrary.edit_instruction_media_missing_url'))
+          return
+        }
+        if (instructionMetadataInvalid) {
+          this.$message.error(this.$t('templateLibrary.edit_metadata_invalid'))
+          return
+        }
+
+        if (instructionStepsPayload.length) {
+          payload.instruction_steps = instructionStepsPayload
+        } else if (!this.localForm.instructionSteps.length) {
+          payload.instruction_steps = []
+        }
+
+        const instructionFileUrl = (this.localForm.instructionFile.url || '').trim()
+        const instructionFileName = (this.localForm.instructionFile.name || '').trim()
+        const instructionFileMetadataText = (this.localForm.instructionFile.metadataText || '').trim()
+        const hadInstructionFile = !!(this.formData && (this.formData.instruction_file || this.formData.instructionFile))
+
+        if (instructionFileUrl || instructionFileName || instructionFileMetadataText) {
+          if (!instructionFileUrl) {
+            this.$message.error(this.$t('templateLibrary.edit_instruction_file_url_required'))
+            return
+          }
+          const instructionFilePayload = {
+            url: instructionFileUrl
+          }
+          if (instructionFileName) {
+            instructionFilePayload.name = instructionFileName
+          }
+          if (instructionFileMetadataText) {
+            try {
+              instructionFilePayload.metadata = JSON.parse(instructionFileMetadataText)
+            } catch (error) {
+              this.$message.error(this.$t('templateLibrary.edit_metadata_invalid'))
+              return
+            }
+          }
+          payload.instruction_file = instructionFilePayload
+        } else if (hadInstructionFile) {
+          payload.instruction_file = null
+        }
+
         this.$emit('submit', payload)
       })
     },
@@ -871,6 +956,236 @@ export default {
         return
       }
       this.localForm.media.splice(index, 1)
+    },
+    // 新增操作说明步骤
+    addInstructionStep() {
+      if (this.localForm.instructionSteps.length >= INSTRUCTION_STEP_LIMIT) {
+        this.$message.warning(this.$t('templateLibrary.edit_instruction_limit', { limit: INSTRUCTION_STEP_LIMIT }))
+        return
+      }
+      this.localForm.instructionSteps.push(createEmptyInstructionStep())
+    },
+    addInstructionSetting(stepIndex) {
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step) {
+        return
+      }
+      if (!Array.isArray(step.settingsPairs)) {
+        this.$set(step, 'settingsPairs', [])
+      }
+      if (step.settingsPairs.length >= INSTRUCTION_STEP_SETTINGS_LIMIT) {
+        this.$message.warning(this.$t('templateLibrary.edit_instruction_settings_limit', { limit: INSTRUCTION_STEP_SETTINGS_LIMIT }))
+        return
+      }
+      step.settingsPairs.push(createInstructionSettingPair())
+    },
+    // 删除步骤
+    removeInstructionStep(index) {
+      if (index < 0 || index >= this.localForm.instructionSteps.length) {
+        return
+      }
+      this.localForm.instructionSteps.splice(index, 1)
+    },
+    removeInstructionSetting(stepIndex, settingIndex) {
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step || !Array.isArray(step.settingsPairs) || settingIndex < 0 || settingIndex >= step.settingsPairs.length) {
+        return
+      }
+      step.settingsPairs.splice(settingIndex, 1)
+    },
+    // 调整步骤顺序
+    moveInstructionStep(index, offset) {
+      const target = index + offset
+      if (target < 0 || target >= this.localForm.instructionSteps.length) {
+        return
+      }
+      const steps = [...this.localForm.instructionSteps]
+      const [current] = steps.splice(index, 1)
+      steps.splice(target, 0, current)
+      this.localForm.instructionSteps = steps
+    },
+    // 添加步骤媒体
+    addInstructionMedia(stepIndex) {
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step) {
+        return
+      }
+      if (step.media.length >= INSTRUCTION_STEP_MEDIA_LIMIT) {
+        this.$message.warning(this.$t('templateLibrary.edit_instruction_media_limit', { limit: INSTRUCTION_STEP_MEDIA_LIMIT }))
+        return
+      }
+      step.media.push(createEmptyInstructionMedia())
+    },
+    // 移除步骤媒体
+    removeInstructionMedia(stepIndex, mediaIndex) {
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step || mediaIndex < 0 || mediaIndex >= step.media.length) {
+        return
+      }
+      step.media.splice(mediaIndex, 1)
+    },
+    // 切换媒体类型时重置输入
+    handleInstructionMediaTypeChange(stepIndex, mediaIndex) {
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step) {
+        return
+      }
+      const media = step.media[mediaIndex]
+      if (!media) {
+        return
+      }
+      if (media.media_type === 'youtube') {
+        media.media_url = ''
+      }
+    },
+    // 计算步骤媒体上传提示
+    getInstructionMediaUploadHint(media) {
+      if (media && media.media_type === 'youtube') {
+        return this.$t('templateLibrary.edit_instruction_media_youtube_hint')
+      }
+      return this.getMediaUploadHint(media)
+    },
+    // 处理步骤媒体上传
+    async handleInstructionMediaUpload(options, stepIndex, mediaIndex) {
+      if (!this.canUpload) {
+        const error = new Error(this.$t('templateLibrary.edit_upload_permission_denied'))
+        this.$message.error(error.message)
+        if (options.onError) {
+          options.onError(error)
+        }
+        return
+      }
+
+      const step = this.localForm.instructionSteps[stepIndex]
+      if (!step) {
+        return
+      }
+      const media = step.media[mediaIndex]
+      if (!media) {
+        return
+      }
+
+      let extension
+      try {
+        const isVideoType = media.media_type === 'video'
+        const allowedExtensions = isVideoType ? VIDEO_ALLOWED_EXTENSIONS : IMAGE_ALLOWED_EXTENSIONS
+        const maxSize = isVideoType ? VIDEO_MAX_FILE_SIZE : IMAGE_MAX_FILE_SIZE
+        const result = this.validateSelectedFile(options.file, allowedExtensions, maxSize)
+        extension = result.extension
+      } catch (error) {
+        this.$message.error(error.userMessage || error.message)
+        if (options.onError) {
+          options.onError(error)
+        }
+        return
+      }
+
+      this.$set(media, '_uploading', true)
+      this.$set(media, '_uploadProgress', 0)
+      try {
+        const signature = await this.requestUploadSignature(options.file, extension)
+        const uploadResult = await uploadFileToOss(signature, options.file, percent => {
+          this.$set(media, '_uploadProgress', percent)
+          if (options.onProgress) {
+            options.onProgress({ percent })
+          }
+        })
+        this.$set(media, 'media_url', uploadResult.previewUrl || uploadResult.uploadedUrl)
+        this.$set(media, 'metadataText', this.buildMetadataText(signature, options.file))
+        if (!media.external_url) {
+          this.$set(media, 'external_url', '')
+        }
+        const mediaType = inferMediaTypeByMime(options.file.type || '', signature.extension)
+        this.$set(media, 'media_type', mediaType)
+        this.$message.success(this.$t('templateLibrary.edit_upload_success'))
+        if (options.onSuccess) {
+          options.onSuccess(uploadResult, options.file)
+        }
+      } catch (error) {
+        console.error(error)
+        const message = error && error.userMessage ? error.userMessage : (error && error.message ? error.message : this.$t('templateLibrary.edit_upload_failed'))
+        this.$message.error(message)
+        if (options.onError) {
+          options.onError(error)
+        }
+      } finally {
+        this.$set(media, '_uploading', false)
+        this.$set(media, '_uploadProgress', 0)
+      }
+    },
+
+    // 处理说明文件上传
+    async handleInstructionFileUpload(options) {
+      if (!this.canUpload) {
+        const error = new Error(this.$t('templateLibrary.edit_instruction_file_upload_disabled'))
+        this.$message.error(error.message)
+        if (options.onError) {
+          options.onError(error)
+        }
+        return
+      }
+
+      let extension
+      try {
+        const result = this.validateSelectedFile(options.file, INSTRUCTION_FILE_ALLOWED_EXTENSIONS, INSTRUCTION_FILE_MAX_FILE_SIZE)
+        extension = result.extension
+      } catch (error) {
+        this.$message.error(error.userMessage || error.message)
+        if (options.onError) {
+          options.onError(error)
+        }
+        return
+      }
+
+      const target = this.localForm.instructionFile || createInstructionFileState()
+      this.$set(this.localForm, 'instructionFile', target)
+      target._uploading = true
+      target._uploadProgress = 0
+
+      try {
+        const signature = await this.requestUploadSignature(options.file, extension)
+        const uploadResult = await uploadFileToOss(signature, options.file, percent => {
+          target._uploadProgress = percent
+          if (options.onProgress) {
+            options.onProgress({ percent })
+          }
+        })
+        const resolvedUrl = uploadResult.previewUrl || uploadResult.uploadedUrl
+        this.$set(target, 'url', resolvedUrl)
+        this.$set(target, 'metadataText', this.buildMetadataText(signature, options.file))
+        if (!target.name) {
+          this.$set(target, 'name', stripExtension(options.file.name))
+        }
+        this.$message.success(this.$t('templateLibrary.edit_upload_success'))
+        if (options.onSuccess) {
+          options.onSuccess(uploadResult, options.file)
+        }
+      } catch (error) {
+        console.error(error)
+        const message = error && error.userMessage ? error.userMessage : (error && error.message ? error.message : this.$t('templateLibrary.edit_upload_failed'))
+        this.$message.error(message)
+        if (options.onError) {
+          options.onError(error)
+        }
+      } finally {
+        const latestTarget = this.localForm.instructionFile
+        if (latestTarget) {
+          latestTarget._uploading = false
+          latestTarget._uploadProgress = 0
+        }
+      }
+    },
+
+    // 清空说明文件信息
+    clearInstructionFile() {
+      if (!this.localForm.instructionFile) {
+        return
+      }
+      this.localForm.instructionFile.url = ''
+      this.localForm.instructionFile.name = ''
+      this.localForm.instructionFile.metadataText = ''
+      this.localForm.instructionFile._uploading = false
+      this.localForm.instructionFile._uploadProgress = 0
     }
   }
 }
@@ -883,145 +1198,7 @@ export default {
   gap: 12px;
 }
 
-.cover-preview-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 6px;
-  border: 1px solid #ebeef5;
-  overflow: hidden;
-}
-
-.cover-preview-placeholder,
-.media-preview-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #c0c4cc;
-  background: #f5f7fa;
-}
-
-.form-item-tip {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #909399;
-}
-
-.upload-actions,
-.media-upload-actions {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.upload-trigger {
-  display: inline-block;
-}
-
-.upload-disabled-tip {
-  font-size: 12px;
-  color: #c0c4cc;
-}
-
-.upload-hint {
-  font-size: 12px;
-  color: #909399;
-}
-
-.upload-progress-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 180px;
-}
-
-.upload-progress-bar {
-  flex: 1;
-}
-
-.upload-progress-text {
-  font-size: 12px;
-  color: #606266;
-  min-width: 34px;
-  text-align: right;
-}
-
-.cover-preview {
-  margin-top: 12px;
-}
-
-.media-editor-empty {
-  margin-bottom: 12px;
-  padding: 12px;
-  border: 1px dashed #c0c4cc;
-  border-radius: 6px;
-  color: #909399;
-  text-align: center;
-}
-
-.media-editor-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.media-editor-card {
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  padding: 12px 16px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.05);
-}
-
-.media-editor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.media-editor-index {
-  font-weight: 600;
-  color: #409eff;
-}
-
-.media-editor-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.media-editor-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.media-editor-label {
-  font-size: 12px;
-  color: #606266;
-}
-
-.media-editor-preview {
-  width: 100%;
-  border: 1px solid #ebeef5;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #000;
-}
-
-.media-editor-preview .el-image,
-.media-editor-preview video {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-}
-
-.media-editor-preview video {
-  background: #000;
+.template-edit-tabs ::v-deep .el-tabs__content {
+  padding-top: 12px;
 }
 </style>

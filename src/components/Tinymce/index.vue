@@ -1,7 +1,7 @@
 <template>
   <div :class="{fullscreen:fullscreen}" class="tinymce-container" :style="{width:containerWidth}">
     <textarea :id="tinymceId" class="tinymce-textarea" />
-    <div class="editor-custom-btn-container">
+    <div v-if="showUpload" class="editor-custom-btn-container">
       <editorImage color="#1890ff" class="editor-upload-btn" @successCBK="imageSuccessCBK" />
     </div>
   </div>
@@ -42,7 +42,7 @@ export default {
       }
     },
     menubar: {
-      type: String,
+      type: [String, Boolean],
       default: 'file edit insert view format table'
     },
     height: {
@@ -54,6 +54,10 @@ export default {
       type: [Number, String],
       required: false,
       default: 'auto'
+    },
+    showUpload: {
+      type: Boolean,
+      default: true
     }
   },
   data() {

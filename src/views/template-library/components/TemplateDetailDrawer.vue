@@ -90,6 +90,60 @@
         </ul>
       </section>
 
+      <section v-if="instructionSteps.length" class="detail-section detail-section--instructions">
+        <h4>{{ $t('templateLibrary.detail_instructions') }}</h4>
+        <div class="instruction-list">
+          <div v-for="(step, stepIndex) in instructionSteps" :key="step.__key || stepIndex" class="instruction-card">
+            <div class="instruction-card__header">
+              <span class="detail-index">{{ stepIndex + 1 }}</span>
+              <span class="instruction-card__title">{{ step.title || $t('templateLibrary.detail_instruction_untitled') }}</span>
+              <span v-if="hasSortOrder(step.sort_order)" class="instruction-card__order">
+                {{ $t('templateLibrary.detail_instruction_sort_order') }}：{{ step.sort_order }}
+              </span>
+            </div>
+
+            <div v-if="step.description" class="instruction-card__description" v-html="step.description" />
+
+            <div v-if="step.settings" class="instruction-card__settings">
+              <span class="instruction-card__label">{{ $t('templateLibrary.detail_instruction_settings') }}</span>
+              <pre>{{ formatInstructionSettings(step.settings) }}</pre>
+            </div>
+
+            <div v-if="Array.isArray(step.media) && step.media.length" class="instruction-card__media">
+              <span class="instruction-card__label">{{ $t('templateLibrary.detail_instruction_media') }}</span>
+              <div class="instruction-media-list">
+                <div
+                  v-for="(media, mediaIndex) in step.media"
+                  :key="media.id || media.__key || mediaIndex"
+                  class="instruction-media-item"
+                >
+                  <div class="instruction-media-item__meta">
+                    <span>{{ $t('templateLibrary.detail_instruction_media_type') }}：{{ formatInstructionMediaType(media.media_type) }}</span>
+                    <span v-if="hasSortOrder(media.sort_order)">{{ $t('templateLibrary.detail_instruction_sort_order') }}：{{ media.sort_order }}</span>
+                  </div>
+                  <div v-if="media.media_url" class="instruction-media-item__link">
+                    <span>{{ $t('templateLibrary.detail_instruction_media_url') }}：</span>
+                    <el-link type="primary" :underline="false" @click="openDownload(media.media_url)">
+                      {{ media.media_url }}
+                    </el-link>
+                  </div>
+                  <div v-if="media.external_url" class="instruction-media-item__link">
+                    <span>{{ $t('templateLibrary.detail_instruction_media_external') }}：</span>
+                    <el-link type="primary" :underline="false" @click="openDownload(media.external_url)">
+                      {{ media.external_url }}
+                    </el-link>
+                  </div>
+                  <div v-if="media.media_metadata" class="instruction-media-item__metadata">
+                    <span class="instruction-card__label">{{ $t('templateLibrary.detail_instruction_media_metadata') }}</span>
+                    <pre>{{ formatInstructionSettings(media.media_metadata) }}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section v-if="detailData.media && detailData.media.length" class="detail-section detail-section--media">
         <h4>{{ $t('templateLibrary.detail_media') }}</h4>
         <div class="media-grid">
@@ -125,6 +179,25 @@
           >
             {{ $t('templateLibrary.detail_download_file') }}
           </el-button>
+        </div>
+      </section>
+
+      <section v-if="instructionFile" class="detail-section detail-section--file">
+        <h4>{{ $t('templateLibrary.detail_instruction_file') }}</h4>
+        <div class="file-row">
+          <span>{{ instructionFile.name || instructionFile.url || '-' }}</span>
+          <el-button
+            v-if="instructionFile.url"
+            type="text"
+            size="mini"
+            @click="openDownload(instructionFile.url)"
+          >
+            {{ $t('templateLibrary.detail_download_file') }}
+          </el-button>
+        </div>
+        <div v-if="instructionFile.metadata" class="instruction-file-metadata">
+          <span class="instruction-card__label">{{ $t('templateLibrary.detail_instruction_file_metadata') }}</span>
+          <pre>{{ formatInstructionSettings(instructionFile.metadata) }}</pre>
         </div>
       </section>
     </div>
@@ -180,6 +253,20 @@ export default {
     // 生成预览地址列表，传递给 el-image
     imagePreviewList() {
       return this.imageMediaList.map(item => item.url)
+    },
+    // 操作说明步骤
+    instructionSteps() {
+      if (!this.detailData || !Array.isArray(this.detailData.instruction_steps)) {
+        return []
+      }
+      return this.detailData.instruction_steps
+    },
+    // 操作说明文件
+    instructionFile() {
+      if (!this.detailData || !this.detailData.instruction_file) {
+        return null
+      }
+      return this.detailData.instruction_file
     }
   },
   watch: {
@@ -211,6 +298,10 @@ export default {
     openDownload(url) {
       window.open(url, '_blank')
     },
+    // 判断排序值是否存在
+    hasSortOrder(value) {
+      return value !== undefined && value !== null && value !== ''
+    },
     // 根据素材定位预览初始索引
     getImagePreviewIndex(item) {
       if (!item || !item.url) {
@@ -223,6 +314,37 @@ export default {
         return media.url === item.url
       })
       return index >= 0 ? index : 0
+    },
+    // 统一格式化操作说明设置或元数据
+    formatInstructionSettings(value) {
+      if (value === null || value === undefined) {
+        return ''
+      }
+      if (typeof value === 'string') {
+        return value
+      }
+      try {
+        return JSON.stringify(value, null, 2)
+      } catch (error) {
+        return String(value)
+      }
+    },
+    // 输出说明媒体类型对应文案
+    formatInstructionMediaType(type) {
+      if (!type) {
+        return '-'
+      }
+      const normalized = String(type).toLowerCase()
+      if (normalized === 'image') {
+        return this.$t('templateLibrary.edit_media_type_image')
+      }
+      if (normalized === 'video') {
+        return this.$t('templateLibrary.edit_media_type_video')
+      }
+      if (normalized === 'youtube') {
+        return 'YouTube'
+      }
+      return type
     }
   }
 }
@@ -398,6 +520,105 @@ export default {
   width: 100%;
   height: 100px;
   object-fit: cover;
+}
+
+.detail-section--instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instruction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instruction-card {
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(31, 45, 61, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.instruction-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.instruction-card__title {
+  font-weight: 600;
+  color: #303133;
+}
+
+.instruction-card__order {
+  font-size: 12px;
+  color: #909399;
+}
+
+.instruction-card__description {
+  background: #f5f7fa;
+  padding: 10px;
+  border-radius: 6px;
+  color: #606266;
+}
+
+.instruction-card__label {
+  font-size: 12px;
+  color: #606266;
+  font-weight: 600;
+}
+
+.instruction-card__settings pre,
+.instruction-media-item__metadata pre,
+.instruction-file-metadata pre {
+  margin: 8px 0 0;
+  background: #fafbfc;
+  border-radius: 4px;
+  padding: 8px;
+  max-height: 200px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.instruction-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.instruction-media-item {
+  border: 1px dashed #dcdfe6;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.instruction-media-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.instruction-media-item__link span {
+  font-size: 12px;
+  color: #909399;
+}
+
+.instruction-file-metadata {
+  margin-top: 12px;
 }
 
 .media-caption {
