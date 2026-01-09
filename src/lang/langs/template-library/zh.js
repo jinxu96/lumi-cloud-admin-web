@@ -36,6 +36,7 @@ export default {
     'table_published_at': '发布时间',
     'table_updated_at': '更新时间',
     'table_actions': '操作',
+    'action_view_comments': '评论管理',
 
     'action_view': '查看详情',
     'action_edit': '编辑模板',
@@ -56,6 +57,7 @@ export default {
     'detail_loading': '正在加载详情...',
     'detail_base': '基础信息',
     'detail_featured': '推荐信息',
+    'detail_comments_count': '评论总数',
     'detail_description': '模板描述',
     'detail_materials': '关联材料',
     'detail_scenarios': '适用场景',

@@ -71,6 +71,20 @@
           </el-select>
         </div>
 
+        <div class="filter-item filter-labeled">
+          <span class="filter-label">{{ $t('userManage.search_comment_banned') }}</span>
+          <el-select
+            v-model="listQuery.is_comment_banned"
+            clearable
+            style="width: 150px;"
+            @change="handleFilter"
+          >
+            <el-option :label="$t('userManage.option_all')" value="" />
+            <el-option :label="$t('userManage.option_yes')" value="true" />
+            <el-option :label="$t('userManage.option_no')" value="false" />
+          </el-select>
+        </div>
+
         <el-select
           v-model="listQuery.order"
           :placeholder="$t('userManage.search_order')"
@@ -145,6 +159,17 @@
           </template>
         </el-table-column>
 
+        <el-table-column width="150" align="center" :label="$t('userManage.table_comment_banned')">
+          <template slot-scope="{ row }">
+            <el-tag v-if="row && row.is_comment_banned === true" type="danger">
+              {{ $t('templateComments.tag_banned') }}
+            </el-tag>
+            <el-tag v-else type="success">
+              {{ $t('templateComments.status_normal') }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column width="120" align="center" :label="$t('userManage.table_projects')">
           <template slot-scope="{ row }">
             <span>{{ row.projects_count }}</span>
@@ -175,7 +200,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column fixed="right" width="480" align="center" :label="$t('userManage.table_actions')">
+        <el-table-column fixed="right" width="620" align="center" :label="$t('userManage.table_actions')">
           <template slot-scope="{ row }">
             <el-button
               v-waves
@@ -268,6 +293,44 @@
             >
               {{ $t('userManage.table_allow_project_publish') }}
             </el-button>
+
+            <el-button
+              v-if="!row.is_comment_banned"
+              v-waves
+              size="mini"
+              type="primary"
+              plain
+              icon="el-icon-connection"
+              :disabled="!checkPermission(['app-admin.project-template-comments.ban-user'])"
+              @click="handleBan(row)"
+            >
+              {{ $t('templateComments.action_ban') }}
+            </el-button>
+
+            <el-button
+              v-else
+              v-waves
+              size="mini"
+              type="success"
+              plain
+              icon="el-icon-connection"
+              :disabled="!checkPermission(['app-admin.project-template-comments.unban-user'])"
+              @click="handleUnban(row)"
+            >
+              {{ $t('templateComments.action_unban') }}
+            </el-button>
+
+            <el-button
+              v-waves
+              size="mini"
+              type="default"
+              plain
+              icon="el-icon-time"
+              :disabled="!checkPermission(['app-admin.project-template-comments.ban-history'])"
+              @click="handleBanHistory(row)"
+            >
+              {{ $t('templateComments.action_ban_history') }}
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -304,6 +367,48 @@
       @update:visible="handlePasswordVisibleChange"
       @submit="handlePasswordSubmit"
     />
+
+    <ban-history-dialog
+      :visible.sync="banHistory.visible"
+      :list="banHistory.list"
+      :loading="banHistory.loading"
+      :pagination="banHistory.pagination"
+      @pagination="handleBanHistoryPagination"
+    />
+
+    <el-dialog
+      :visible.sync="banDialog.visible"
+      width="520px"
+      :title="banDialog.mode === 'ban' ? $t('templateComments.dialog_ban_title') : $t('templateComments.dialog_unban_title')"
+      @close="resetBanDialog"
+    >
+      <el-form :model="banDialog.form" label-width="120px">
+        <el-form-item :label="$t('templateComments.ban_reason')" :required="banDialog.mode === 'ban'">
+          <el-input
+            v-model="banDialog.form.reason"
+            type="textarea"
+            :rows="3"
+            :placeholder="$t('templateComments.placeholder_reason')"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item v-if="banDialog.mode === 'ban'" :label="$t('templateComments.ban_expires_at')">
+          <el-date-picker
+            v-model="banDialog.form.expires_at"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            :placeholder="$t('templateComments.placeholder_expires')"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="banDialog.visible = false">{{ $t('templateComments.action_cancel') }}</el-button>
+        <el-button type="primary" :loading="banDialog.loading" @click="submitBanDialog">
+          {{ $t('templateComments.action_confirm') }}
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -321,9 +426,15 @@ import {
   forbidUserProjectPublish,
   allowUserProjectPublish
 } from '@/api/userManage'
+import {
+  banProjectTemplateCommentUser,
+  unbanProjectTemplateCommentUser,
+  getProjectTemplateCommentBanHistory
+} from '@/api/projectTemplateComments'
 import UserDetailDialog from './components/UserDetailDialog'
 import UserEditDialog from './components/UserEditDialog'
 import UserPasswordDialog from './components/UserPasswordDialog'
+import BanHistoryDialog from '../template-comments/components/BanHistoryDialog.vue'
 
 // 用户管理页面核心容器，负责列表渲染及详情/编辑/密码弹窗联动。
 
@@ -339,7 +450,7 @@ const createDefaultEditForm = () => ({
 
 export default {
   name: 'UserManageIndex',
-  components: { Pagination, UserDetailDialog, UserEditDialog, UserPasswordDialog },
+  components: { Pagination, UserDetailDialog, UserEditDialog, UserPasswordDialog, BanHistoryDialog },
   directives: { waves },
   data() {
     return {
@@ -352,6 +463,7 @@ export default {
         has_google: '',
         is_blocked: '',
         is_project_publish_banned: '',
+        is_comment_banned: '',
         order: 'id_DESC',
         limit: 10,
         page: 1
@@ -394,6 +506,23 @@ export default {
       allowPublish: {
         loading: false,
         currentId: ''
+      },
+      banDialog: {
+        visible: false,
+        loading: false,
+        mode: 'ban',
+        userId: null,
+        form: {
+          reason: '',
+          expires_at: ''
+        }
+      },
+      banHistory: {
+        visible: false,
+        loading: false,
+        list: [],
+        pagination: { page: 1, limit: 20, total: 0 },
+        userId: null
       }
     }
   },
@@ -433,6 +562,11 @@ export default {
       } else if (this.listQuery.is_project_publish_banned === 'false') {
         params.is_project_publish_banned = false
       }
+      if (this.listQuery.is_comment_banned === 'true') {
+        params.is_comment_banned = true
+      } else if (this.listQuery.is_comment_banned === 'false') {
+        params.is_comment_banned = false
+      }
 
       getUsers(params)
         .then(res => {
@@ -458,6 +592,7 @@ export default {
         has_google: '',
         is_blocked: '',
         is_project_publish_banned: '',
+        is_comment_banned: '',
         order: 'id_DESC',
         limit,
         page: 1
@@ -721,6 +856,91 @@ export default {
         this.allowPublish.loading = false
         this.allowPublish.currentId = ''
       }
+    },
+    // 打开评论禁言弹窗
+    handleBan(row) {
+      if (!row || !row.id) return
+      this.banDialog.mode = 'ban'
+      this.banDialog.userId = row.id
+      this.banDialog.form.reason = ''
+      this.banDialog.form.expires_at = ''
+      this.banDialog.visible = true
+    },
+    // 打开评论解禁弹窗
+    handleUnban(row) {
+      if (!row || !row.id) return
+      this.banDialog.mode = 'unban'
+      this.banDialog.userId = row.id
+      this.banDialog.form.reason = ''
+      this.banDialog.form.expires_at = ''
+      this.banDialog.visible = true
+    },
+    // 重置禁言弹窗状态
+    resetBanDialog() {
+      this.banDialog.visible = false
+      this.banDialog.loading = false
+      this.banDialog.userId = null
+      this.banDialog.form.reason = ''
+      this.banDialog.form.expires_at = ''
+    },
+    // 提交禁言/解禁
+    async submitBanDialog() {
+      if (!this.banDialog.userId) return
+      if (this.banDialog.mode === 'ban' && !this.banDialog.form.reason.trim()) {
+        this.$message.warning(this.$t('templateComments.rule_ban_reason'))
+        return
+      }
+      this.banDialog.loading = true
+      try {
+        if (this.banDialog.mode === 'ban') {
+          await banProjectTemplateCommentUser(this.banDialog.userId, {
+            reason: this.banDialog.form.reason.trim(),
+            expires_at: this.banDialog.form.expires_at || undefined
+          })
+          this.$message.success(this.$t('templateComments.toast_ban_success'))
+        } else {
+          await unbanProjectTemplateCommentUser(this.banDialog.userId, {
+            reason: this.banDialog.form.reason.trim() || undefined
+          })
+          this.$message.success(this.$t('templateComments.toast_unban_success'))
+        }
+        this.resetBanDialog()
+        this.getList()
+      } catch (error) {
+        this.$message.error(this.$t('templateComments.toast_ban_failed'))
+      } finally {
+        this.banDialog.loading = false
+      }
+    },
+    // 查看评论禁言历史
+    async handleBanHistory(row) {
+      if (!row || !row.id) return
+      this.banHistory.userId = row.id
+      this.banHistory.visible = true
+      this.banHistory.pagination.page = 1
+      await this.fetchBanHistory()
+    },
+    async fetchBanHistory() {
+      if (!this.banHistory.userId) return
+      this.banHistory.loading = true
+      try {
+        const params = {
+          start: (this.banHistory.pagination.page - 1) * this.banHistory.pagination.limit,
+          limit: this.banHistory.pagination.limit
+        }
+        const { data } = await getProjectTemplateCommentBanHistory(this.banHistory.userId, params)
+        this.banHistory.list = (data && data.list) || []
+        this.banHistory.pagination.total = (data && data.total) || 0
+      } catch (error) {
+        this.$message.error(this.$t('templateComments.toast_ban_history_failed'))
+      } finally {
+        this.banHistory.loading = false
+      }
+    },
+    handleBanHistoryPagination({ page, limit }) {
+      this.banHistory.pagination.page = page
+      this.banHistory.pagination.limit = limit
+      this.fetchBanHistory()
     },
     // 打开重置密码弹窗
     handlePassword(row) {

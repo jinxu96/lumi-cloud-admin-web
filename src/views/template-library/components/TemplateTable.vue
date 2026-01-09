@@ -89,6 +89,18 @@
           <el-button
             v-waves
             size="mini"
+            plain
+            type="info"
+            icon="el-icon-chat-line-round"
+            :disabled="!canViewComments"
+            @click="$emit('manage-comments', row)"
+          >
+            {{ $t('templateLibrary.action_view_comments') }}
+          </el-button>
+
+          <el-button
+            v-waves
+            size="mini"
             type="info"
             plain
             icon="el-icon-view"
@@ -204,6 +216,10 @@ export default {
     canView: {
       type: Boolean,
       default: true
+    },
+    canViewComments: {
+      type: Boolean,
+      default: false
     },
     canEdit: {
       type: Boolean,

@@ -2275,6 +2275,374 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 
 - **说明**：仅返回已启用的记录，默认按 `sort_order` 升序。
 
+# 模板评论管理 API 文档
+
+## 评论列表
+- **权限标识**：`app-admin.project-template-comments.index`
+- **接口**：`GET /admin-api/project-template-comments`
+- **说明**：分页检索项目模板评论，支持多条件筛选与排序。该接口可用于获取顶级评论列表或指定评论的回复列表。
+
+### 前端使用场景
+1. **评论列表页**（显示顶级评论）：
+   ```
+   GET /admin-api/project-template-comments?project_id=46&parent_id=0&start=0&limit=20
+   ```
+   返回该项目的所有顶级评论（`parent_id=null` 的评论）
+
+2. **获取某条评论的回复列表**：
+   ```
+   GET /admin-api/project-template-comments?parent_id=1001&start=0&limit=20
+   ```
+   返回评论 ID 1001 下的所有回复
+
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始位置，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
+| `order` | string | 否 | 排序规则，格式为 `field__direction`，如 `created_at__DESC`。支持字段：`id`、`created_at`、`updated_at`、`likes_count`、`replies_count` |
+| `project_id` | integer | 否 | 按项目ID筛选（包含已软删除的项目） |
+| `user_id` | integer | 否 | 按用户ID筛选 |
+| `keyword` | string | 否 | 按内容关键字搜索 |
+| `status` | string | 否 | 评论状态：`normal`（正常）、`deleted_by_owner`（用户删除）、`deleted_by_admin`（管理员删除） |
+| `parent_id` | integer | 否 | **父评论ID**：<br>• 传 `0` 或不传 = 只返回顶级评论<br>• 传具体评论ID（如 `1001`）= 返回该评论的回复列表 |
+| `is_pinned` | string | 否 | 是否置顶：`0`/`false`（否）、`1`/`true`（是） |
+| `has_reports` | string | 否 | 是否有举报：`0`/`false`（否）、`1`/`true`（是） |
+| `created_start` | date | 否 | 评论创建开始日期，如 `2025-01-01` |
+| `created_end` | date | 否 | 评论创建结束日期，如 `2025-12-31` |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 156,
+		"list": [
+			{
+				"id": 1001,
+				"project": {
+					"id": 101,
+					"title": "圣诞节贺卡模板",
+					"status": "published"
+				},
+				"user": {
+					"id": 5,
+					"name": "张三",
+					"avatar": "https://example.com/avatar.jpg",
+					"email": "zhangsan@example.com"
+				},
+				"parent_id": null,
+				"content_excerpt": "这个模板非常漂亮，制作起来也很简单，强烈推荐！",
+				"likes_count": 23,
+				"dislikes_count": 1,
+				"replies_count": 5,
+				"reports_count": 0,
+				"is_pinned": false,
+				"is_deleted_by_owner": false,
+				"is_deleted_by_admin": false,
+				"created_at": "2025-12-20 14:30:00",
+				"updated_at": "2025-12-20 14:30:00"
+			}
+		]
+	}
+}
+```
+
+## 评论详情
+- **权限标识**：`app-admin.project-template-comments.show`
+- **接口**：`GET /admin-api/project-template-comments/{id}`
+- **说明**：查看评论详细信息，包含完整内容、回复列表、举报记录等。
+
+### 前端使用场景
+当用户点击某条评论查看详情时，调用此接口获取：
+- 评论的完整内容（未截断）
+- 评论的所有回复（`replies` 数组）
+- 举报记录（`reports` 数组）
+
+**注意**：`replies` 数组只包含**直接回复**（一级子评论），不会递归加载子回复的子回复。如需查看某个回复的子回复，需单独查询该回复的详情或使用列表接口。
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"id": 1001,
+		"project": {
+			"id": 101,
+			"title": "圣诞节贺卡模板",
+			"status": "published",
+			"cover_url": "https://example.com/cover.jpg"
+		},
+		"user": {
+			"id": 5,
+			"name": "张三",
+			"avatar": "https://example.com/avatar.jpg",
+			"email": "zhangsan@example.com",
+			"is_comment_banned": false
+		},
+		"parent_id": null,
+		"content": "这个模板非常漂亮，制作起来也很简单，强烈推荐！",
+		"content_excerpt": "这个模板非常漂亮，制作起来也很简单，强烈推荐！",
+		"images": ["https://example.com/image1.jpg"],
+		"mentioned_user_ids": [],
+		"likes_count": 23,
+		"dislikes_count": 1,
+		"replies_count": 5,
+		"reports_count": 0,
+		"is_pinned": false,
+		"is_deleted_by_owner": false,
+		"is_deleted_by_admin": false,
+		"created_at": "2025-12-20 14:30:00",
+		"updated_at": "2025-12-20 14:30:00",
+		"deleted_at": null,
+		"replies": [
+			{
+				"id": 1002,
+				"user": {
+					"id": 8,
+					"name": "李四",
+					"avatar": "https://example.com/avatar2.jpg",
+					"email": "lisi@example.com"
+				},
+				"parent_id": 1001,
+				"content_excerpt": "同意，我也做了一个...",
+				"likes_count": 5,
+				"dislikes_count": 0,
+				"replies_count": 2,
+				"reports_count": 0,
+				"is_pinned": false,
+				"is_deleted_by_owner": false,
+				"is_deleted_by_admin": false,
+				"created_at": "2025-12-20 15:00:00",
+				"updated_at": "2025-12-20 15:00:00"
+			}
+		],
+		"reports": []
+	}
+}
+```
+
+### 响应字段说明
+- **`replies` 数组**：该评论的所有**直接回复**（一级子评论），按置顶优先+创建时间排序
+  - 每个回复项包含基础信息（用户、内容摘要、统计数据等）
+  - **不包含**回复的子回复（如需查看，可调用列表接口传 `parent_id=该回复ID`）
+- **`reports` 数组**：该评论的所有举报记录
+
+## 管理员发表评论
+- **权限标识**：`app-admin.project-template-comments.store`
+- **接口**：`POST /admin-api/project-template-comments`
+- **说明**：管理员以系统用户身份发表评论或回复。系统用户ID通过环境变量 `ADMIN_COMMENT_USER_ID` 配置。
+- **请求参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `project_id` | integer | 是 | 项目ID |
+| `content` | string | 是 | 评论内容，1-2000字 |
+| `parent_id` | integer | 否 | 父评论ID，用于回复 |
+| `images` | array | 否 | 评论附图URL数组，最多8张 |
+| `mentioned_user_ids` | array | 否 | @的用户ID列表 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "评论发表成功",
+	"data": {
+		"id": 1002,
+		"project": {
+			"id": 101,
+			"title": "圣诞节贺卡模板"
+		},
+		"user": {
+			"id": 1,
+			"name": "系统管理员",
+			"avatar": null,
+			"email": "admin@example.com"
+		},
+		"parent_id": null,
+		"content_excerpt": "感谢您的反馈！",
+		"likes_count": 0,
+		"dislikes_count": 0,
+		"replies_count": 0,
+		"reports_count": 0,
+		"is_pinned": false,
+		"is_deleted_by_owner": false,
+		"is_deleted_by_admin": false,
+		"created_at": "2025-12-25 10:00:00",
+		"updated_at": "2025-12-25 10:00:00"
+	}
+}
+```
+
+## 删除评论
+- **权限标识**：`app-admin.project-template-comments.destroy`
+- **接口**：`DELETE /admin-api/project-template-comments/{id}`
+- **说明**：管理员软删除评论（设置 `deleted_at`）。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "评论已删除",
+	"data": null
+}
+```
+
+## 恢复评论
+- **权限标识**：`app-admin.project-template-comments.restore`
+- **接口**：`POST /admin-api/project-template-comments/{id}/restore`
+- **说明**：恢复被管理员软删除的评论。
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "评论已恢复",
+	"data": {
+		"id": 1001,
+		"is_deleted_by_admin": false,
+		...
+	}
+}
+```
+
+## 置顶/取消置顶评论
+- **权限标识**：`app-admin.project-template-comments.pin`
+- **接口**：`PUT /admin-api/project-template-comments/{id}/pin`
+- **说明**：设置或取消评论置顶。
+- **请求参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `is_pinned` | boolean | 是 | `true` 置顶，`false` 取消置顶 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "评论已置顶",
+	"data": {
+		"is_pinned": true
+	}
+}
+```
+
+## 禁言用户
+- **权限标识**：`app-admin.project-template-comments.ban-user`
+- **接口**：`POST /admin-api/project-template-comments/users/{userId}/ban`
+- **说明**：禁止指定用户发表评论，更新 `users.is_comment_banned` 字段并记录禁言历史。
+- **请求参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 是 | 禁言原因，最多500字 |
+| `expires_at` | datetime | 否 | 禁言到期时间，格式 `2025-12-31 23:59:59`，不填表示永久禁言 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "用户已被禁言",
+	"data": {
+		"user_id": 5,
+		"is_comment_banned": true
+	}
+}
+```
+
+## 解禁用户
+- **权限标识**：`app-admin.project-template-comments.unban-user`
+- **接口**：`POST /admin-api/project-template-comments/users/{userId}/unban`
+- **说明**：解除用户评论禁言，更新 `users.is_comment_banned` 字段并记录解禁信息。
+- **请求参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 否 | 解禁原因，最多500字 |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "用户已解禁",
+	"data": {
+		"user_id": 5,
+		"is_comment_banned": false
+	}
+}
+```
+
+## 用户禁言历史
+- **权限标识**：`app-admin.project-template-comments.ban-history`
+- **接口**：`GET /admin-api/project-template-comments/users/{userId}/ban-history`
+- **说明**：查看用户的禁言记录历史。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `start` | integer | 否 | 起始位置，默认 `0` |
+| `limit` | integer | 否 | 每页条数，默认 `20`，最大 `100` |
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "获取成功",
+	"data": {
+		"start": 0,
+		"limit": 20,
+		"total": 3,
+		"user": {
+			"id": 5,
+			"name": "张三",
+			"is_comment_banned": false
+		},
+		"list": [
+			{
+				"id": 1,
+				"reason": "发布违规内容",
+				"banned_at": "2025-12-01 10:00:00",
+				"expires_at": "2025-12-08 10:00:00",
+				"is_permanent": false,
+				"banned_by": {
+					"id": 1,
+					"name": "系统管理员"
+				},
+				"unbanned_at": "2025-12-05 15:30:00",
+				"unbanned_by": {
+					"id": 1,
+					"name": "系统管理员"
+				},
+				"unban_reason": "已整改",
+				"is_active": false
+			}
+		]
+	}
+}
+```
+- 模板详情接口（`GET /admin-api/project-templates/{id}`）返回数据中新增 `comments_count` 字段，表示该模板的评论总数。
+
 ## 其他注意事项
 - 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限，可按按钮粒度选择 `*.status`、`*.import`、`*.export`。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。

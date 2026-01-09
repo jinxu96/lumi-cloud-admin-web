@@ -28,6 +28,7 @@
         :limit.sync="pagination.limit"
         :total="pagination.total"
         :can-view="checkPermission(['app-admin.project-templates.show'])"
+        :can-view-comments="checkPermission(['app-admin.project-template-comments.index'])"
         :can-edit="checkPermission(['app-admin.project-templates.update'])"
         :can-update-status="checkPermission(['app-admin.project-templates.status'])"
         :can-feature="checkPermission(['app-admin.project-templates.feature'])"
@@ -35,6 +36,7 @@
         :can-delete="checkPermission(['app-admin.project-templates.destroy'])"
         @pagination="handlePagination"
         @view="handleView"
+        @manage-comments="handleManageComments"
         @edit="handleEdit"
         @change-status="handleChangeStatus"
         @feature="handleFeature"
@@ -47,6 +49,8 @@
       :visible.sync="detail.visible"
       :loading="detail.loading"
       :data="detail.data"
+      :can-view-comments="checkPermission(['app-admin.project-template-comments.index'])"
+      @open-comments="handleManageCommentsById"
     />
 
     <template-edit-dialog
@@ -181,6 +185,20 @@ export default {
       this.pagination.page = page
       this.pagination.limit = limit
       this.fetchList()
+    },
+    // 直达评论管理页面，带上模板ID作为过滤条件
+    handleManageComments(row) {
+      this.$router.push({
+        path: '/template-library/comments',
+        query: { project_id: row.id }
+      })
+    },
+    // 从详情面板跳转评论管理
+    handleManageCommentsById(templateId) {
+      this.$router.push({
+        path: '/template-library/comments',
+        query: { project_id: templateId }
+      })
     },
     // 接收筛选面板回传的查询条件并刷新
     handleSearch(payload) {

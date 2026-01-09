@@ -20,6 +20,8 @@ export default {
     materialProcessingProfileList: 'Processing Profiles', // Material processing profile list title
     templateLibrary: 'Template Library',
     templateLibraryList: 'Template List',
+    templateComments: 'Template Comments',
+    templateCommentsList: 'Comments',
     applicationScenario: 'Application Scenarios',
     applicationScenarioList: 'Scenario List',
     userLog: 'User Logs',

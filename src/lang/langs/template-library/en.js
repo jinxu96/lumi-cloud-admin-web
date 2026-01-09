@@ -36,6 +36,7 @@ export default {
     'table_published_at': 'Published At',
     'table_updated_at': 'Updated At',
     'table_actions': 'Actions',
+    'action_view_comments': 'Comments',
 
     'action_view': 'View',
     'action_edit': 'Edit',
@@ -56,6 +57,7 @@ export default {
     'detail_loading': 'Loading detail...',
     'detail_base': 'Basic Info',
     'detail_featured': 'Featured Info',
+    'detail_comments_count': 'Comments Count',
     'detail_description': 'Description',
     'detail_materials': 'Materials',
     'detail_scenarios': 'Scenarios',

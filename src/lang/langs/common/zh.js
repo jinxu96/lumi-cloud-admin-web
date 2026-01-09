@@ -21,6 +21,8 @@ export default {
     materialProcessingProfileList: '加工配置列表', // 材料加工配置列表页标题
     templateLibrary: '模板库管理',
     templateLibraryList: '模板列表',
+    templateComments: '模板评论管理',
+    templateCommentsList: '评论列表',
     applicationScenario: '应用场景管理',
     applicationScenarioList: '应用场景列表',
     userLog: '用户日志',

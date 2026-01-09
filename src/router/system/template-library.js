@@ -38,6 +38,17 @@ const route = {
           'app-admin.project-templates.destroy'
         ]
       }
+    },
+    {
+      path: '/template-library/comments',
+      component: () => import('@/views/template-comments/index.vue'),
+      name: 'TemplateCommentsList',
+      meta: {
+        title: 'templateCommentsList',
+        icon: 'el-icon-chat-line-round',
+        roles: ['app-admin.project-template-comments.index']
+      },
+      sort: 999999
     }
   ]
 }

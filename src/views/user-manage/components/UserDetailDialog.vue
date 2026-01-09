@@ -272,6 +272,12 @@ export default {
           label: this.$t('userManage.table_project_publish_banned'),
           value: this.detailData.is_project_publish_banned ? this.$t('userManage.option_yes') : this.$t('userManage.option_no'),
           type: this.detailData.is_project_publish_banned ? 'warning' : 'success'
+        },
+        {
+          key: 'comment_banned',
+          label: this.$t('userManage.table_comment_banned'),
+          value: this.detailData.is_comment_banned ? this.$t('userManage.option_yes') : this.$t('userManage.option_no'),
+          type: this.detailData.is_comment_banned ? 'danger' : 'success'
         }
       ]
       return tags

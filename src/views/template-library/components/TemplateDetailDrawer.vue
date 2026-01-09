@@ -24,6 +24,19 @@
             <span>{{ formatStatus(detailData.status) }}</span>
           </li>
           <li>
+            <strong>{{ $t('templateLibrary.detail_comments_count') }}：</strong>
+            <span>{{ detailData.comments_count != null ? detailData.comments_count : '-' }}</span>
+            <el-button
+              v-if="canViewComments && detailData && detailData.id"
+              type="text"
+              size="mini"
+              icon="el-icon-chat-line-round"
+              @click="openComments(detailData.id)"
+            >
+              {{ $t('templateLibrary.action_view_comments') }}
+            </el-button>
+          </li>
+          <li>
             <strong>{{ $t('templateLibrary.detail_featured') }}：</strong>
             <span>{{ formatFeatured(detailData) }}</span>
           </li>
@@ -224,6 +237,11 @@ export default {
     data: {
       type: Object,
       default: null
+    },
+    // 是否允许跳转评论管理
+    canViewComments: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -279,6 +297,10 @@ export default {
     // 关闭抽屉并通知父组件
     handleClose() {
       this.$emit('update:visible', false)
+    },
+    // 跳转评论管理
+    openComments(templateId) {
+      this.$emit('open-comments', templateId)
     },
     // 映射状态字段为易读文案
     formatStatus(status) {
