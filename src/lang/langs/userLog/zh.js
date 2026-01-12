@@ -32,6 +32,7 @@ export default {
     detail_user_agent: 'User-Agent',
     detail_user: '用户详情',
     detail_query: '查询参数',
+    detail_headers: '请求头',
     detail_request_body: '请求体',
     detail_response_body: '响应体',
     detail_empty: '暂无可展示内容',

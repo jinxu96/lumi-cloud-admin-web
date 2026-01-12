@@ -32,6 +32,7 @@ export default {
     detail_user_agent: 'User-Agent',
     detail_user: 'User Detail',
     detail_query: 'Query Params',
+    detail_headers: 'Request Headers',
     detail_request_body: 'Request Body',
     detail_response_body: 'Response Body',
     detail_empty: 'No content to display',

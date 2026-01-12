@@ -35,6 +35,11 @@
         </section>
 
         <section class="detail-section">
+          <h4>{{ $t('userLog.detail_headers') }}</h4>
+          <pre class="detail-json">{{ formatJson(record.request_headers) }}</pre>
+        </section>
+
+        <section class="detail-section">
           <h4>{{ $t('userLog.detail_request_body') }}</h4>
           <pre class="detail-json">{{ formatJson(record.request_body) }}</pre>
         </section>
