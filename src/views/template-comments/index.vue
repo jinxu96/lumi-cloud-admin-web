@@ -60,8 +60,8 @@
       :visible.sync="detail.visible"
       :loading="detail.loading"
       :record="detail.record"
+      :reply-handler="handleQuickReply"
       @action="handleDetailAction"
-      @reply="handleQuickReply"
     />
     <comment-form-dialog
       :visible.sync="createDialog.visible"

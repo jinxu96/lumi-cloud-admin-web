@@ -1,195 +1,243 @@
 <template>
-  <el-drawer
-    :visible.sync="innerVisible"
-    size="520px"
-    :title="drawerTitle"
-    custom-class="comment-detail-drawer"
-    @close="handleClose"
-  >
-    <div v-if="loading" class="detail-loading">
-      <i class="el-icon-loading" />
-      <span>{{ $t('templateComments.detail_loading') }}</span>
-    </div>
+  <div class="comment-detail-wrapper">
+    <el-drawer
+      :visible.sync="innerVisible"
+      size="520px"
+      :title="drawerTitle"
+      custom-class="comment-detail-drawer"
+      @close="handleClose"
+    >
+      <div v-if="loading" class="detail-loading">
+        <i class="el-icon-loading" />
+        <span>{{ $t('templateComments.detail_loading') }}</span>
+      </div>
 
-    <div v-else-if="detail" class="detail-body">
-      <!-- 基础信息卡片 -->
-      <section class="card-block">
-        <div class="card-header">
-          <h4 class="card-title">{{ $t('templateComments.detail_basic') }}</h4>
-          <el-dropdown v-if="hasMenuPermission" trigger="hover" placement="bottom-end" @command="handleAction">
-            <button class="dropdown-button">
-              <i class="el-icon-more" />
-            </button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-if="!detail.is_deleted_by_admin && canDelete" command="delete" icon="el-icon-delete">
-                {{ $t('templateComments.action_delete') }}
-              </el-dropdown-item>
-              <el-dropdown-item v-if="detail.is_deleted_by_admin && canRestore" command="restore" icon="el-icon-refresh-left">
-                {{ $t('templateComments.action_restore') }}
-              </el-dropdown-item>
-              <el-dropdown-item v-if="canPin" :command="detail.is_pinned ? 'unpin' : 'pin'" icon="el-icon-top">
-                {{ detail.is_pinned ? $t('templateComments.action_unpin') : $t('templateComments.action_pin') }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-        <div class="card-body">
-          <div class="info-list">
-            <div class="info-item">
-              <span class="info-label">ID</span>
-              <span class="info-value">{{ detail.id }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">{{ $t('templateComments.table_project') }}</span>
-              <span class="info-value">{{ detail.project ? detail.project.title : '-' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">{{ $t('templateComments.table_user') }}</span>
-              <span class="info-value">{{ detail.user ? detail.user.name : '-' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">{{ $t('templateComments.table_status') }}</span>
-              <span class="info-value">
-                <el-tag :type="detail.is_deleted_by_admin ? 'danger' : detail.is_deleted_by_owner ? 'info' : 'success'" size="mini">
-                  {{ formatStatus(detail) }}
-                </el-tag>
-              </span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">{{ $t('templateComments.table_created_at') }}</span>
-              <span class="info-value minor-text">{{ detail.created_at || '-' }}</span>
+      <div v-else-if="detail" class="detail-body">
+        <!-- 基础信息卡片 -->
+        <section class="card-block">
+          <div class="card-header">
+            <h4 class="card-title">{{ $t('templateComments.detail_basic') }}</h4>
+            <el-dropdown v-if="hasMenuPermission" trigger="hover" placement="bottom-end" @command="handleAction">
+              <button class="dropdown-button">
+                <i class="el-icon-more" />
+              </button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item v-if="!detail.is_deleted_by_admin && canDelete" command="delete" icon="el-icon-delete">
+                  {{ $t('templateComments.action_delete') }}
+                </el-dropdown-item>
+                <el-dropdown-item v-if="detail.is_deleted_by_admin && canRestore" command="restore" icon="el-icon-refresh-left">
+                  {{ $t('templateComments.action_restore') }}
+                </el-dropdown-item>
+                <el-dropdown-item v-if="canPin" :command="detail.is_pinned ? 'unpin' : 'pin'" icon="el-icon-top">
+                  {{ detail.is_pinned ? $t('templateComments.action_unpin') : $t('templateComments.action_pin') }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+          <div class="card-body">
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">ID</span>
+                <span class="info-value">{{ detail.id }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ $t('templateComments.table_project') }}</span>
+                <span class="info-value">{{ detail.project ? detail.project.title : '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ $t('templateComments.table_user') }}</span>
+                <span class="info-value">{{ detail.user ? detail.user.name : '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ $t('templateComments.table_status') }}</span>
+                <span class="info-value">
+                  <el-tag :type="detail.is_deleted_by_admin ? 'danger' : detail.is_deleted_by_owner ? 'info' : 'success'" size="mini">
+                    {{ formatStatus(detail) }}
+                  </el-tag>
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">{{ $t('templateComments.table_created_at') }}</span>
+                <span class="info-value minor-text">{{ detail.created_at || '-' }}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- 评论内容卡片 -->
-      <section v-if="detail.content" class="card-block">
-        <div class="card-header">
-          <h4 class="card-title">{{ $t('templateComments.detail_content') }}</h4>
-        </div>
-        <div class="card-body">
-          <p class="detail-content">{{ detail.content }}</p>
-        </div>
-      </section>
+        <!-- 评论内容卡片 -->
+        <section v-if="detail.content" class="card-block">
+          <div class="card-header">
+            <h4 class="card-title">{{ $t('templateComments.detail_content') }}</h4>
+          </div>
+          <div class="card-body">
+            <p class="detail-content">{{ detail.content }}</p>
+          </div>
+        </section>
 
-      <!-- 评论图片卡片 -->
-      <section v-if="Array.isArray(detail.images) && detail.images.length" class="card-block">
-        <div class="card-header">
-          <h4 class="card-title">{{ $t('templateComments.detail_images') }}</h4>
-        </div>
-        <div class="card-body">
-          <div class="image-list">
-            <el-image
-              v-for="(item, idx) in detail.images"
-              :key="idx"
-              :src="item"
-              fit="cover"
-              :preview-src-list="detail.images"
-            />
+        <!-- 评论图片卡片 -->
+        <section v-if="Array.isArray(detail.images) && detail.images.length" class="card-block">
+          <div class="card-header">
+            <h4 class="card-title">{{ $t('templateComments.detail_images') }}</h4>
           </div>
-        </div>
-      </section>
+          <div class="card-body">
+            <div class="image-list">
+              <el-image
+                v-for="(item, idx) in detail.images"
+                :key="idx"
+                :src="item"
+                fit="cover"
+                :preview-src-list="detail.images"
+              />
+            </div>
+          </div>
+        </section>
 
-      <!-- 回复列表卡片 -->
-      <section v-if="repliesTotal > 0 || repliesLoading" class="card-block replies-card">
-        <div class="card-header">
-          <h4 class="card-title">{{ $t('templateComments.detail_replies') }}</h4>
-          <div class="card-tools">
-            <span class="replies-progress">{{ $t('templateComments.replies_progress', { shown: repliesList.length, total: repliesTotal }) }}</span>
+        <!-- 回复列表卡片 -->
+        <section v-if="repliesTotal > 0 || repliesLoading" class="card-block replies-card">
+          <div class="card-header">
+            <h4 class="card-title">{{ $t('templateComments.detail_replies') }}</h4>
+            <div class="card-tools">
+              <span class="replies-progress">{{ $t('templateComments.replies_progress', { shown: repliesList.length, total: repliesTotal }) }}</span>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <div v-if="repliesLoading && repliesList.length === 0" class="replies-loading">
-            <i class="el-icon-loading" />
-            <span>{{ $t('templateComments.replies_loading') }}</span>
-          </div>
-          <div v-if="repliesList.length > 0" class="replies-list scrollable">
-            <div class="replies-grid">
-              <div v-for="reply in repliesList" :key="reply.id" class="reply-card">
-                <!-- 头部：头像 + 元信息 + 操作图标 -->
-                <div class="reply-header">
-                  <div class="reply-meta">
-                    <el-avatar v-if="reply.user && reply.user.avatar" :src="reply.user.avatar" size="small" class="reply-avatar" />
-                    <el-avatar v-else size="small" class="reply-avatar">{{ avatarText(reply.user) }}</el-avatar>
-                    <span class="reply-author">{{ reply.user ? reply.user.name : '匿名用户' }}</span>
-                    <span class="reply-id">#{{ reply.id }}</span>
+          <div class="card-body">
+            <div v-if="repliesLoading && repliesList.length === 0" class="replies-loading">
+              <i class="el-icon-loading" />
+              <span>{{ $t('templateComments.replies_loading') }}</span>
+            </div>
+            <div v-if="repliesList.length > 0" class="replies-list scrollable">
+              <div class="replies-grid">
+                <div v-for="reply in repliesList" :key="reply.id" class="reply-card">
+                  <!-- 头部：头像 + 元信息 + 操作图标 -->
+                  <div class="reply-header">
+                    <div class="reply-meta">
+                      <el-avatar v-if="reply.user && reply.user.avatar" :src="reply.user.avatar" size="small" class="reply-avatar" />
+                      <el-avatar v-else size="small" class="reply-avatar">{{ avatarText(reply.user) }}</el-avatar>
+                      <span class="reply-author">{{ reply.user ? reply.user.name : '匿名用户' }}</span>
+                      <span class="reply-id">#{{ reply.id }}</span>
+                    </div>
+                    <div class="reply-tools">
+                      <span class="reply-time">{{ reply.created_at || '-' }}</span>
+                      <el-dropdown
+                        v-if="canReply || reply.replies_count > 0"
+                        trigger="click"
+                        placement="bottom-end"
+                        @command="command => handleReplyAction(command, reply)"
+                      >
+                        <button class="reply-more-trigger">
+                          <i class="el-icon-more" />
+                        </button>
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item
+                            v-if="canReply"
+                            command="reply"
+                            icon="el-icon-chat-dot-round"
+                          >
+                            {{ $t('templateComments.action_reply_to') }}
+                          </el-dropdown-item>
+                          <el-dropdown-item
+                            v-if="reply.replies_count > 0"
+                            command="view-thread"
+                            icon="el-icon-view"
+                          >
+                            {{ $t('templateComments.action_view_children', { count: reply.replies_count }) }}
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </div>
                   </div>
-                  <div class="reply-tools">
-                    <span class="reply-time">{{ reply.created_at || '-' }}</span>
-                    <i class="el-icon-more" />
-                  </div>
-                </div>
 
-                <!-- 内容与图片 -->
-                <div class="reply-body">
-                  <p v-if="reply.content || reply.content_excerpt" class="reply-content">
-                    {{ reply.content || reply.content_excerpt }}
-                  </p>
-                  <div v-if="Array.isArray(reply.images) && reply.images.length" class="reply-images">
-                    <el-image
-                      v-for="(img, idx) in reply.images"
-                      :key="idx"
-                      :src="img"
-                      fit="cover"
-                      :preview-src-list="reply.images"
-                    />
+                  <!-- 内容与图片 -->
+                  <div class="reply-body">
+                    <p v-if="reply.content || reply.content_excerpt" class="reply-content">
+                      {{ reply.content || reply.content_excerpt }}
+                    </p>
+                    <div v-if="Array.isArray(reply.images) && reply.images.length" class="reply-images">
+                      <el-image
+                        v-for="(img, idx) in reply.images"
+                        :key="idx"
+                        :src="img"
+                        fit="cover"
+                        :preview-src-list="reply.images"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+            <div v-if="repliesTotal > 0" class="replies-actions">
+              <el-button
+                v-if="hasMoreReplies"
+                type="text"
+                size="mini"
+                :loading="repliesLoading"
+                @click="loadMoreReplies"
+              >
+                {{ $t('templateComments.replies_more') }}
+              </el-button>
+            </div>
           </div>
-          <div v-if="repliesTotal > 0" class="replies-actions">
-            <el-button
-              v-if="hasMoreReplies"
-              type="text"
-              size="mini"
-              :loading="repliesLoading"
-              @click="loadMoreReplies"
-            >
-              {{ $t('templateComments.replies_more') }}
-            </el-button>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- 快速回复 -->
-      <section v-if="canReply" class="card-block quick-reply-card">
-        <div class="card-header">
-          <h4 class="card-title">{{ $t('templateComments.quick_reply_title') }}</h4>
-        </div>
-        <div class="card-body">
-          <el-input
-            v-model="replyForm.content"
-            type="textarea"
-            :rows="3"
-            :placeholder="$t('templateComments.quick_reply_placeholder')"
-            maxlength="500"
-            show-word-limit
-          />
-          <div class="reply-actions">
-            <el-button size="small" @click="resetReplyForm">{{ $t('templateComments.action_cancel') }}</el-button>
-            <el-button type="primary" size="small" :loading="replySubmitting" @click="submitQuickReply">
-              {{ $t('templateComments.action_reply') }}
-            </el-button>
+        <!-- 快速回复 -->
+        <section v-if="canReply" ref="quickReplySection" class="card-block quick-reply-card">
+          <div class="card-header">
+            <h4 class="card-title">
+              {{ $t('templateComments.quick_reply_title') }}
+              <span v-if="replyTarget" class="reply-target-hint">
+                回复 @{{ replyTarget.user ? replyTarget.user.name : '匿名用户' }}
+                <i class="el-icon-close" @click="clearReplyTarget" />
+              </span>
+            </h4>
           </div>
-        </div>
-      </section>
-    </div>
+          <div class="card-body">
+            <el-input
+              ref="replyTextarea"
+              v-model="replyForm.content"
+              type="textarea"
+              :rows="3"
+              :placeholder="$t('templateComments.quick_reply_placeholder')"
+              maxlength="500"
+              show-word-limit
+            />
+            <div class="reply-actions">
+              <el-button size="small" @click="resetReplyForm">{{ $t('templateComments.action_cancel') }}</el-button>
+              <el-button type="primary" size="small" :loading="replySubmitting" @click="submitQuickReply">
+                {{ $t('templateComments.action_reply') }}
+              </el-button>
+            </div>
+          </div>
+        </section>
+      </div>
 
-    <div v-else class="detail-empty">
-      <span>{{ $t('templateComments.detail_empty') }}</span>
-    </div>
-  </el-drawer>
+      <div v-else class="detail-empty">
+        <span>{{ $t('templateComments.detail_empty') }}</span>
+      </div>
+    </el-drawer>
+
+    <reply-thread-dialog
+      :visible.sync="threadDialog.visible"
+      :parent-reply="threadDialog.parent"
+      :project-id="detail && detail.project ? detail.project.id : null"
+      :reply-handler="handleThreadReply"
+      :can-back="threadDialog.stack.length > 0"
+      @open-nested="openNestedThread"
+      @go-back="handleThreadBack"
+    />
+  </div>
 </template>
 
 <script>
-import { getProjectTemplateComments } from '@/api/projectTemplateComments'
+import { getProjectTemplateComments, createProjectTemplateComment } from '@/api/projectTemplateComments'
 import checkPermission from '@/utils/permission'
+import ReplyThreadDialog from './ReplyThreadDialog.vue'
 
 // 评论详情抽屉
 export default {
   name: 'CommentDetailDrawer',
+  components: {
+    ReplyThreadDialog
+  },
   props: {
     visible: {
       type: Boolean,
@@ -201,6 +249,10 @@ export default {
     },
     record: {
       type: Object,
+      default: null
+    },
+    replyHandler: {
+      type: Function,
       default: null
     }
   },
@@ -217,7 +269,13 @@ export default {
       replyForm: {
         content: ''
       },
-      replySubmitting: false
+      replySubmitting: false,
+      replyTarget: null, // 回复目标（用于回复回复）
+      threadDialog: {
+        visible: false,
+        parent: null,
+        stack: []
+      }
     }
   },
   computed: {
@@ -255,12 +313,23 @@ export default {
       if (val && this.detail) {
         this.fetchReplies()
       }
+      if (!val) {
+        this.threadDialog.visible = false
+        this.threadDialog.parent = null
+        this.threadDialog.stack = []
+      }
     },
     // 记录变化时重置回复并拉取
     record(newVal) {
       if (newVal && newVal.id) {
         this.resetReplies()
         this.fetchReplies()
+      }
+    },
+    'threadDialog.visible'(val) {
+      if (!val) {
+        this.threadDialog.parent = null
+        this.threadDialog.stack = []
       }
     }
   },
@@ -298,7 +367,7 @@ export default {
         }
         const { data } = await getProjectTemplateComments(params)
         const newReplies = (data && data.list) || []
-        this.repliesList = [...this.repliesList, ...newReplies]
+        this.repliesList = this.mergeReplies(this.repliesList, newReplies)
         this.repliesTotal = (data && data.total) || 0
       } catch (error) {
         this.$message.error(this.$t('templateComments.toast_replies_failed'))
@@ -318,6 +387,32 @@ export default {
     // 重置回复表单
     resetReplyForm() {
       this.replyForm.content = ''
+      this.replyTarget = null
+    },
+    // 处理回复操作
+    handleReplyAction(command, reply) {
+      if (command === 'reply') {
+        this.replyTarget = reply
+        this.$nextTick(() => {
+          // 滚动到快速回复区
+          if (this.$refs.quickReplySection) {
+            this.$refs.quickReplySection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+          // 聚焦输入框
+          if (this.$refs.replyTextarea && this.$refs.replyTextarea.$el) {
+            const textarea = this.$refs.replyTextarea.$el.querySelector('textarea')
+            if (textarea) textarea.focus()
+          }
+        })
+      } else if (command === 'view-thread') {
+        this.threadDialog.parent = reply
+        this.threadDialog.stack = []
+        this.threadDialog.visible = true
+      }
+    },
+    // 清除回复目标
+    clearReplyTarget() {
+      this.replyTarget = null
     },
     // 提交快速回复
     async submitQuickReply() {
@@ -333,10 +428,12 @@ export default {
       try {
         const payload = {
           project_id: this.detail.project ? this.detail.project.id : null,
-          parent_id: this.detail.id,
+          // 如果有 replyTarget，说明是回复某条回复，parent_id 传该回复的 id
+          // 否则是回复顶级评论，parent_id 传顶级评论的 id
+          parent_id: this.replyTarget ? this.replyTarget.id : this.detail.id,
           content: this.replyForm.content.trim()
         }
-        this.$emit('reply', payload)
+        await this.invokeReply(payload)
         this.resetReplyForm()
         // 刷新回复列表
         this.resetReplies()
@@ -347,6 +444,55 @@ export default {
       } finally {
         this.replySubmitting = false
       }
+    },
+    async invokeReply(payload) {
+      if (this.replyHandler) {
+        return this.replyHandler(payload)
+      }
+      return createProjectTemplateComment(payload)
+    },
+    async handleThreadReply(payload) {
+      await this.invokeReply(payload)
+      this.resetReplies()
+      await this.fetchReplies()
+    },
+    openNestedThread(reply) {
+      if (!reply) return
+      if (this.threadDialog.parent) {
+        this.threadDialog.stack.push(this.threadDialog.parent)
+      }
+      this.threadDialog.parent = reply
+      this.threadDialog.visible = true
+    },
+    handleThreadBack() {
+      if (!this.threadDialog.stack.length) return
+      const previous = this.threadDialog.stack.pop()
+      this.threadDialog.parent = previous
+    },
+    mergeReplies(existing, incoming) {
+      const order = []
+      const map = new Map()
+      const append = list => {
+        if (!Array.isArray(list)) return
+        list.forEach(item => {
+          if (!item) return
+          const hasId = Object.prototype.hasOwnProperty.call(item, 'id') && item.id !== null && item.id !== undefined
+          if (hasId) {
+            const key = `id-${item.id}`
+            if (!map.has(key)) {
+              order.push(key)
+            }
+            map.set(key, item)
+          } else {
+            const key = `anon-${order.length}`
+            order.push(key)
+            map.set(key, item)
+          }
+        })
+      }
+      append(existing)
+      append(incoming)
+      return order.map(key => map.get(key))
     }
   }
 }
@@ -544,6 +690,21 @@ export default {
   align-items: center;
   gap: 8px;
   color: #c0c4cc;
+}
+
+.reply-more-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #c0c4cc;
+  padding: 4px;
+  margin: -4px;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.reply-more-trigger:hover {
+  color: #1890ff;
 }
 
 .reply-author {
