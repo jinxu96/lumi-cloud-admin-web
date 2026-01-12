@@ -119,6 +119,8 @@ export default {
     section_spacing_rule_by_distance: '按距离',
     section_spacing_rule_by_number: '按数量',
     section_break_spacing_mm: '断点间距 (mm)',
+    section_break_spacing_by_distance: '断点距离 (mm)',
+    section_break_spacing_by_number: '断点数量',
     section_break_size_mm: '断点尺寸 (mm)',
     section_break_power_percent: '断点功率 (%)',
     section_repeat: '重复次数'

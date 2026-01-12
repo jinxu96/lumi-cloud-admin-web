@@ -119,6 +119,8 @@ export default {
     section_spacing_rule_by_distance: 'By Distance',
     section_spacing_rule_by_number: 'By Number',
     section_break_spacing_mm: 'Break Spacing (mm)',
+    section_break_spacing_by_distance: 'Break Distance (mm)',
+    section_break_spacing_by_number: 'Break Count',
     section_break_size_mm: 'Break Size (mm)',
     section_break_power_percent: 'Break Power (%)',
     section_repeat: 'Repeat'

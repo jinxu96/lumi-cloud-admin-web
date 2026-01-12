@@ -332,7 +332,7 @@
                     </el-select>
                   </div>
                   <div class="parameter-field group-break-spacing">
-                    <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_spacing_mm') }}</span>
+                    <span class="parameter-field-label">{{ breakSpacingLabel }}</span>
                     <el-input-number
                       v-model="dialog.form.parameterSections.line_cut.break_spacing_mm"
                       :min="0"
@@ -545,6 +545,14 @@ export default {
         return this.dialog.previewPreview
       }
       return this.dialog.form.preview_image_url
+    },
+    // 根据生成规则动态返回断点间距标签
+    breakSpacingLabel() {
+      const rule = this.dialog.form.parameterSections?.line_cut?.generation_rule
+      if (rule === 'by_number') {
+        return this.$t('materialProcessingProfile.section_break_spacing_by_number')
+      }
+      return this.$t('materialProcessingProfile.section_break_spacing_by_distance')
     }
   },
   methods: {
