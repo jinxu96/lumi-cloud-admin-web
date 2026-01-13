@@ -42,6 +42,10 @@ export default {
     dialog_detail: '用户详情',
     dialog_edit: '编辑用户',
     dialog_password: '重置密码',
+    dialog_forbid_project_publish: '禁止用户发布项目',
+    dialog_allow_project_publish: '解除项目发布限制',
+    dialog_block_user: '封禁用户',
+    dialog_unblock_user: '解除用户封禁',
 
     detail_basic: '基础信息',
     detail_stats: '统计信息',
@@ -71,6 +75,15 @@ export default {
     detail_project_draft: '草稿',
     detail_project_archived: '已归档',
     detail_unknown_status: '状态未知',
+    detail_account_block: '账号封禁',
+    detail_project_publish_ban: '禁发项目',
+
+    restriction_reason: '原因',
+    restriction_banned_at: '开始时间',
+    restriction_expires_at: '到期时间',
+    restriction_permanent: '永久',
+    restriction_active: '生效中',
+    restriction_inactive: '已解除',
 
     files_page_title: '用户文件列表',
     files_placeholder: '支持跨用户检索文件，可按用户或文件信息筛选。',
@@ -110,6 +123,11 @@ export default {
     form_cancel: '取消',
     form_password: '新密码',
     form_password_confirm: '确认密码',
+    form_block_reason: '封禁原因',
+    form_block_expires: '到期时间',
+    placeholder_block_reason: '请输入封禁原因（最多 500 字）',
+    placeholder_block_expires: '不填则为永久封禁',
+    message_reason_required: '请输入原因',
 
     message_update_success: '用户信息更新成功',
     message_password_success: '密码重置成功',

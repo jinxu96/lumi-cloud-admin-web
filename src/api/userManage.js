@@ -35,35 +35,47 @@ export function resetUserPassword(id, data) {
   })
 }
 
-export function blockUser(id) {
+export function blockUser(id, data) {
   // 封禁指定用户账号
+  // @param {number} id - 用户 ID
+  // @param {object} data - 包含 reason(必填) 和 expires_at(可选) 的数据对象
   return request({
     url: `users/${id}/block`,
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
-export function unblockUser(id) {
+export function unblockUser(id, data) {
   // 解除指定用户封禁状态
+  // @param {number} id - 用户 ID
+  // @param {object} data - 包含 reason(必填) 的数据对象
   return request({
     url: `users/${id}/unblock`,
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
-export function forbidUserProjectPublish(id) {
+export function forbidUserProjectPublish(id, data) {
   // 禁止指定用户发布项目模板
+  // @param {number} id - 用户 ID
+  // @param {object} data - 包含 reason(必填) 和 expires_at(可选) 的数据对象
   return request({
     url: `users/${id}/project-publish/forbid`,
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
-export function allowUserProjectPublish(id) {
+export function allowUserProjectPublish(id, data) {
   // 解除指定用户项目发布限制
+  // @param {number} id - 用户 ID
+  // @param {object} data - 包含 reason(必填) 的数据对象
   return request({
     url: `users/${id}/project-publish/allow`,
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 

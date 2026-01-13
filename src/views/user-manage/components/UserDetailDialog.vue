@@ -75,6 +75,59 @@
         />
       </div>
 
+      <!-- 最近限制信息 -->
+      <div v-if="hasRestrictions" class="detail-restrictions">
+        <div v-if="latestAccountBlock" class="restriction-card account-block">
+          <div class="restriction-card__header">
+            <span class="restriction-card__title">{{ $t('userManage.detail_account_block') }}</span>
+            <el-tag :type="latestAccountBlock.active ? 'danger' : 'info'" size="mini">
+              {{ latestAccountBlock.active ? $t('userManage.restriction_active') : $t('userManage.restriction_inactive') }}
+            </el-tag>
+          </div>
+          <div class="restriction-card__body">
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_reason') }}</span>
+              <span class="restriction-value">{{ latestAccountBlock.reason || '-' }}</span>
+            </div>
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_banned_at') }}</span>
+              <span class="restriction-value">{{ latestAccountBlock.banned_at || '-' }}</span>
+            </div>
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_expires_at') }}</span>
+              <span class="restriction-value">
+                {{ latestAccountBlock.is_permanent ? $t('userManage.restriction_permanent') : (latestAccountBlock.expires_at || '-') }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="latestProjectPublishBan" class="restriction-card project-ban">
+          <div class="restriction-card__header">
+            <span class="restriction-card__title">{{ $t('userManage.detail_project_publish_ban') }}</span>
+            <el-tag :type="latestProjectPublishBan.active ? 'warning' : 'info'" size="mini">
+              {{ latestProjectPublishBan.active ? $t('userManage.restriction_active') : $t('userManage.restriction_inactive') }}
+            </el-tag>
+          </div>
+          <div class="restriction-card__body">
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_reason') }}</span>
+              <span class="restriction-value">{{ latestProjectPublishBan.reason || '-' }}</span>
+            </div>
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_banned_at') }}</span>
+              <span class="restriction-value">{{ latestProjectPublishBan.banned_at || '-' }}</span>
+            </div>
+            <div class="restriction-item">
+              <span class="restriction-label">{{ $t('userManage.restriction_expires_at') }}</span>
+              <span class="restriction-value">
+                {{ latestProjectPublishBan.is_permanent ? $t('userManage.restriction_permanent') : (latestProjectPublishBan.expires_at || '-') }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="detail-section">
         <h4>{{ $t('userManage.detail_projects') }}</h4>
         <div v-if="!recentProjects.length" class="detail-empty">
@@ -338,6 +391,28 @@ export default {
           previewType: this.detectPreviewType(file)
         }
       })
+    },
+    // 是否存在限制信息
+    hasRestrictions() {
+      if (!this.detailData || !this.detailData.latest_restrictions) {
+        return false
+      }
+      const restrictions = this.detailData.latest_restrictions
+      return !!(restrictions.account_block || restrictions.project_publish_ban)
+    },
+    // 最近一次账号封禁
+    latestAccountBlock() {
+      if (!this.detailData || !this.detailData.latest_restrictions) {
+        return null
+      }
+      return this.detailData.latest_restrictions.account_block || null
+    },
+    // 最近一次禁发项目
+    latestProjectPublishBan() {
+      if (!this.detailData || !this.detailData.latest_restrictions) {
+        return null
+      }
+      return this.detailData.latest_restrictions.project_publish_ban || null
     }
   },
   methods: {
@@ -750,6 +825,71 @@ export default {
 
 .detail-note {
   margin-top: -8px;
+}
+
+/* 限制信息卡片 */
+.detail-restrictions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.restriction-card {
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fafafa;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.restriction-card.account-block {
+  border-left: 3px solid #f56c6c;
+}
+
+.restriction-card.project-ban {
+  border-left: 3px solid #e6a23c;
+}
+
+.restriction-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.restriction-card__title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+}
+
+.restriction-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.restriction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.restriction-label {
+  min-width: 80px;
+  color: #909399;
+  flex-shrink: 0;
+}
+
+.restriction-value {
+  flex: 1;
+  color: #303133;
+  word-break: break-word;
 }
 
 .detail-empty {

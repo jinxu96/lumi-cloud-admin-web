@@ -42,6 +42,10 @@ export default {
     dialog_detail: 'User detail',
     dialog_edit: 'Edit user',
     dialog_password: 'Reset password',
+    dialog_forbid_project_publish: 'Forbid project publishing',
+    dialog_allow_project_publish: 'Allow project publishing',
+    dialog_block_user: 'Block user',
+    dialog_unblock_user: 'Unblock user',
 
     detail_basic: 'Basic Info',
     detail_stats: 'Statistics',
@@ -71,6 +75,15 @@ export default {
     detail_project_draft: 'Draft',
     detail_project_archived: 'Archived',
     detail_unknown_status: 'Unknown status',
+    detail_account_block: 'Account Blocked',
+    detail_project_publish_ban: 'Project Publishing Ban',
+
+    restriction_reason: 'Reason',
+    restriction_banned_at: 'Start time',
+    restriction_expires_at: 'Expiry time',
+    restriction_permanent: 'Permanent',
+    restriction_active: 'Active',
+    restriction_inactive: 'Resolved',
 
     files_page_title: 'User File Library',
     files_placeholder: 'Browse files across users with flexible filters.',
@@ -110,6 +123,11 @@ export default {
     form_cancel: 'Cancel',
     form_password: 'New password',
     form_password_confirm: 'Confirm password',
+    form_block_reason: 'Block reason',
+    form_block_expires: 'Expiry time',
+    placeholder_block_reason: 'Enter block reason (max 500 characters)',
+    placeholder_block_expires: 'Select expiry time (leave empty for permanent)',
+    message_reason_required: 'Please enter reason',
 
     message_update_success: 'User updated',
     message_password_success: 'Password reset successfully',

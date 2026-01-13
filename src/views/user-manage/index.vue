@@ -409,6 +409,75 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <!-- 禁发项目对话框 -->
+    <el-dialog
+      :visible.sync="publishBanDialog.visible"
+      width="520px"
+      :title="publishBanDialog.mode === 'forbid' ? $t('userManage.dialog_forbid_project_publish') : $t('userManage.dialog_allow_project_publish')"
+      @close="resetPublishBanDialog"
+    >
+      <el-form :model="publishBanDialog.form" label-width="120px">
+        <el-form-item :label="$t('userManage.form_block_reason')" :required="publishBanDialog.mode === 'forbid'">
+          <el-input
+            v-model="publishBanDialog.form.reason"
+            type="textarea"
+            :rows="3"
+            :placeholder="$t('userManage.placeholder_block_reason')"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item v-if="publishBanDialog.mode === 'forbid'" :label="$t('userManage.form_block_expires')">
+          <el-date-picker
+            v-model="publishBanDialog.form.expires_at"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            :placeholder="$t('userManage.placeholder_block_expires')"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="publishBanDialog.visible = false">{{ $t('templateComments.action_cancel') }}</el-button>
+        <el-button type="primary" :loading="publishBanDialog.loading" @click="submitPublishBanDialog">
+          {{ $t('templateComments.action_confirm') }}
+        </el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 封禁用户对话框 -->
+    <el-dialog
+      :visible.sync="blockDialog.visible"
+      width="520px"
+      :title="blockDialog.mode === 'block' ? $t('userManage.dialog_block_user') : $t('userManage.dialog_unblock_user')"
+      @close="resetBlockDialog"
+    >
+      <el-form :model="blockDialog.form" label-width="120px">
+        <el-form-item :label="$t('userManage.form_block_reason')" required>
+          <el-input
+            v-model="blockDialog.form.reason"
+            type="textarea"
+            :rows="3"
+            :placeholder="$t('userManage.placeholder_block_reason')"
+            maxlength="500"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item v-if="blockDialog.mode === 'block'" :label="$t('userManage.form_block_expires')">
+          <el-date-picker
+            v-model="blockDialog.form.expires_at"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            :placeholder="$t('userManage.placeholder_block_expires')"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="blockDialog.visible = false">{{ $t('templateComments.action_cancel') }}</el-button>
+        <el-button type="primary" :loading="blockDialog.loading" @click="submitBlockDialog">
+          {{ $t('templateComments.action_confirm') }}</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -511,6 +580,26 @@ export default {
         visible: false,
         loading: false,
         mode: 'ban',
+        userId: null,
+        form: {
+          reason: '',
+          expires_at: ''
+        }
+      },
+      publishBanDialog: {
+        visible: false,
+        loading: false,
+        mode: 'forbid',
+        userId: null,
+        form: {
+          reason: '',
+          expires_at: ''
+        }
+      },
+      blockDialog: {
+        visible: false,
+        loading: false,
+        mode: 'block',
         userId: null,
         form: {
           reason: '',
@@ -725,8 +814,8 @@ export default {
           this.edit.loading = false
         })
     },
-    // 封禁用户账号前确认并调用接口
-    async handleBlock(row) {
+    // 打开封禁对话框
+    handleBlock(row) {
       if (!row || !row.id) {
         return
       }
@@ -734,32 +823,14 @@ export default {
         this.$message.warning(this.$t('userManage.permission_denied'))
         return
       }
-      const displayName = row.name || row.email || `ID ${row.id}`
-      try {
-        await this.$confirm(
-          this.$t('userManage.confirm_block', { name: displayName }),
-          this.$t('common.tips'),
-          { type: 'warning' }
-        )
-      } catch (error) {
-        return
-      }
-      this.block.loading = true
-      this.block.currentId = row.id
-      try {
-        await blockUser(row.id)
-        this.$message.success(this.$t('userManage.message_block_success'))
-        this.getList()
-      } catch (error) {
-        const message = (error && error.message) ? error.message : this.$t('userManage.message_block_failure')
-        this.$message.error(message)
-      } finally {
-        this.block.loading = false
-        this.block.currentId = ''
-      }
+      this.blockDialog.mode = 'block'
+      this.blockDialog.userId = row.id
+      this.blockDialog.form.reason = ''
+      this.blockDialog.form.expires_at = ''
+      this.blockDialog.visible = true
     },
-    // 解除封禁前确认并调用接口
-    async handleUnblock(row) {
+    // 打开解除封禁对话框
+    handleUnblock(row) {
       if (!row || !row.id) {
         return
       }
@@ -767,32 +838,15 @@ export default {
         this.$message.warning(this.$t('userManage.permission_denied'))
         return
       }
-      const displayName = row.name || row.email || `ID ${row.id}`
-      try {
-        await this.$confirm(
-          this.$t('userManage.confirm_unblock', { name: displayName }),
-          this.$t('common.tips'),
-          { type: 'info' }
-        )
-      } catch (error) {
-        return
-      }
-      this.unblock.loading = true
-      this.unblock.currentId = row.id
-      try {
-        await unblockUser(row.id)
-        this.$message.success(this.$t('userManage.message_unblock_success'))
-        this.getList()
-      } catch (error) {
-        const message = (error && error.message) ? error.message : this.$t('userManage.message_unblock_failure')
-        this.$message.error(message)
-      } finally {
-        this.unblock.loading = false
-        this.unblock.currentId = ''
-      }
+      this.blockDialog.mode = 'unblock'
+      this.blockDialog.userId = row.id
+      this.blockDialog.form.reason = ''
+      this.blockDialog.form.expires_at = ''
+      this.blockDialog.visible = true
     },
     // 禁止用户发布项目模板
-    async handleForbidProjectPublish(row) {
+    // 禁止指定用户发布项目模板
+    handleForbidProjectPublish(row) {
       if (!row || !row.id) {
         return
       }
@@ -800,32 +854,16 @@ export default {
         this.$message.warning(this.$t('userManage.permission_denied'))
         return
       }
-      const displayName = row.name || row.email || `ID ${row.id}`
-      try {
-        await this.$confirm(
-          this.$t('userManage.confirm_forbid_project_publish', { name: displayName }),
-          this.$t('common.tips'),
-          { type: 'warning' }
-        )
-      } catch (error) {
-        return
+      this.publishBanDialog.mode = 'forbid'
+      this.publishBanDialog.userId = row.id
+      this.publishBanDialog.form = {
+        reason: '',
+        expires_at: ''
       }
-      this.forbidPublish.loading = true
-      this.forbidPublish.currentId = row.id
-      try {
-        await forbidUserProjectPublish(row.id)
-        this.$message.success(this.$t('userManage.message_forbid_project_publish_success'))
-        this.getList()
-      } catch (error) {
-        const message = (error && error.message) ? error.message : this.$t('userManage.message_forbid_project_publish_failure')
-        this.$message.error(message)
-      } finally {
-        this.forbidPublish.loading = false
-        this.forbidPublish.currentId = ''
-      }
+      this.publishBanDialog.visible = true
     },
     // 允许用户重新发布项目模板
-    async handleAllowProjectPublish(row) {
+    handleAllowProjectPublish(row) {
       if (!row || !row.id) {
         return
       }
@@ -833,29 +871,12 @@ export default {
         this.$message.warning(this.$t('userManage.permission_denied'))
         return
       }
-      const displayName = row.name || row.email || `ID ${row.id}`
-      try {
-        await this.$confirm(
-          this.$t('userManage.confirm_allow_project_publish', { name: displayName }),
-          this.$t('common.tips'),
-          { type: 'info' }
-        )
-      } catch (error) {
-        return
+      this.publishBanDialog.mode = 'allow'
+      this.publishBanDialog.userId = row.id
+      this.publishBanDialog.form = {
+        reason: ''
       }
-      this.allowPublish.loading = true
-      this.allowPublish.currentId = row.id
-      try {
-        await allowUserProjectPublish(row.id)
-        this.$message.success(this.$t('userManage.message_allow_project_publish_success'))
-        this.getList()
-      } catch (error) {
-        const message = (error && error.message) ? error.message : this.$t('userManage.message_allow_project_publish_failure')
-        this.$message.error(message)
-      } finally {
-        this.allowPublish.loading = false
-        this.allowPublish.currentId = ''
-      }
+      this.publishBanDialog.visible = true
     },
     // 打开评论禁言弹窗
     handleBan(row) {
@@ -882,6 +903,22 @@ export default {
       this.banDialog.userId = null
       this.banDialog.form.reason = ''
       this.banDialog.form.expires_at = ''
+    },
+    // 重置禁发项目弹窗状态
+    resetPublishBanDialog() {
+      this.publishBanDialog.visible = false
+      this.publishBanDialog.loading = false
+      this.publishBanDialog.userId = null
+      this.publishBanDialog.form.reason = ''
+      this.publishBanDialog.form.expires_at = ''
+    },
+    // 重置封禁弹窗状态
+    resetBlockDialog() {
+      this.blockDialog.visible = false
+      this.blockDialog.loading = false
+      this.blockDialog.userId = null
+      this.blockDialog.form.reason = ''
+      this.blockDialog.form.expires_at = ''
     },
     // 提交禁言/解禁
     async submitBanDialog() {
@@ -910,6 +947,74 @@ export default {
         this.$message.error(this.$t('templateComments.toast_ban_failed'))
       } finally {
         this.banDialog.loading = false
+      }
+    },
+    // 提交禁发/允许发布项目对话框
+    async submitPublishBanDialog() {
+      const { mode, userId, form } = this.publishBanDialog
+      if (!form.reason || !form.reason.trim()) {
+        this.$message.warning(this.$t('templateComments.rule_ban_reason'))
+        return
+      }
+      if (!userId) {
+        return
+      }
+      this.publishBanDialog.loading = true
+      try {
+        const payload = {
+          reason: form.reason.trim()
+        }
+        if (mode === 'forbid' && form.expires_at) {
+          payload.expires_at = form.expires_at
+        }
+        if (mode === 'forbid') {
+          await forbidUserProjectPublish(userId, payload)
+          this.$message.success(this.$t('userManage.message_forbid_project_publish_success'))
+        } else {
+          await allowUserProjectPublish(userId, payload)
+          this.$message.success(this.$t('userManage.message_allow_project_publish_success'))
+        }
+        this.resetPublishBanDialog()
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_forbid_project_publish_failure')
+        this.$message.error(message)
+      } finally {
+        this.publishBanDialog.loading = false
+      }
+    },
+    // 提交封禁/解除封禁对话框
+    async submitBlockDialog() {
+      const { mode, userId, form } = this.blockDialog
+      if (!form.reason || !form.reason.trim()) {
+        this.$message.warning(this.$t('userManage.message_reason_required'))
+        return
+      }
+      if (!userId) {
+        return
+      }
+      this.blockDialog.loading = true
+      try {
+        const payload = {
+          reason: form.reason.trim()
+        }
+        if (mode === 'block' && form.expires_at) {
+          payload.expires_at = form.expires_at
+        }
+        if (mode === 'block') {
+          await blockUser(userId, payload)
+          this.$message.success(this.$t('userManage.message_block_success'))
+        } else {
+          await unblockUser(userId, payload)
+          this.$message.success(this.$t('userManage.message_unblock_success'))
+        }
+        this.resetBlockDialog()
+        this.getList()
+      } catch (error) {
+        const message = (error && error.message) ? error.message : this.$t('userManage.message_block_failure')
+        this.$message.error(message)
+      } finally {
+        this.blockDialog.loading = false
       }
     },
     // 查看评论禁言历史

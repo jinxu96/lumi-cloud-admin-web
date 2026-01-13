@@ -556,6 +556,31 @@ curl -X GET "https://example.com/admin-api/users/1" \
 				"updated_at": "2025-12-17 09:00:00"
 			}
 		]
+		,
+		"latest_restrictions": {
+			"account_block": {
+				"reason": "涉嫌刷量",
+				"banned_at": "2026-01-12 10:00:00",
+				"expires_at": null,
+				"is_permanent": true,
+				"active": false,
+				"banned_by": {"id": "uuid-xxx", "name": "Admin"},
+				"unbanned_at": "2026-01-13 10:00:00",
+				"unbanned_by": {"id": "uuid-yyy", "name": "Admin2"},
+				"unban_reason": "核查后恢复"
+			},
+			"project_publish_ban": {
+				"reason": "内容质量不达标",
+				"banned_at": "2026-01-12 11:00:00",
+				"expires_at": "2026-01-19 11:00:00",
+				"is_permanent": false,
+				"active": true,
+				"banned_by": {"id": "uuid-xxx", "name": "Admin"},
+				"unbanned_at": null,
+				"unbanned_by": null,
+				"unban_reason": null
+			}
+		}
 	}
 }
 ```
@@ -586,6 +611,18 @@ curl -X GET "https://example.com/admin-api/users/1" \
 | `data.stats.*` | 同上 | 与列表统计一致，用于前端展示 |
 | `data.recent_projects` | array | 最近 5 个项目，已按更新时间倒序 |
 | `data.recent_files` | array | 最近 5 次上传文件 |
+| `data.latest_restrictions` | object | 最近一次限制摘要集合 |
+| `data.latest_restrictions.account_block` | object/null | 最近一次账号封禁（可能为 null） |
+| `data.latest_restrictions.project_publish_ban` | object/null | 最近一次禁发项目（可能为 null） |
+| `*.reason` | string | 原因描述 |
+| `*.banned_at` | string | 开始时间 |
+| `*.expires_at` | string/null | 到期时间，null 表示永久 |
+| `*.is_permanent` | boolean | 是否永久 |
+| `*.active` | boolean | 是否仍在生效 |
+| `*.banned_by` | object/null | 操作管理员概要，含 `id`、`name` |
+| `*.unbanned_at` | string/null | 解除时间 |
+| `*.unbanned_by` | object/null | 解除管理员概要 |
+| `*.unban_reason` | string/null | 解除原因 |
 
 ## 用户文件下载
 - **权限标识**：`app-admin.user-files.download`
@@ -714,7 +751,12 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **接口**：`POST /admin-api/users/{id}/project-publish/forbid`
 - **说明**：禁止指定用户发布新的项目模板。
 - **路径参数**：同“更新用户信息”。
-- **请求体**：无需请求体。
+- **请求体**（JSON）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 是 | 限制原因，最大 500 字符 |
+| `expires_at` | string | 否 | 到期时间（ISO/日期），留空表示永久 |
 - **成功响应**：同“用户列表”单项结构，并附带 `stats`。
 - **提示**：
 	- 接口幂等，若用户已处于禁止状态会直接返回当前信息。
@@ -725,7 +767,11 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **接口**：`POST /admin-api/users/{id}/project-publish/allow`
 - **说明**：解除项目发布限制，让用户可再次提交项目模板。
 - **路径参数**：同“更新用户信息”。
-- **请求体**：无需请求体。
+- **请求体**（JSON）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 是 | 解除原因，最大 500 字符 |
 - **成功响应**：同“用户列表”单项结构，并附带 `stats`。
 - **提示**：
 	- 接口幂等，若用户本就未被限制会直接返回当前信息。
@@ -736,7 +782,12 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **接口**：`POST /admin-api/users/{id}/block`
 - **说明**：一键封禁用户账号，并清理现有登录令牌。
 - **路径参数**：同“更新用户信息”。
-- **请求体**：无需请求体。
+- **请求体**（JSON）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 是 | 封禁原因，最大 500 字符 |
+| `expires_at` | string | 否 | 到期时间（ISO/日期），留空表示永久 |
 - **成功响应**：同“用户列表”单项结构，并附带 `stats`。
 - **提示**：
 	- 接口幂等，多次封禁已停用的用户会返回当前状态。
@@ -747,7 +798,11 @@ curl -X PATCH "https://example.com/admin-api/users/1/password" \
 - **接口**：`POST /admin-api/users/{id}/unblock`
 - **说明**：解除封禁，让用户恢复登录权限。
 - **路径参数**：同“更新用户信息”。
-- **请求体**：无需请求体。
+- **请求体**（JSON）：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `reason` | string | 是 | 解除封禁原因，最大 500 字符 |
 - **成功响应**：同“用户列表”单项结构，并附带 `stats`。
 - **提示**：
 	- 接口幂等，若用户当前未封禁会直接返回当前状态。
