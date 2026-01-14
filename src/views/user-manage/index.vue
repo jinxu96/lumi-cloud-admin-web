@@ -845,7 +845,6 @@ export default {
       this.blockDialog.visible = true
     },
     // 禁止用户发布项目模板
-    // 禁止指定用户发布项目模板
     handleForbidProjectPublish(row) {
       if (!row || !row.id) {
         return
