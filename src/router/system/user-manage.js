@@ -23,6 +23,7 @@ const route = {
       name: 'UserManage',
       meta: {
         title: 'userManageList',
+        icon: 'el-icon-s-custom',
         roles: [
           'app-admin.users.index'
         ]
@@ -34,6 +35,7 @@ const route = {
       name: 'UserManageFiles',
       meta: {
         title: 'userManageFiles',
+        icon: 'el-icon-document',
         roles: [
           'app-admin.user-files.all'
         ]
