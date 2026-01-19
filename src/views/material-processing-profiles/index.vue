@@ -238,6 +238,24 @@
           </template>
         </el-table-column>
 
+        <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_fill_distance')">
+          <template slot-scope="{ row }">
+            <span>{{ row.fill_distance_mm != null ? row.fill_distance_mm : '-' }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_frequency')">
+          <template slot-scope="{ row }">
+            <span>{{ row.frequency_khz != null ? row.frequency_khz : '-' }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_pulse_width')">
+          <template slot-scope="{ row }">
+            <span>{{ row.pulse_width_us != null ? row.pulse_width_us : '-' }}</span>
+          </template>
+        </el-table-column>
+
         <el-table-column width="120" align="center" :label="$t('materialProcessingProfile.table_is_active')">
           <template slot-scope="{ row }">
             <el-tag :type="row.is_active ? 'success' : 'info'">

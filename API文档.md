@@ -1768,7 +1768,7 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 | -- | -- | -- | -- |
 | `start` | integer | 否 | 起始偏移量，默认 `0` |
 | `limit` | integer | 否 | 每页条数，默认 `20`，最大 `200` |
-| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`sort_order`、`power_percent`、`created_at` 等 |
+| `order` | string | 否 | 排序字段，格式 `字段__ASC/字段__DESC`，可选 `id`、`sort_order`、`power_percent`、`fill_distance_mm`、`frequency_khz`、`pulse_width_us`、`created_at` 等 |
 | `material_id` | integer | 否 | 仅查看指定材料的配置 |
 | `machine_module_profile_id` | integer | 否 | 仅查看指定模块加工方案下的配置 |
 | `machine_module_id` | integer | 否 | 按机器模块过滤（内部通过关联查询） |
@@ -1820,6 +1820,9 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 					}
 				},
 				"power_percent": 90,
+				"fill_distance_mm": 0.25,
+				"frequency_khz": 35,
+				"pulse_width_us": 120,
 				"speed_mm_per_sec": 8,
 				"passes": 2,
 				"focus_offset_mm": 0,
@@ -1844,6 +1847,9 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 | `material` | object/null | 包含材料 ID、名称、编号及 `material_category_id`、`material_category` 等分类信息 |
 | `machine_module_profile` | object/null | 包含加工方案及所属机器模块、机型信息 |
 | `power_percent` | integer | 激光功率百分比 |
+| `fill_distance_mm` | number/null | 填充线间距（毫米） |
+| `frequency_khz` | integer/null | 激光频率（kHz） |
+| `pulse_width_us` | integer/null | 脉宽（微秒） |
 | `speed_mm_per_sec` | number/null | 运动速度（毫米/秒） |
 | `passes` | integer/null | 重复加工次数 |
 | `focus_offset_mm` | number/null | 焦距偏移量（毫米） |
@@ -1869,6 +1875,9 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 | `material_id` | integer | 是 | 目标材料 ID |
 | `machine_module_profile_id` | integer | 是 | 关联的机器模块加工方案 ID |
 | `power_percent` | integer | 是 | 激光功率百分比，范围 `0~100` |
+| `fill_distance_mm` | number | 否 | 填充线间距（毫米），未传则默认 `0` |
+| `frequency_khz` | integer | 否 | 激光频率（kHz），未传则默认 `0` |
+| `pulse_width_us` | integer | 否 | 脉宽（微秒），未传则默认 `0` |
 | `speed_mm_per_sec` | number | 否 | 运动速度（毫米/秒） |
 | `passes` | integer | 否 | 重复加工次数，最小值 `1` |
 | `focus_offset_mm` | number | 否 | 焦距偏移量（毫米，可为负） |
@@ -2394,6 +2403,7 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 				},
 				"parent_id": null,
 				"content_excerpt": "这个模板非常漂亮，制作起来也很简单，强烈推荐！",
+				"images": ["https://example.com/comment-image.jpg"],
 				"likes_count": 23,
 				"dislikes_count": 1,
 				"replies_count": 5,
@@ -2701,4 +2711,3 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 ## 其他注意事项
 - 接口需在后台中为对应角色分配 `app-admin.users.*`、`app-admin.machines.*`、`app-admin.machine-modules.*` 等权限，可按按钮粒度选择 `*.status`、`*.import`、`*.export`。
 - 返回的时间字段统一为 `YYYY-MM-DD HH:MM:SS` 字符串，可能为 `null`。
-

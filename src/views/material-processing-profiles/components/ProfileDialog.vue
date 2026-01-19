@@ -111,6 +111,18 @@
         </el-select>
       </el-form-item>
 
+      <el-form-item :label="$t('materialProcessingProfile.form_fill_distance')">
+        <el-input-number v-model="dialog.form.fill_distance_mm" :min="0" :step="0.1" controls-position="right" />
+      </el-form-item>
+
+      <el-form-item :label="$t('materialProcessingProfile.form_frequency')">
+        <el-input-number v-model="dialog.form.frequency_khz" :min="0" :step="1" controls-position="right" />
+      </el-form-item>
+
+      <el-form-item :label="$t('materialProcessingProfile.form_pulse_width')">
+        <el-input-number v-model="dialog.form.pulse_width_us" :min="0" :step="1" controls-position="right" />
+      </el-form-item>
+
       <el-form-item :label="$t('materialProcessingProfile.form_preview_image')">
         <el-input
           v-model="dialog.form.preview_image_url"
@@ -609,6 +621,9 @@ export default {
           form.passes = data.passes != null ? Number(data.passes) : null
           form.focus_offset_mm = data.focus_offset_mm != null ? Number(data.focus_offset_mm) : null
           form.air_assist = data.air_assist === null || data.air_assist === undefined ? '' : (data.air_assist ? 'true' : 'false')
+          form.fill_distance_mm = data.fill_distance_mm != null ? Number(data.fill_distance_mm) : null
+          form.frequency_khz = data.frequency_khz != null ? Number(data.frequency_khz) : null
+          form.pulse_width_us = data.pulse_width_us != null ? Number(data.pulse_width_us) : null
           form.preview_image_url = data.preview_image_url || ''
           form.notes = data.notes || ''
           form.is_active = data.is_active !== undefined ? !!data.is_active : true
@@ -1129,6 +1144,15 @@ export default {
       }
       if (form.air_assist !== '') {
         payload.air_assist = form.air_assist === 'true'
+      }
+      if (form.fill_distance_mm !== null && form.fill_distance_mm !== '' && form.fill_distance_mm !== undefined) {
+        payload.fill_distance_mm = Number(form.fill_distance_mm)
+      }
+      if (form.frequency_khz !== null && form.frequency_khz !== '' && form.frequency_khz !== undefined) {
+        payload.frequency_khz = Number(form.frequency_khz)
+      }
+      if (form.pulse_width_us !== null && form.pulse_width_us !== '' && form.pulse_width_us !== undefined) {
+        payload.pulse_width_us = Number(form.pulse_width_us)
       }
       if (form.preview_image_url) {
         payload.preview_image_url = form.preview_image_url.trim()
