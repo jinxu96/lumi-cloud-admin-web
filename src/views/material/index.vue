@@ -1248,7 +1248,14 @@ export default {
       const warnings = Array.isArray(extras.warnings) ? extras.warnings : []
 
       if (packageContents) {
-        formData.append('package_contents', JSON.stringify(packageContents))
+        // 以嵌套字段方式提交，确保后端按数组解析
+        if (packageContents.sheets !== undefined && packageContents.sheets !== null) {
+          formData.append('package_contents[sheets]', packageContents.sheets)
+        }
+        if (Array.isArray(packageContents.size_mm) && packageContents.size_mm.length >= 2) {
+          formData.append('package_contents[size_mm][]', packageContents.size_mm[0])
+          formData.append('package_contents[size_mm][]', packageContents.size_mm[1])
+        }
       }
 
       tagItems.forEach(item => {
