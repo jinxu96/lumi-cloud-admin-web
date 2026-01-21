@@ -180,7 +180,32 @@
         </div>
       </section>
 
-      <section v-if="detailData.file" class="detail-section detail-section--file">
+      <section v-if="detailData.source_files && detailData.source_files.length" class="detail-section detail-section--file-list">
+        <h4>{{ $t('templateLibrary.detail_source_files') }}</h4>
+        <div class="file-list">
+          <div
+            v-for="file in detailData.source_files"
+            :key="file.id || file.path || file.name"
+            class="file-row file-row--multi"
+          >
+            <div class="file-meta">
+              <span class="file-name">{{ file.original_name || file.name || '-' }}</span>
+              <span v-if="file.extension" class="file-ext">.{{ file.extension }}</span>
+              <span v-if="file.size" class="file-size">{{ formatFileSize(file.size) }}</span>
+            </div>
+            <el-button
+              v-if="getFileDownloadUrl(file)"
+              type="text"
+              size="mini"
+              @click="openDownload(getFileDownloadUrl(file))"
+            >
+              {{ $t('templateLibrary.detail_download_file') }}
+            </el-button>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="detailData.file && !(detailData.source_files && detailData.source_files.length)" class="detail-section detail-section--file">
         <h4>{{ $t('templateLibrary.detail_file') }}</h4>
         <div class="file-row">
           <span>{{ detailData.file.original_name || detailData.file.name || '-' }}</span>
@@ -367,6 +392,31 @@ export default {
         return 'YouTube'
       }
       return type
+    },
+    // 提取可用的下载地址
+    getFileDownloadUrl(file) {
+      if (!file) {
+        return ''
+      }
+      const candidate = file.download_url || file.url || file.path || file.preview_path
+      return candidate || ''
+    },
+    // 友好格式化文件大小
+    formatFileSize(bytes) {
+      const value = Number(bytes)
+      if (!Number.isFinite(value) || value < 0) {
+        return ''
+      }
+      if (value < 1024) {
+        return `${value} B`
+      }
+      if (value < 1024 * 1024) {
+        return `${(value / 1024).toFixed(1)} KB`
+      }
+      if (value < 1024 * 1024 * 1024) {
+        return `${(value / 1024 / 1024).toFixed(2)} MB`
+      }
+      return `${(value / 1024 / 1024 / 1024).toFixed(2)} GB`
     }
   }
 }
@@ -662,5 +712,29 @@ export default {
   background: #f5f7fa;
   border-radius: 6px;
   padding: 10px 12px;
+}
+
+.detail-section--file-list .file-row--multi {
+  margin-bottom: 8px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+}
+
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.file-name {
+  font-weight: 600;
+  color: #303133;
+}
+
+.file-ext,
+.file-size {
+  color: #909399;
+  font-size: 12px;
 }
 </style>

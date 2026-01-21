@@ -74,6 +74,7 @@ export default {
     'detail_instruction_file': 'Instruction File',
     'detail_instruction_file_metadata': 'File Metadata',
     'detail_media': 'Media',
+    'detail_source_files': 'Source files',
     'detail_file': 'Attachment',
     'detail_download_file': 'Download',
     'detail_empty': 'No detail data',

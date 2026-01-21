@@ -350,7 +350,7 @@ export default {
         status: 'draft',
         target_user_id: row.user && row.user.id ? row.user.id : '',
         copy_media: true,
-        file_id: ''
+        file_ids: []
       }
     },
     // 打开编辑弹窗并加载所需数据

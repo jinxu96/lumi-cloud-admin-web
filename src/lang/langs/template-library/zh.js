@@ -74,7 +74,8 @@ export default {
     'detail_instruction_file': '说明文件',
     'detail_instruction_file_metadata': '文件元数据',
     'detail_media': '素材预览',
-    'detail_file': '模板文件',
+    'detail_source_files': '模板源文件',
+    'detail_file': '模板源文件',
     'detail_download_file': '下载附件',
     'detail_empty': '暂无详情数据',
 

@@ -2163,11 +2163,12 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 - **响应结构**：在列表字段基础上新增：
   - `machine_modules[]`：模块 ID、名称及所属机器。
   - `materials[]`：材料 ID、名称、编码。
-	- `material_categories[]`：材料分类 ID、名称、排序值（根据材料自动推导）。
+  - `material_categories[]`：材料分类 ID、名称、排序值（根据材料自动推导）。
   - `scenarios[]`：应用场景 ID、名称、编码。
   - `media[]`：媒体资源列表，含 `media_type`、`url`、`title`、`caption`、`sort_order`、`metadata`。
-	- `instruction_steps[]`：操作说明步骤列表，包含 `title`、`description`、`settings`、`sort_order` 以及 `media[]`（含 `media_type`、`media_url`/`external_url`、`media_metadata`、`sort_order`）。
-	- `instruction_file`：操作说明文件信息，含 `url`、`name`、`media_asset_id`，为空代表未配置。
+  - `source_files[]`：源文件 ID、名称、扩展名、文件大小、排序值。
+  - `instruction_steps[]`：操作说明步骤列表，包含 `title`、`description`、`settings`、`sort_order` 以及 `media[]`（含 `media_type`、`media_url`/`external_url`、`media_metadata`、`sort_order`）。
+  - `instruction_file`：操作说明文件信息，含 `url`、`name`、`media_asset_id`，为空代表未配置。
 
 ## 更新模板
 - **权限标识**：`app-admin.project-templates.update`
@@ -2247,7 +2248,10 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 | `status` | string | 否 | 新模板状态，默认 `draft` |
 | `target_user_id` | integer | 否 | 指定归属用户 ID，默认沿用原作者 |
 | `copy_media` | boolean | 否 | 是否复制媒体，默认 `true` |
-| `file_id` | integer | 是 | 目标用户下的文件 ID，必须归属同一用户 |
+| `file_ids` | array<integer> | 是 | 源文件 ID 列表（按排序保存），第一项会同步为主文件 |
+
+- **响应字段补充**：
+	- `source_files`：数组，包含新模板绑定的所有源文件及 `sort_order`
 
 - **响应**：返回新建模板的完整详情。
 - **提示**：

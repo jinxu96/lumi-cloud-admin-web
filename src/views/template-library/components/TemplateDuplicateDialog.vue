@@ -34,12 +34,14 @@
         />
       </el-form-item>
 
-      <el-form-item :label="$t('templateLibrary.duplicate_form_target_file')" prop="fileId">
+      <el-form-item :label="$t('templateLibrary.duplicate_form_target_file')" prop="fileIds">
         <el-select
-          v-model="localForm.fileId"
+          v-model="localForm.fileIds"
           filterable
           remote
           clearable
+          multiple
+          collapse-tags
           :disabled="!canSelectTargetFile"
           :remote-method="handleFileSearch"
           :loading="fileLoading"
@@ -99,7 +101,7 @@ export default {
       rules: {
         title: [{ required: true, message: this.$t('templateLibrary.duplicate_rule_title'), trigger: 'blur' }],
         status: [{ required: true, message: this.$t('templateLibrary.duplicate_rule_status'), trigger: 'change' }],
-        fileId: [{ required: true, message: this.$t('templateLibrary.duplicate_rule_file'), trigger: 'change' }]
+        fileIds: [{ type: 'array', required: true, message: this.$t('templateLibrary.duplicate_rule_file'), trigger: 'change' }]
       },
       fileOptions: [],
       fileLoading: false,
@@ -164,7 +166,7 @@ export default {
       if (newVal === oldVal) {
         return
       }
-      this.localForm.fileId = ''
+      this.localForm.fileIds = []
       this.resetFileState()
       if (this.canSelectTargetFile) {
         this.fetchUserFiles()
@@ -178,7 +180,7 @@ export default {
         status: 'draft',
         targetUserId: source.target_user_id || source.targetUserId || '',
         copyMedia: typeof source.copy_media === 'boolean' ? source.copy_media : !!source.copyMedia,
-        fileId: source.file_id || source.fileId || ''
+        fileIds: this.normalizeFileIds(source.file_ids || source.fileIds || source.file_id || source.fileId)
       }
     },
     normalizeUserId(value) {
@@ -190,6 +192,15 @@ export default {
         return NaN
       }
       return Math.trunc(parsed)
+    },
+    normalizeFileIds(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(item => this.normalizeUserId(item))
+          .filter(item => Number.isInteger(item) && item > 0)
+      }
+      const single = this.normalizeUserId(value)
+      return Number.isInteger(single) && single > 0 ? [single] : []
     },
     async fetchUserFiles(query = '') {
       const userId = this.effectiveTargetUserId
@@ -285,7 +296,7 @@ export default {
           title: this.localForm.title,
           status: this.localForm.status,
           copy_media: !!this.localForm.copyMedia,
-          file_id: this.normalizeUserId(this.localForm.fileId)
+          file_ids: this.normalizeFileIds(this.localForm.fileIds)
         }
         const targetId = this.localForm.targetUserId
         if (targetId !== '' && targetId !== null && targetId !== undefined) {
