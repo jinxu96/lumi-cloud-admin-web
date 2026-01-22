@@ -46,9 +46,14 @@ export function deleteMaterialProcessingProfile(id) {
 
 export function downloadMaterialProcessingProfileTemplate() {
   // 下载加工配置模板供运营参考
+  // 添加时间戳参数以避免浏览器缓存，确保每次下载最新模板
+  const timestamp = Date.now()
   return request({
     url: 'material-processing-profiles/template',
     method: 'get',
+    params: {
+      t: timestamp
+    },
     responseType: 'blob',
     catchReturnData: true
   }).catch(error => {

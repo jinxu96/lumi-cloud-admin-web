@@ -1157,9 +1157,8 @@ export default {
       if (form.preview_image_url) {
         payload.preview_image_url = form.preview_image_url.trim()
       }
-      if (form.notes) {
-        payload.notes = form.notes.trim()
-      }
+      // 始终携带备注字段，便于清空备注时覆盖后端旧值
+      payload.notes = (form.notes || '').trim()
       const sectionsPayload = this.buildParameterSectionsPayload()
       if (this.dialog.rawOverrides.sections) {
         const rawValue = (form.parameter_matrix_sections_raw || '').trim()
