@@ -1154,9 +1154,9 @@ export default {
       if (form.pulse_width_us !== null && form.pulse_width_us !== '' && form.pulse_width_us !== undefined) {
         payload.pulse_width_us = Number(form.pulse_width_us)
       }
-      if (form.preview_image_url) {
-        payload.preview_image_url = form.preview_image_url.trim()
-      }
+      // 始终携带预览图字段，空字符串时传 null 以便后端清除旧值
+      const previewUrl = (form.preview_image_url || '').trim()
+      payload.preview_image_url = previewUrl || null
       // 始终携带备注字段，便于清空备注时覆盖后端旧值
       payload.notes = (form.notes || '').trim()
       const sectionsPayload = this.buildParameterSectionsPayload()
