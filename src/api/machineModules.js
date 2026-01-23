@@ -87,9 +87,14 @@ export function exportMachineModules(params) {
 
 export function downloadMachineModuleTemplate() {
   // 下载导入模板
+  // 添加时间戳参数以避免浏览器缓存，确保每次下载最新模板
+  const timestamp = Date.now()
   return request({
     url: 'machine-modules/template',
     method: 'get',
+    params: {
+      t: timestamp
+    },
     responseType: 'blob',
     catchReturnData: true
   }).catch(error => {
