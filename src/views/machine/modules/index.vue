@@ -110,6 +110,10 @@
         </el-button>
       </div>
 
+      <div class="module-tip">
+        提示：同一机器若有蓝光、光纤等不同激光类型且存在 20W、30W 等不同功率，建议在模块名称中标注功率区分，例如“蓝光20W”、“蓝光30W”，便于识别。
+      </div>
+
       <el-table
         v-loading="listLoading"
         :data="list"
@@ -997,6 +1001,11 @@ export default {
   font-size: 13px;
   color: #606266;
   white-space: nowrap;
+}
+.module-tip {
+  margin: 4px 0 16px;
+  color: #f56c6c;
+  font-size: 13px;
 }
 .color-cell {
   display: flex;
