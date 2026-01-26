@@ -8,6 +8,11 @@ export const createDefaultParameterSections = () => ({
     scan_mode: 'bi_directional',
     overscan_mm: 1
   },
+  color_print: {
+    enabled: false,
+    engrave_density: 100,
+    scan_mode: 'bi_directional'
+  },
   line_engrave: {
     enabled: false,
     kerf_compensation_enabled: false,

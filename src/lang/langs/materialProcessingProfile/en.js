@@ -113,6 +113,7 @@ export default {
     message_preview_upload_error: 'Preview upload failed.',
     message_preview_upload_missing_id: 'Save the profile before uploading the preview.',
     section_fill_engrave: 'Fill Engrave',
+    section_color_print: 'Color Print',
     section_line_engrave: 'Line Engrave',
     section_line_cut: 'Line Cut',
     section_line_mark: 'Line Mark',

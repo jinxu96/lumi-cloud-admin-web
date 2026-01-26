@@ -113,6 +113,7 @@ export default {
     message_preview_upload_error: '预览图上传失败。',
     message_preview_upload_missing_id: '请先保存该配置，再上传预览图。',
     section_fill_engrave: '填充雕刻',
+    section_color_print: '彩打',
     section_line_engrave: '线雕刻',
     section_line_cut: '线切割',
     section_line_mark: '线标记',

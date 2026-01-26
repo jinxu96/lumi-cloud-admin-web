@@ -218,7 +218,6 @@
                         <el-input-number
                           v-model="dialog.form.parameterSections.fill_engrave.engrave_density"
                           :min="0"
-                          :max="100"
                           :step="1"
                           controls-position="right"
                           :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
@@ -246,6 +245,51 @@
                           controls-position="right"
                           :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
                         />
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_color_print') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('color_print')"
+                      >
+                        {{ dialog.sectionCollapsed.color_print ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.color_print.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.color_print" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_engrave_density') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.color_print.engrave_density"
+                          :min="0"
+                          :step="1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.color_print.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_scan_mode') }}</span>
+                        <el-select
+                          v-model="dialog.form.parameterSections.color_print.scan_mode"
+                          :disabled="!dialog.form.parameterSections.color_print.enabled"
+                        >
+                          <el-option
+                            v-for="mode in colorPrintScanModes"
+                            :key="`color-print-${mode}`"
+                            :label="$t(`materialProcessingProfile.section_scan_mode_${mode}`)"
+                            :value="mode"
+                          />
+                        </el-select>
                       </div>
                     </div>
                   </div>
@@ -495,7 +539,6 @@
                         <el-input-number
                           v-model="dialog.form.parameterSections.fill_mark.engrave_density"
                           :min="0"
-                          :max="100"
                           :step="1"
                           controls-position="right"
                           :disabled="!dialog.form.parameterSections.fill_mark.enabled"
@@ -662,6 +705,7 @@ export default {
         previewUploading: false,
         sectionCollapsed: {
           fill_engrave: false,
+          color_print: false,
           line_engrave: false,
           line_cut: false,
           line_mark: false,
@@ -683,8 +727,9 @@ export default {
       profileOptions: [],
       profileLoading: false,
       uploadPlaceholderAction: '/noop-upload',
-      fillEngraveScanModes: ['bi_directional', 'bi_oneway'],
-      fillMarkScanModes: ['uni_directional', 'bi_directional', 'bi_oneway'],
+      fillEngraveScanModes: ['bi_directional', 'uni_directional'],
+      fillMarkScanModes: ['uni_directional', 'bi_directional'],
+      colorPrintScanModes: ['bi_directional', 'uni_directional'],
       generationRuleOptions: ['by_distance', 'by_number'],
       spacingRuleOptions: ['by_distance', 'by_number']
     }
@@ -1481,6 +1526,21 @@ export default {
         }
       }
 
+      const colorPrint = sections.color_print
+      if (colorPrint && colorPrint.enabled) {
+        const colorPayload = {}
+        const density = this.parseNumberField(colorPrint.engrave_density)
+        if (density !== null) {
+          colorPayload.engrave_density = density
+        }
+        if (colorPrint.scan_mode) {
+          colorPayload.scan_mode = colorPrint.scan_mode
+        }
+        if (Object.keys(colorPayload).length) {
+          result.color_print = colorPayload
+        }
+      }
+
       const lineEngrave = sections.line_engrave
       if (lineEngrave && lineEngrave.enabled) {
         const linePayload = {}
@@ -1642,6 +1702,20 @@ export default {
           if (overscan !== null) {
             result.fill_engrave.overscan_mm = overscan
           }
+        }
+      }
+
+      const colorPrint = sections.color_print
+      if (colorPrint && typeof colorPrint === 'object') {
+        result.color_print.enabled = this.hasSectionContent(colorPrint)
+        if (colorPrint.engrave_density !== undefined) {
+          const density = this.parseNumberField(colorPrint.engrave_density)
+          if (density !== null) {
+            result.color_print.engrave_density = density
+          }
+        }
+        if (colorPrint.scan_mode) {
+          result.color_print.scan_mode = colorPrint.scan_mode
         }
       }
 
