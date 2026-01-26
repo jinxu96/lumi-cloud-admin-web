@@ -1938,6 +1938,25 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 - **说明**：下载加工配置导入模板（CSV），包含常用列头及填写提示。
 - **响应**：返回 [material_processing_profiles_template.csv]，默认带 UTF-8 BOM 以兼容 Excel。
 
+## 导出配置
+- **权限标识**：`app-admin.material-processing-profiles.export`
+- **接口**：`GET /admin-api/material-processing-profiles/export`
+- **说明**：依据筛选条件导出加工配置列表，生成可直接作为导入来源的 CSV。文件首行包含导出时间注释，后续列顺序与模板保持一致。
+- **查询参数**：
+
+| 参数名 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `order` | string | 否 | 数据排序方式，格式 `字段__ASC/字段__DESC`（默认 `sort_order__ASC`） |
+| `material_id` | integer | 否 | 仅导出指定材料的配置 |
+| `machine_module_profile_id` | integer | 否 | 仅导出指定机器模块加工方案下的配置 |
+| `machine_module_id` | integer | 否 | 指定机器模块 ID |
+| `machine_id` | integer | 否 | 指定机型 ID |
+| `process_type` | string | 否 | 按加工类型过滤，例如 `engrave`、`cut` |
+| `is_active` | string | 否 | 启用状态过滤，接受 `true`/`false`/`1`/`0` 等值 |
+| `keyword` | string | 否 | 模糊匹配备注、材料名称或材料编码 |
+
+- **响应**：下载 `material_processing_profiles_YYYYMMDDHHMMSS.csv` 文件，内容带 UTF-8 BOM，首行为 `# 导出时间: {timestamp}` 注释，其余行与导入模板列头完全一致。
+
 # 应用场景管理 API
 
 ## 场景列表

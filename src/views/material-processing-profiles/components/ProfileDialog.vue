@@ -6,483 +6,609 @@
     :close-on-click-modal="false"
     @closed="resetDialog"
   >
-    <el-form ref="profileForm" :model="dialog.form" :rules="dialog.rules" label-width="140px">
-      <el-form-item :label="$t('materialProcessingProfile.form_material')" prop="material_id">
-        <el-select
-          v-model="dialog.form.material_id"
-          filterable
-          remote
-          clearable
-          :remote-method="handleMaterialRemote"
-          :loading="materialLoading"
-          @visible-change="handleMaterialVisible"
-        >
-          <el-option
-            v-for="item in materialOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.search_machine')">
-        <el-select
-          v-model="dialog.form.machine_id"
-          filterable
-          remote
-          clearable
-          :remote-method="handleMachineRemote"
-          :loading="machineLoading"
-          @visible-change="handleMachineVisible"
-          @change="handleDialogMachineChange"
-        >
-          <el-option
-            v-for="item in machineOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.search_machine_module')">
-        <el-select
-          v-model="dialog.form.machine_module_id"
-          filterable
-          remote
-          clearable
-          :remote-method="handleModuleRemote"
-          :loading="moduleLoading"
-          :disabled="!dialog.form.machine_id"
-          @visible-change="handleModuleVisible"
-          @change="handleDialogModuleChange"
-        >
-          <el-option
-            v-for="item in moduleOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_machine_module_profile')" prop="machine_module_profile_id">
-        <el-select
-          v-model="dialog.form.machine_module_profile_id"
-          filterable
-          remote
-          clearable
-          :remote-method="handleProfileRemote"
-          :loading="profileLoading"
-          :disabled="!dialog.form.machine_module_id"
-          class="profile-dialog-select--wide"
-          @visible-change="handleProfileVisible"
-        >
-          <el-option
-            v-for="item in profileOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_power_percent')" prop="power_percent">
-        <el-input-number v-model="dialog.form.power_percent" :min="0" :max="100" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_speed')">
-        <el-input-number v-model="dialog.form.speed_mm_per_sec" :min="0" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_passes')">
-        <el-input-number v-model="dialog.form.passes" :min="1" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_focus_offset')">
-        <el-input-number v-model="dialog.form.focus_offset_mm" :step="0.1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_air_assist')">
-        <el-select v-model="dialog.form.air_assist" clearable>
-          <el-option :label="$t('materialProcessingProfile.option_true')" value="true" />
-          <el-option :label="$t('materialProcessingProfile.option_false')" value="false" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_fill_distance')">
-        <el-input-number v-model="dialog.form.fill_distance_mm" :min="0" :step="0.1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_frequency')">
-        <el-input-number v-model="dialog.form.frequency_khz" :min="0" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_pulse_width')">
-        <el-input-number v-model="dialog.form.pulse_width_us" :min="0" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_preview_image')">
-        <el-input
-          v-model="dialog.form.preview_image_url"
-          maxlength="500"
-          :placeholder="$t('materialProcessingProfile.form_preview_image_placeholder')"
-          @input="handlePreviewUrlInput"
-        />
-        <div class="preview-upload-actions">
-          <el-upload
-            v-if="checkPermission(['app-admin.material-processing-profiles.preview'])"
-            class="preview-upload"
-            :show-file-list="false"
-            :action="uploadPlaceholderAction"
-            :before-upload="beforePreviewUpload"
-            :http-request="handlePreviewUpload"
-            accept="image/*"
-          >
-            <el-button size="mini" type="primary" :loading="dialog.previewUploading">
-              {{ $t('materialProcessingProfile.form_preview_image_upload') }}
-            </el-button>
-          </el-upload>
-          <el-button
-            v-if="dialog.previewFile"
-            type="text"
-            size="mini"
-            class="preview-clear"
-            @click="clearLocalPreviewFile"
-          >
-            {{ $t('materialProcessingProfile.form_preview_image_clear_local') }}
-          </el-button>
-          <span class="preview-tip">
-            {{ dialog.isEdit ? $t('materialProcessingProfile.form_preview_image_tip_edit') : $t('materialProcessingProfile.form_preview_image_tip_create') }}
-          </span>
-        </div>
-        <div v-if="previewDisplayUrl" class="preview-display">
-          <span class="preview-display-title">{{ $t('materialProcessingProfile.preview_title') }}</span>
-          <el-image :src="previewDisplayUrl" fit="cover" class="preview-display-image">
-            <div slot="error" class="preview-display-error">-</div>
-          </el-image>
-        </div>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_notes')">
-        <el-input v-model="dialog.form.notes" type="textarea" :rows="2" maxlength="500" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_is_active')">
-        <el-switch v-model="dialog.form.is_active" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_sort_order')">
-        <el-input-number v-model="dialog.form.sort_order" :step="1" controls-position="right" />
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_parameter_sections')">
-        <div class="parameter-sections">
-          <el-card class="parameter-section-card">
-            <div slot="header" class="parameter-section-header">
-              <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_fill_engrave') }}</span>
-              <el-switch v-model="dialog.form.parameterSections.fill_engrave.enabled" />
-            </div>
-            <div class="parameter-section-body">
-              <div class="parameter-section-grid">
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_engrave_density') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.fill_engrave.engrave_density"
-                    :min="0"
-                    :max="100"
-                    :step="1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
-                  />
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_scan_mode') }}</span>
+    <div class="profile-dialog-layout">
+      <div ref="profileMain" class="profile-dialog-main">
+        <el-steps :active="dialog.currentStep" finish-status="success" align-center class="profile-dialog-steps">
+          <el-step :title="$t('materialProcessingProfile.step_basic')" />
+          <el-step :title="$t('materialProcessingProfile.step_parameters')" />
+          <el-step :title="$t('materialProcessingProfile.step_advanced')" />
+        </el-steps>
+        <el-form ref="profileForm" :model="dialog.form" :rules="dialog.rules" label-width="140px">
+          <div v-show="dialog.currentStep === 0" class="profile-step profile-step--basic">
+            <div class="profile-basic-grid">
+              <div class="profile-basic-grid__column">
+                <el-form-item :label="$t('materialProcessingProfile.form_material')" prop="material_id">
                   <el-select
-                    v-model="dialog.form.parameterSections.fill_engrave.scan_mode"
-                    :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
+                    v-model="dialog.form.material_id"
+                    filterable
+                    remote
+                    clearable
+                    :remote-method="handleMaterialRemote"
+                    :loading="materialLoading"
+                    @visible-change="handleMaterialVisible"
                   >
                     <el-option
-                      v-for="mode in fillEngraveScanModes"
-                      :key="`fill-engrave-${mode}`"
-                      :label="$t(`materialProcessingProfile.section_scan_mode_${mode}`)"
-                      :value="mode"
+                      v-for="item in materialOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
                     />
                   </el-select>
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_overscan_mm') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.fill_engrave.overscan_mm"
-                    :step="0.1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
-                  />
-                </div>
-              </div>
-            </div>
-          </el-card>
+                </el-form-item>
 
-          <el-card class="parameter-section-card">
-            <div slot="header" class="parameter-section-header">
-              <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_engrave') }}</span>
-              <el-switch v-model="dialog.form.parameterSections.line_engrave.enabled" />
-            </div>
-            <div class="parameter-section-body">
-              <div class="parameter-section-grid">
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_enabled"
-                    :disabled="!dialog.form.parameterSections.line_engrave.enabled"
-                  />
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_width_mm"
-                    :step="0.1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_engrave.enabled"
-                  />
-                </div>
-              </div>
-            </div>
-          </el-card>
-
-          <el-card class="parameter-section-card">
-            <div slot="header" class="parameter-section-header">
-              <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_cut') }}</span>
-              <el-switch v-model="dialog.form.parameterSections.line_cut.enabled" />
-            </div>
-            <div class="parameter-section-body">
-              <div class="parameter-section-grid line-cut-grid">
-                <div class="parameter-field group-kerf">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_cut.kerf_compensation_enabled"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
-                  />
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_cut.kerf_compensation_width_mm"
-                    :min="0"
-                    :step="0.1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.kerf_compensation_enabled"
-                  />
-                </div>
-                <div class="parameter-field group-focus">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_focus_down_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_cut.focus_down_enabled"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
-                  />
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_cut.focus_down_distance_mm"
-                    :step="0.1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.focus_down_enabled"
-                  />
-                </div>
-                <div class="parameter-field group-perforation">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_perforation') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_cut.perforation"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
-                  />
-                </div>
-                <div class="parameter-field group-assist">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_assist_gas_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_cut.assist_gas_enabled"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
-                  />
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_cut.assist_gas_pressure_kpa"
-                    :min="0"
-                    :step="1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.assist_gas_enabled"
-                  />
-                </div>
-                <div class="parameter-field group-generation">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_generation_rule') }}</span>
+                <el-form-item :label="$t('materialProcessingProfile.search_machine')">
                   <el-select
-                    v-model="dialog.form.parameterSections.line_cut.generation_rule"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
-                    @change="handleLineCutGenerationRuleChange"
+                    v-model="dialog.form.machine_id"
+                    filterable
+                    remote
+                    clearable
+                    :remote-method="handleMachineRemote"
+                    :loading="machineLoading"
+                    @visible-change="handleMachineVisible"
+                    @change="handleDialogMachineChange"
                   >
                     <el-option
-                      v-for="item in generationRuleOptions"
-                      :key="`line-cut-generation-${item}`"
-                      :label="$t(`materialProcessingProfile.section_generation_rule_${item}`)"
-                      :value="item"
+                      v-for="item in machineOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
                     />
                   </el-select>
-                </div>
-                <div class="parameter-field group-break-toggle">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_cut.break_enabled"
-                    :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.search_machine_module')">
+                  <el-select
+                    v-model="dialog.form.machine_module_id"
+                    filterable
+                    remote
+                    clearable
+                    :remote-method="handleModuleRemote"
+                    :loading="moduleLoading"
+                    :disabled="!dialog.form.machine_id"
+                    @visible-change="handleModuleVisible"
+                    @change="handleDialogModuleChange"
+                  >
+                    <el-option
+                      v-for="item in moduleOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_machine_module_profile')" prop="machine_module_profile_id">
+                  <el-select
+                    v-model="dialog.form.machine_module_profile_id"
+                    filterable
+                    remote
+                    clearable
+                    :remote-method="handleProfileRemote"
+                    :loading="profileLoading"
+                    :disabled="!dialog.form.machine_module_id"
+                    class="profile-dialog-select--wide"
+                    @visible-change="handleProfileVisible"
+                  >
+                    <el-option
+                      v-for="item in profileOptions"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_power_percent')" prop="power_percent">
+                  <el-input-number v-model="dialog.form.power_percent" :min="0" :max="100" :step="1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_speed')">
+                  <el-input-number v-model="dialog.form.speed_mm_per_sec" :min="0" :step="1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_passes')">
+                  <el-input-number v-model="dialog.form.passes" :min="1" :step="1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_focus_offset')">
+                  <el-input-number v-model="dialog.form.focus_offset_mm" :step="0.1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_air_assist')">
+                  <el-select v-model="dialog.form.air_assist" clearable>
+                    <el-option :label="$t('materialProcessingProfile.option_true')" value="true" />
+                    <el-option :label="$t('materialProcessingProfile.option_false')" value="false" />
+                  </el-select>
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_fill_distance')">
+                  <el-input-number v-model="dialog.form.fill_distance_mm" :min="0" :step="0.1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_frequency')">
+                  <el-input-number v-model="dialog.form.frequency_khz" :min="0" :step="1" controls-position="right" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_pulse_width')">
+                  <el-input-number v-model="dialog.form.pulse_width_us" :min="0" :step="1" controls-position="right" />
+                </el-form-item>
+
+              </div>
+              <div class="profile-basic-grid__column profile-basic-grid__column--side">
+                <el-form-item :label="$t('materialProcessingProfile.form_preview_image')">
+                  <el-input
+                    v-model="dialog.form.preview_image_url"
+                    maxlength="500"
+                    :placeholder="$t('materialProcessingProfile.form_preview_image_placeholder')"
+                    @input="handlePreviewUrlInput"
                   />
-                </div>
-                <template v-if="dialog.form.parameterSections.line_cut.break_enabled">
-                  <div class="parameter-field group-break-rule">
-                    <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_spacing_rule') }}</span>
-                    <el-select
-                      v-model="dialog.form.parameterSections.line_cut.break_spacing_rule"
-                      disabled
+                  <div class="preview-upload-actions">
+                    <el-upload
+                      v-if="checkPermission(['app-admin.material-processing-profiles.preview'])"
+                      class="preview-upload"
+                      :show-file-list="false"
+                      :action="uploadPlaceholderAction"
+                      :before-upload="beforePreviewUpload"
+                      :http-request="handlePreviewUpload"
+                      accept="image/*"
                     >
-                      <el-option
-                        v-for="item in spacingRuleOptions"
-                        :key="`line-cut-break-spacing-${item}`"
-                        :label="$t(`materialProcessingProfile.section_spacing_rule_${item}`)"
-                        :value="item"
-                      />
-                    </el-select>
+                      <el-button size="mini" type="primary" :loading="dialog.previewUploading">
+                        {{ $t('materialProcessingProfile.form_preview_image_upload') }}
+                      </el-button>
+                    </el-upload>
+                    <el-button
+                      v-if="dialog.previewFile"
+                      type="text"
+                      size="mini"
+                      class="preview-clear"
+                      @click="clearLocalPreviewFile"
+                    >
+                      {{ $t('materialProcessingProfile.form_preview_image_clear_local') }}
+                    </el-button>
+                    <span class="preview-tip">
+                      {{ dialog.isEdit ? $t('materialProcessingProfile.form_preview_image_tip_edit') : $t('materialProcessingProfile.form_preview_image_tip_create') }}
+                    </span>
                   </div>
-                  <div class="parameter-field group-break-spacing">
-                    <span class="parameter-field-label">{{ breakSpacingLabel }}</span>
-                    <el-input-number
-                      v-model="dialog.form.parameterSections.line_cut.break_spacing_mm"
-                      :min="0"
-                      :step="1"
-                      controls-position="right"
-                      :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
-                    />
+                  <div v-if="previewDisplayUrl" class="preview-display">
+                    <span class="preview-display-title">{{ $t('materialProcessingProfile.preview_title') }}</span>
+                    <el-image :src="previewDisplayUrl" fit="cover" class="preview-display-image">
+                      <div slot="error" class="preview-display-error">-</div>
+                    </el-image>
                   </div>
-                  <div class="parameter-field group-break-size">
-                    <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_size_mm') }}</span>
-                    <el-input-number
-                      v-model="dialog.form.parameterSections.line_cut.break_size_mm"
-                      :min="0"
-                      :step="0.1"
-                      controls-position="right"
-                      :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
-                    />
-                  </div>
-                  <div class="parameter-field group-break-power">
-                    <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_power_percent') }}</span>
-                    <el-input-number
-                      v-model="dialog.form.parameterSections.line_cut.break_power_percent"
-                      :min="0"
-                      :max="100"
-                      :step="1"
-                      controls-position="right"
-                      :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
-                    />
-                  </div>
-                </template>
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_notes')">
+                  <el-input v-model="dialog.form.notes" type="textarea" :rows="2" maxlength="500" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_is_active')">
+                  <el-switch v-model="dialog.form.is_active" />
+                </el-form-item>
+
+                <el-form-item :label="$t('materialProcessingProfile.form_sort_order')">
+                  <el-input-number v-model="dialog.form.sort_order" :step="1" controls-position="right" />
+                </el-form-item>
+
               </div>
             </div>
-          </el-card>
+          </div>
 
-          <el-card class="parameter-section-card">
-            <div slot="header" class="parameter-section-header">
-              <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_mark') }}</span>
-              <el-switch v-model="dialog.form.parameterSections.line_mark.enabled" />
-            </div>
-            <div class="parameter-section-body">
-              <div class="parameter-section-grid">
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
-                  <el-switch
-                    v-model="dialog.form.parameterSections.line_mark.kerf_compensation_enabled"
-                    :disabled="!dialog.form.parameterSections.line_mark.enabled"
-                  />
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_mark.kerf_compensation_width_mm"
-                    :step="0.1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_mark.enabled"
-                  />
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_repeat') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.line_mark.repeat"
-                    :min="1"
-                    :step="1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.line_mark.enabled"
-                  />
-                </div>
+          <div v-show="dialog.currentStep === 1" class="profile-step profile-step--sections">
+            <el-form-item :label="$t('materialProcessingProfile.form_parameter_sections')">
+              <div class="parameter-sections">
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_fill_engrave') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('fill_engrave')"
+                      >
+                        {{ dialog.sectionCollapsed.fill_engrave ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.fill_engrave.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.fill_engrave" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_engrave_density') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.fill_engrave.engrave_density"
+                          :min="0"
+                          :max="100"
+                          :step="1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_scan_mode') }}</span>
+                        <el-select
+                          v-model="dialog.form.parameterSections.fill_engrave.scan_mode"
+                          :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
+                        >
+                          <el-option
+                            v-for="mode in fillEngraveScanModes"
+                            :key="`fill-engrave-${mode}`"
+                            :label="$t(`materialProcessingProfile.section_scan_mode_${mode}`)"
+                            :value="mode"
+                          />
+                        </el-select>
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_overscan_mm') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.fill_engrave.overscan_mm"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.fill_engrave.enabled"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_engrave') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('line_engrave')"
+                      >
+                        {{ dialog.sectionCollapsed.line_engrave ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.line_engrave.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.line_engrave" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_enabled"
+                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_width_mm"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_cut') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('line_cut')"
+                      >
+                        {{ dialog.sectionCollapsed.line_cut ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.line_cut.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.line_cut" class="parameter-section-body">
+                    <div class="parameter-section-grid line-cut-grid">
+                      <div class="parameter-field group-kerf">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_cut.kerf_compensation_enabled"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                        />
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_cut.kerf_compensation_width_mm"
+                          :min="0"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.kerf_compensation_enabled"
+                        />
+                      </div>
+                      <div class="parameter-field group-focus">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_focus_down_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_cut.focus_down_enabled"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                        />
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_cut.focus_down_distance_mm"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.focus_down_enabled"
+                        />
+                      </div>
+                      <div class="parameter-field group-perforation">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_perforation') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_cut.perforation"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field group-assist">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_assist_gas_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_cut.assist_gas_enabled"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                        />
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_cut.assist_gas_pressure_kpa"
+                          :min="0"
+                          :step="1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.assist_gas_enabled"
+                        />
+                      </div>
+                      <div class="parameter-field group-generation">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_generation_rule') }}</span>
+                        <el-select
+                          v-model="dialog.form.parameterSections.line_cut.generation_rule"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                          @change="handleLineCutGenerationRuleChange"
+                        >
+                          <el-option
+                            v-for="item in generationRuleOptions"
+                            :key="`line-cut-generation-${item}`"
+                            :label="$t(`materialProcessingProfile.section_generation_rule_${item}`)"
+                            :value="item"
+                          />
+                        </el-select>
+                      </div>
+                      <div class="parameter-field group-break-toggle">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_cut.break_enabled"
+                          :disabled="!dialog.form.parameterSections.line_cut.enabled"
+                        />
+                      </div>
+                      <template v-if="dialog.form.parameterSections.line_cut.break_enabled">
+                        <div class="parameter-field group-break-rule">
+                          <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_spacing_rule') }}</span>
+                          <el-select
+                            v-model="dialog.form.parameterSections.line_cut.break_spacing_rule"
+                            disabled
+                          >
+                            <el-option
+                              v-for="item in spacingRuleOptions"
+                              :key="`line-cut-break-spacing-${item}`"
+                              :label="$t(`materialProcessingProfile.section_spacing_rule_${item}`)"
+                              :value="item"
+                            />
+                          </el-select>
+                        </div>
+                        <div class="parameter-field group-break-spacing">
+                          <span class="parameter-field-label">{{ breakSpacingLabel }}</span>
+                          <el-input-number
+                            v-model="dialog.form.parameterSections.line_cut.break_spacing_mm"
+                            :min="0"
+                            :step="1"
+                            controls-position="right"
+                            :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
+                          />
+                        </div>
+                        <div class="parameter-field group-break-size">
+                          <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_size_mm') }}</span>
+                          <el-input-number
+                            v-model="dialog.form.parameterSections.line_cut.break_size_mm"
+                            :min="0"
+                            :step="0.1"
+                            controls-position="right"
+                            :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
+                          />
+                        </div>
+                        <div class="parameter-field group-break-power">
+                          <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_break_power_percent') }}</span>
+                          <el-input-number
+                            v-model="dialog.form.parameterSections.line_cut.break_power_percent"
+                            :min="0"
+                            :max="100"
+                            :step="1"
+                            controls-position="right"
+                            :disabled="!dialog.form.parameterSections.line_cut.enabled || !dialog.form.parameterSections.line_cut.break_enabled"
+                          />
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_mark') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('line_mark')"
+                      >
+                        {{ dialog.sectionCollapsed.line_mark ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.line_mark.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.line_mark" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_mark.kerf_compensation_enabled"
+                          :disabled="!dialog.form.parameterSections.line_mark.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_mark.kerf_compensation_width_mm"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_mark.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_repeat') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_mark.repeat"
+                          :min="0"
+                          :step="1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_mark.enabled"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_fill_mark') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('fill_mark')"
+                      >
+                        {{ dialog.sectionCollapsed.fill_mark ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.fill_mark.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.fill_mark" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_engrave_density') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.fill_mark.engrave_density"
+                          :min="0"
+                          :max="100"
+                          :step="1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.fill_mark.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_scan_mode') }}</span>
+                        <el-select
+                          v-model="dialog.form.parameterSections.fill_mark.scan_mode"
+                          :disabled="!dialog.form.parameterSections.fill_mark.enabled"
+                        >
+                          <el-option
+                            v-for="mode in fillMarkScanModes"
+                            :key="`fill-mark-${mode}`"
+                            :label="$t(`materialProcessingProfile.section_scan_mode_${mode}`)"
+                            :value="mode"
+                          />
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+              </div>
+              <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_sections_tip') }}</div>
+            </el-form-item>
+          </div>
+
+          <div v-show="dialog.currentStep === 2" class="profile-step profile-step--advanced">
+            <div class="profile-collapse-item">
+              <div class="profile-collapse-header" @click="toggleAdvancedSection('sections')">
+                <span class="profile-collapse-title">{{ $t('materialProcessingProfile.form_parameter_sections_raw') }}</span>
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="profile-collapse-toggle"
+                  @click.stop="toggleAdvancedSection('sections')"
+                >
+                  {{ dialog.advancedCollapsed.sections ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                </el-button>
+              </div>
+              <div v-show="!dialog.advancedCollapsed.sections" class="profile-collapse-body">
+                <el-input
+                  v-model="dialog.form.parameter_matrix_sections_raw"
+                  type="textarea"
+                  :rows="3"
+                  :placeholder="$t('materialProcessingProfile.form_parameter_sections_placeholder')"
+                  @input="handleSectionsRawInput"
+                />
+                <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_sections_raw_tip') }}</div>
               </div>
             </div>
-          </el-card>
 
-          <el-card class="parameter-section-card">
-            <div slot="header" class="parameter-section-header">
-              <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_fill_mark') }}</span>
-              <el-switch v-model="dialog.form.parameterSections.fill_mark.enabled" />
-            </div>
-            <div class="parameter-section-body">
-              <div class="parameter-section-grid">
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_engrave_density') }}</span>
-                  <el-input-number
-                    v-model="dialog.form.parameterSections.fill_mark.engrave_density"
-                    :min="0"
-                    :max="100"
-                    :step="1"
-                    controls-position="right"
-                    :disabled="!dialog.form.parameterSections.fill_mark.enabled"
-                  />
-                </div>
-                <div class="parameter-field">
-                  <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_scan_mode') }}</span>
-                  <el-select
-                    v-model="dialog.form.parameterSections.fill_mark.scan_mode"
-                    :disabled="!dialog.form.parameterSections.fill_mark.enabled"
-                  >
-                    <el-option
-                      v-for="mode in fillMarkScanModes"
-                      :key="`fill-mark-${mode}`"
-                      :label="$t(`materialProcessingProfile.section_scan_mode_${mode}`)"
-                      :value="mode"
-                    />
-                  </el-select>
-                </div>
+            <div class="profile-collapse-item">
+              <div class="profile-collapse-header" @click="toggleAdvancedSection('matrix')">
+                <span class="profile-collapse-title">{{ $t('materialProcessingProfile.form_parameter_matrix') }}</span>
+                <el-button
+                  type="text"
+                  size="mini"
+                  class="profile-collapse-toggle"
+                  @click.stop="toggleAdvancedSection('matrix')"
+                >
+                  {{ dialog.advancedCollapsed.matrix ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                </el-button>
+              </div>
+              <div v-show="!dialog.advancedCollapsed.matrix" class="profile-collapse-body">
+                <el-input
+                  v-model="dialog.form.parameter_matrix_raw"
+                  type="textarea"
+                  :rows="3"
+                  :placeholder="$t('materialProcessingProfile.form_parameter_matrix_placeholder')"
+                  @input="handleMatrixRawInput"
+                />
+                <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_matrix_tip') }}</div>
               </div>
             </div>
-          </el-card>
-        </div>
-        <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_sections_tip') }}</div>
-      </el-form-item>
+          </div>
+        </el-form>
+      </div>
+      <aside class="profile-dialog-summary">
+        <h4 class="profile-dialog-summary__title">{{ $t('materialProcessingProfile.summary_title') }}</h4>
+        <ul class="profile-dialog-summary__list">
+          <li
+            v-for="item in summaryItems"
+            :key="item.key"
+            class="profile-dialog-summary__item"
+          >
+            <span class="profile-dialog-summary__label">{{ item.label }}</span>
+            <span class="profile-dialog-summary__value">{{ item.value }}</span>
+          </li>
+        </ul>
+      </aside>
+    </div>
 
-      <el-form-item :label="$t('materialProcessingProfile.form_parameter_sections_raw')">
-        <el-input
-          v-model="dialog.form.parameter_matrix_sections_raw"
-          type="textarea"
-          :rows="3"
-          :placeholder="$t('materialProcessingProfile.form_parameter_sections_placeholder')"
-          @input="handleSectionsRawInput"
-        />
-        <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_sections_raw_tip') }}</div>
-      </el-form-item>
-
-      <el-form-item :label="$t('materialProcessingProfile.form_parameter_matrix')">
-        <el-input
-          v-model="dialog.form.parameter_matrix_raw"
-          type="textarea"
-          :rows="3"
-          :placeholder="$t('materialProcessingProfile.form_parameter_matrix_placeholder')"
-          @input="handleMatrixRawInput"
-        />
-        <div class="form-tip">{{ $t('materialProcessingProfile.form_parameter_matrix_tip') }}</div>
-      </el-form-item>
-    </el-form>
-
-    <span slot="footer" class="dialog-footer">
-      <el-button @click="dialog.visible = false">{{ $t('common.cancel') }}</el-button>
-      <el-button type="primary" :loading="dialog.loading" @click="submitDialog">
-        {{ dialog.isEdit ? $t('common.save') : $t('common.save') }}
-      </el-button>
+    <span slot="footer" class="profile-dialog-footer">
+      <div class="profile-dialog-footer__nav">
+        <el-button v-if="dialog.currentStep > 0" @click="handlePrevStep">
+          {{ $t('materialProcessingProfile.action_prev_step') }}
+        </el-button>
+        <el-button
+          v-if="dialog.currentStep < stepCount - 1"
+          type="primary"
+          plain
+          @click="handleNextStep"
+        >
+          {{ $t('materialProcessingProfile.action_next_step') }}
+        </el-button>
+      </div>
+      <div class="profile-dialog-footer__actions">
+        <el-button @click="dialog.visible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="dialog.loading" @click="submitDialog">
+          {{ dialog.isEdit ? $t('common.save') : $t('common.save') }}
+        </el-button>
+      </div>
     </span>
   </el-dialog>
 </template>
@@ -524,6 +650,7 @@ export default {
         visible: false,
         loading: false,
         isEdit: false,
+        currentStep: 0,
         rawOverrides: {
           sections: false,
           matrix: false
@@ -533,6 +660,17 @@ export default {
         previewPreview: '',
         previewPendingUpload: false,
         previewUploading: false,
+        sectionCollapsed: {
+          fill_engrave: false,
+          line_engrave: false,
+          line_cut: false,
+          line_mark: false,
+          fill_mark: false
+        },
+        advancedCollapsed: {
+          sections: false,
+          matrix: false
+        },
         rules: cloneRules(baseRules)
       },
       baseRules,
@@ -558,6 +696,49 @@ export default {
       }
       return this.dialog.form.preview_image_url
     },
+    stepCount() {
+      return 3
+    },
+    summaryItems() {
+      const form = this.dialog.form || {}
+      return [
+        {
+          key: 'material',
+          label: this.$t('materialProcessingProfile.form_material'),
+          value: this.resolveOptionLabel(this.materialOptions, form.material_id)
+        },
+        {
+          key: 'machine',
+          label: this.$t('materialProcessingProfile.search_machine'),
+          value: this.resolveOptionLabel(this.machineOptions, form.machine_id)
+        },
+        {
+          key: 'module',
+          label: this.$t('materialProcessingProfile.search_machine_module'),
+          value: this.resolveOptionLabel(this.moduleOptions, form.machine_module_id)
+        },
+        {
+          key: 'profile',
+          label: this.$t('materialProcessingProfile.form_machine_module_profile'),
+          value: this.resolveOptionLabel(this.profileOptions, form.machine_module_profile_id)
+        },
+        {
+          key: 'power',
+          label: this.$t('materialProcessingProfile.form_power_percent'),
+          value: form.power_percent != null && form.power_percent !== '' ? `${form.power_percent}%` : '-'
+        },
+        {
+          key: 'speed',
+          label: this.$t('materialProcessingProfile.form_speed'),
+          value: form.speed_mm_per_sec != null && form.speed_mm_per_sec !== '' ? `${form.speed_mm_per_sec} mm/s` : '-'
+        },
+        {
+          key: 'preview',
+          label: this.$t('materialProcessingProfile.form_preview_image'),
+          value: form.preview_image_url ? this.$t('materialProcessingProfile.summary_preview_available') : '-'
+        }
+      ]
+    },
     // 根据生成规则动态返回断点间距标签
     breakSpacingLabel() {
       const rule = this.dialog.form.parameterSections?.line_cut?.generation_rule
@@ -568,6 +749,96 @@ export default {
     }
   },
   methods: {
+    resolveOptionLabel(options = [], value) {
+      if (value === undefined || value === null || value === '') {
+        return '-'
+      }
+      const stringValue = String(value)
+      const match = Array.isArray(options) ? options.find(item => String(item.value) === stringValue) : null
+      return match && match.label ? match.label : '-'
+    },
+    handleNextStep() {
+      if (this.dialog.currentStep >= this.stepCount - 1) {
+        return
+      }
+      if (this.dialog.currentStep === 0) {
+        this.validateStepFields(['material_id', 'machine_module_profile_id', 'power_percent'])
+          .then(() => {
+            this.dialog.currentStep += 1
+            this.scrollToFormTop()
+          })
+          .catch(() => {})
+        return
+      }
+      this.dialog.currentStep += 1
+      this.scrollToFormTop()
+    },
+    handlePrevStep() {
+      if (this.dialog.currentStep <= 0) {
+        return
+      }
+      this.dialog.currentStep -= 1
+      this.scrollToFormTop()
+    },
+    validateStepFields(fields = []) {
+      if (!this.$refs.profileForm || !fields.length) {
+        return Promise.resolve(true)
+      }
+      let remaining = fields.length
+      let failed = false
+      return new Promise((resolve, reject) => {
+        fields.forEach(prop => {
+          this.$refs.profileForm.validateField(prop, message => {
+            if (message) {
+              failed = true
+            }
+            remaining -= 1
+            if (remaining === 0) {
+              if (failed) {
+                reject(new Error('validation failed'))
+              } else {
+                resolve(true)
+              }
+            }
+          })
+        })
+      })
+    },
+    scrollToFormTop() {
+      this.$nextTick(() => {
+        const container = this.$refs.profileMain
+        if (container && typeof container.scrollTop === 'number') {
+          container.scrollTop = 0
+        }
+      })
+    },
+    toggleParameterSection(section) {
+      if (!section || !this.dialog.sectionCollapsed) {
+        return
+      }
+      const next = !this.dialog.sectionCollapsed[section]
+      this.$set(this.dialog.sectionCollapsed, section, next)
+    },
+    toggleAdvancedSection(section) {
+      if (!section || !this.dialog.advancedCollapsed) {
+        return
+      }
+      const next = !this.dialog.advancedCollapsed[section]
+      this.$set(this.dialog.advancedCollapsed, section, next)
+    },
+    resetLayoutState() {
+      this.dialog.currentStep = 0
+      if (this.dialog.sectionCollapsed) {
+        Object.keys(this.dialog.sectionCollapsed).forEach(key => {
+          this.$set(this.dialog.sectionCollapsed, key, false)
+        })
+      }
+      if (this.dialog.advancedCollapsed) {
+        Object.keys(this.dialog.advancedCollapsed).forEach(key => {
+          this.$set(this.dialog.advancedCollapsed, key, false)
+        })
+      }
+    },
     // 打开新建弹窗并重置表单状态
     openCreate() {
       this.dialog.visible = true
@@ -576,6 +847,7 @@ export default {
       this.resetPreviewState()
       this.dialog.form = createDefaultForm()
       this.resetRawOverrides()
+      this.resetLayoutState()
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
       this.prefetchBaseOptions()
     },
@@ -590,6 +862,7 @@ export default {
       this.resetPreviewState()
       this.dialog.form = createDefaultForm()
       this.resetRawOverrides()
+      this.resetLayoutState()
       getMaterialProcessingProfileDetail(row.id)
         .then(res => {
           const data = res.data || {}
@@ -1548,6 +1821,7 @@ export default {
       this.dialog.loading = false
       this.resetPreviewState()
       this.resetRawOverrides()
+      this.resetLayoutState()
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
       this.$nextTick(() => {
         this.dialog.rules = cloneRules(this.baseRules)
@@ -1612,12 +1886,149 @@ export default {
   align-items: center;
   justify-content: space-between;
 }
+.parameter-section-header__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.parameter-section-toggle {
+  padding: 0;
+  font-size: 12px;
+}
 .parameter-section-title {
   font-weight: 500;
   font-size: 14px;
 }
 .parameter-section-body {
   padding-top: 4px;
+}
+.profile-dialog-layout {
+  display: flex;
+  gap: 16px;
+}
+.profile-dialog-main {
+  flex: 1;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+.profile-dialog-steps {
+  margin-bottom: 16px;
+}
+.profile-step {
+  display: block;
+}
+.profile-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.profile-basic-grid__column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.profile-basic-grid__column--side {
+  min-width: 260px;
+}
+.profile-dialog-summary {
+  width: 240px;
+  flex-shrink: 0;
+  background: #f9fafc;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.profile-dialog-summary__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+.profile-dialog-summary__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-dialog-summary__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #606266;
+  word-break: break-all;
+}
+.profile-dialog-summary__label {
+  font-weight: 500;
+}
+.profile-dialog-summary__value {
+  color: #303133;
+}
+.profile-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  z-index: 1;
+  padding: 12px 24px;
+  margin: 0 -24px -16px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.05);
+  gap: 12px;
+}
+.profile-dialog-footer__nav,
+.profile-dialog-footer__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.profile-collapse-item {
+  margin-bottom: 16px;
+}
+.profile-collapse-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: #303133;
+  cursor: pointer;
+}
+.profile-collapse-header:hover {
+  color: #409eff;
+}
+.profile-collapse-title {
+  font-weight: 500;
+  line-height: 20px;
+}
+.profile-collapse-toggle {
+  padding: 0;
+  font-size: 12px;
+}
+.profile-collapse-toggle:hover,
+.profile-collapse-toggle:focus {
+  color: #409eff;
+}
+.profile-collapse-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.profile-dialog-main::-webkit-scrollbar,
+.profile-dialog-summary::-webkit-scrollbar {
+  width: 6px;
+}
+.profile-dialog-main::-webkit-scrollbar-thumb,
+.profile-dialog-summary::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }
 .parameter-section-grid {
   display: grid;

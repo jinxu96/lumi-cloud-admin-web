@@ -14,6 +14,15 @@
             {{ $t('materialProcessingProfile.action_download_template') }}
           </el-button>
           <el-button
+            v-if="checkPermission(['app-admin.material-processing-profiles.export'])"
+            :loading="exportLoading"
+            icon="el-icon-document"
+            size="small"
+            @click="exportProfiles"
+          >
+            {{ $t('materialProcessingProfile.action_export') }}
+          </el-button>
+          <el-button
             v-if="checkPermission(['app-admin.material-processing-profiles.store'])"
             type="primary"
             icon="el-icon-plus"
@@ -337,6 +346,7 @@ import checkPermission from '@/utils/permission'
 import {
   getMaterialProcessingProfiles,
   downloadMaterialProcessingProfileTemplate,
+  exportMaterialProcessingProfiles,
   deleteMaterialProcessingProfile,
   importMaterialLibrary
 } from '@/api/materialProcessingProfiles'
@@ -388,6 +398,7 @@ export default {
       profileOptions: [],
       profileLoading: false,
       templateLoading: false,
+      exportLoading: false,
       importing: false,
       loading: {
         delete: ''
@@ -435,13 +446,16 @@ export default {
     handleDialogSaved() {
       this.getList()
     },
-    // 拉取加工配置列表数据
-    getList() {
-      this.listLoading = true
-      const params = {
-        start: (this.listQuery.page - 1) * this.listQuery.limit,
-        limit: this.listQuery.limit,
-        order: this.listQuery.order || 'created_at__DESC'
+    // 构建筛选查询参数
+    buildQueryParams(includePagination = false) {
+      const params = {}
+      const order = this.listQuery.order || 'created_at__DESC'
+      if (order) {
+        params.order = order
+      }
+      if (includePagination) {
+        params.start = (this.listQuery.page - 1) * this.listQuery.limit
+        params.limit = this.listQuery.limit
       }
       if (this.listQuery.keyword) {
         params.keyword = this.listQuery.keyword
@@ -461,9 +475,15 @@ export default {
       if (this.listQuery.process_type) {
         params.process_type = this.listQuery.process_type
       }
-      if (this.listQuery.is_active !== '' && this.listQuery.is_active !== null) {
+      if (this.listQuery.is_active !== '' && this.listQuery.is_active !== null && this.listQuery.is_active !== undefined) {
         params.is_active = this.listQuery.is_active === 'true'
       }
+      return params
+    },
+    // 拉取加工配置列表数据
+    getList() {
+      this.listLoading = true
+      const params = this.buildQueryParams(true)
       getMaterialProcessingProfiles(params)
         .then(res => {
           const payload = res.data || {}
@@ -791,6 +811,48 @@ export default {
         .finally(() => {
           this.templateLoading = false
         })
+    },
+    // 导出加工配置
+    exportProfiles() {
+      if (this.exportLoading) {
+        return
+      }
+      this.$confirm(
+        this.$t('materialProcessingProfile.confirm_export_filter_tip'),
+        this.$t('common.tips'),
+        {
+          confirmButtonText: this.$t('common.ok'),
+          cancelButtonText: this.$t('common.cancel'),
+          type: 'info'
+        }
+      ).then(() => {
+        const params = this.buildQueryParams(false)
+        this.exportLoading = true
+        const fallbackName = this.buildExportFileName()
+        exportMaterialProcessingProfiles(params)
+          .then(response => {
+            this.downloadBlob(response, fallbackName)
+            this.$message.success(this.$t('materialProcessingProfile.message_export_success'))
+          })
+          .catch(error => {
+            if (error instanceof Blob) {
+              this.downloadBlob(error, fallbackName)
+              this.$message.success(this.$t('materialProcessingProfile.message_export_success'))
+            } else {
+              const message = error && error.message ? error.message : this.$t('materialProcessingProfile.message_export_error')
+              this.$message.error(message)
+            }
+          })
+          .finally(() => {
+            this.exportLoading = false
+          })
+      }).catch(() => {})
+    },
+    // 构造导出文件名
+    buildExportFileName() {
+      const now = new Date()
+      const pad = value => String(value).padStart(2, '0')
+      return `material_processing_profiles_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.csv`
     },
     // 删除单条加工配置
     handleDelete(row) {

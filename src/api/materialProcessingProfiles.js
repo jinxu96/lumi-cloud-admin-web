@@ -67,6 +67,29 @@ export function downloadMaterialProcessingProfileTemplate() {
   })
 }
 
+export function exportMaterialProcessingProfiles(params = {}) {
+  // 导出符合筛选条件的加工配置列表
+  const query = {
+    ...params,
+    t: Date.now()
+  }
+  return request({
+    url: 'material-processing-profiles/export',
+    method: 'get',
+    params: query,
+    responseType: 'blob',
+    catchReturnData: true
+  }).catch(error => {
+    if (error instanceof Blob) {
+      return {
+        data: error,
+        headers: {}
+      }
+    }
+    return Promise.reject(error)
+  })
+}
+
 export function uploadMaterialProcessingProfilePreview(id, file) {
   // 独立上传或替换加工配置的预览图片
   const formData = new FormData()
