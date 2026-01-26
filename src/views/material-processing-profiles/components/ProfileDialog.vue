@@ -253,6 +253,43 @@
                 <el-card class="parameter-section-card">
                   <div slot="header" class="parameter-section-header">
                     <div class="parameter-section-header__info">
+                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_engrave') }}</span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        class="parameter-section-toggle"
+                        @click.stop="toggleParameterSection('line_engrave')"
+                      >
+                        {{ dialog.sectionCollapsed.line_engrave ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
+                      </el-button>
+                    </div>
+                    <el-switch v-model="dialog.form.parameterSections.line_engrave.enabled" @click.native.stop />
+                  </div>
+                  <div v-show="!dialog.sectionCollapsed.line_engrave" class="parameter-section-body">
+                    <div class="parameter-section-grid">
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
+                        <el-switch
+                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_enabled"
+                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
+                        />
+                      </div>
+                      <div class="parameter-field">
+                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
+                        <el-input-number
+                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_width_mm"
+                          :step="0.1"
+                          controls-position="right"
+                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </el-card>
+
+                <el-card class="parameter-section-card">
+                  <div slot="header" class="parameter-section-header">
+                    <div class="parameter-section-header__info">
                       <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_color_print') }}</span>
                       <el-button
                         type="text"
@@ -290,43 +327,6 @@
                             :value="mode"
                           />
                         </el-select>
-                      </div>
-                    </div>
-                  </div>
-                </el-card>
-
-                <el-card class="parameter-section-card">
-                  <div slot="header" class="parameter-section-header">
-                    <div class="parameter-section-header__info">
-                      <span class="parameter-section-title">{{ $t('materialProcessingProfile.section_line_engrave') }}</span>
-                      <el-button
-                        type="text"
-                        size="mini"
-                        class="parameter-section-toggle"
-                        @click.stop="toggleParameterSection('line_engrave')"
-                      >
-                        {{ dialog.sectionCollapsed.line_engrave ? $t('materialProcessingProfile.section_toggle_expand') : $t('materialProcessingProfile.section_toggle_collapse') }}
-                      </el-button>
-                    </div>
-                    <el-switch v-model="dialog.form.parameterSections.line_engrave.enabled" @click.native.stop />
-                  </div>
-                  <div v-show="!dialog.sectionCollapsed.line_engrave" class="parameter-section-body">
-                    <div class="parameter-section-grid">
-                      <div class="parameter-field">
-                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_enabled') }}</span>
-                        <el-switch
-                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_enabled"
-                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
-                        />
-                      </div>
-                      <div class="parameter-field">
-                        <span class="parameter-field-label">{{ $t('materialProcessingProfile.section_kerf_compensation_width_mm') }}</span>
-                        <el-input-number
-                          v-model="dialog.form.parameterSections.line_engrave.kerf_compensation_width_mm"
-                          :step="0.1"
-                          controls-position="right"
-                          :disabled="!dialog.form.parameterSections.line_engrave.enabled"
-                        />
                       </div>
                     </div>
                   </div>

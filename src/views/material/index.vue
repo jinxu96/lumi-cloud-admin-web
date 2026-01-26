@@ -188,7 +188,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column width="320" align="center" :label="$t('material.table_actions')">
+        <el-table-column fixed="right" width="320" align="center" :label="$t('material.table_actions')">
           <template slot-scope="{ row }">
             <el-button
               v-waves
