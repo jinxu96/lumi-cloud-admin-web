@@ -355,6 +355,7 @@
             size="small"
             style="width: 100%"
           >
+            <el-table-column prop="id" :label="$t('machineModule.profile_id')" width="90" align="center" />
             <el-table-column prop="processing_module" :label="$t('machineModule.profile_processing_module')" />
             <el-table-column prop="processing_mode" :label="$t('machineModule.profile_processing_mode')" />
             <el-table-column prop="process_type" :label="$t('machineModule.profile_process_type')" />

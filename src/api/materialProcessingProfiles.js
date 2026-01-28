@@ -67,6 +67,28 @@ export function downloadMaterialProcessingProfileTemplate() {
   })
 }
 
+export function downloadColorPrintTemplate() {
+  // 下载彩打参数导入模板
+  const timestamp = Date.now()
+  return request({
+    url: 'material-processing-profiles/template-color-print',
+    method: 'get',
+    params: {
+      t: timestamp
+    },
+    responseType: 'blob',
+    catchReturnData: true
+  }).catch(error => {
+    if (error instanceof Blob) {
+      return {
+        data: error,
+        headers: {}
+      }
+    }
+    return Promise.reject(error)
+  })
+}
+
 export function exportMaterialProcessingProfiles(params = {}) {
   // 导出符合筛选条件的加工配置列表
   const query = {
@@ -108,6 +130,18 @@ export function importMaterialLibrary(data) {
   // 批量导入材料库及加工配置
   return request({
     url: 'material-library/import',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export function importColorPrintParameters(data) {
+  // 批量导入彩打加工参数
+  return request({
+    url: 'material-processing-profiles/import-color-print',
     method: 'post',
     data,
     headers: {

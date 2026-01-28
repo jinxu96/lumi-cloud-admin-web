@@ -1957,6 +1957,54 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 
 - **响应**：下载 `material_processing_profiles_YYYYMMDDHHMMSS.csv` 文件，内容带 UTF-8 BOM，首行为 `# 导出时间: {timestamp}` 注释，其余行与导入模板列头完全一致。
 
+## 下载彩打模板
+- **权限标识**：`app-admin.mpp.template-color`
+- **接口**：`GET /admin-api/material-processing-profiles/template-color-print`
+- **说明**：下载彩打参数专用导入模板，列头与彩打导入接口一致。
+- **响应**：返回 [material_processing_color_print_template.csv]，默认包含 UTF-8 BOM。
+- **提示**：模板前两行同样为注释，第三行开始才是表头；请仅填写允许的颜色键。
+
+## 导入彩打参数
+- **权限标识**：`app-admin.mpp.import-color`
+- **接口**：`POST /admin-api/material-processing-profiles/import-color-print`
+- **说明**：批量导入彩打加工参数，按材料与加工方案合并颜色配置，未填写的颜色保持原有矩阵数值。
+- **请求方式**：`multipart/form-data`
+- **请求体字段**：
+
+| 字段 | 类型 | 是否必填 | 说明 |
+| -- | -- | -- | -- |
+| `file` | file | 是 | 彩打参数 CSV，最大 20 MB |
+
+- **模板要求**：
+  - 使用 `resources/templates/material_processing_color_print_template.csv`（同样可经由配置模板页面下载）。
+  - 模板前两行以 `#` 开头提供填写说明，第三行开始为真实表头。
+  - `材料ID`、`机型ID`、`机器模块ID`、`加工方案ID` 必须与后台现有数据一致，`机型ID` 可留空表示按模块推断。
+  - `颜色键` 仅支持 `black`、`blue`、`yellow`、`purple`、`orange`、`light_blue`、`green`，可填写大小写或带空格/短横线，系统会自动归一化。
+  - `是否气辅(是/否)` 支持填写 `是/否`、`true/false`、`开启/关闭` 等语义化值，其余数值字段须填写数字或留空。
+
+- **成功响应示例**：
+
+```json
+{
+	"success": true,
+	"code": 0,
+	"message": "导入完成",
+	"data": {
+		"stats": {
+			"total_rows": 12,
+			"profiles_created": 3,
+			"profiles_updated": 5,
+			"color_entries_updated": 10
+		},
+		"errors": [
+			"第5行：颜色键“cyan”无效，仅支持 black、blue、yellow、purple、orange、light_blue、green"
+		]
+	}
+}
+```
+
+- **说明**：`errors` 数组记录逐行错误信息，若为空代表全部写入成功；统计字段展示导入影响的配置数量，便于运营复核。
+
 # 应用场景管理 API
 
 ## 场景列表
