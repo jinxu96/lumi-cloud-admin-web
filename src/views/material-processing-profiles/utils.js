@@ -1,6 +1,99 @@
 // Shared helpers for material processing profiles view and dialog.
 // Keep pure functions here to avoid cross-component duplication.
 
+const baseColorDefaults = {
+  passes: 1,
+  air_assist: false,
+  frequency_khz: 100,
+  power_percent: 80,
+  pulse_width_us: 10,
+  focus_offset_mm: null,
+  fill_distance_mm: 0.01,
+  speed_mm_per_sec: 500
+}
+
+export const COLOR_PRINT_COLOR_PRESETS = [
+  {
+    key: 'black',
+    label: '黑色',
+    isDefault: true,
+    defaults: {
+      ...baseColorDefaults,
+      label: '黑色',
+      power_percent: 80,
+      pulse_width_us: 9
+    }
+  },
+  {
+    key: 'blue',
+    label: '蓝色',
+    isDefault: true,
+    defaults: {
+      ...baseColorDefaults,
+      label: '蓝色',
+      pulse_width_us: 11
+    }
+  },
+  {
+    key: 'yellow',
+    label: '黄色',
+    isDefault: true,
+    defaults: {
+      ...baseColorDefaults,
+      label: '黄色',
+      power_percent: 100,
+      pulse_width_us: 11,
+      fill_distance_mm: 0.002,
+      speed_mm_per_sec: 1500
+    }
+  },
+  {
+    key: 'purple',
+    label: '紫色',
+    defaults: {
+      ...baseColorDefaults,
+      label: '紫色'
+    }
+  },
+  {
+    key: 'orange',
+    label: '橙色',
+    defaults: {
+      ...baseColorDefaults,
+      label: '橙色',
+      power_percent: 85
+    }
+  },
+  {
+    key: 'light_blue',
+    label: '浅蓝',
+    defaults: {
+      ...baseColorDefaults,
+      label: '浅蓝',
+      power_percent: 70
+    }
+  },
+  {
+    key: 'green',
+    label: '绿色',
+    defaults: {
+      ...baseColorDefaults,
+      label: '绿色',
+      power_percent: 75
+    }
+  }
+]
+
+export const createDefaultColorPrintColors = () => {
+  const colors = {}
+  COLOR_PRINT_COLOR_PRESETS.forEach(preset => {
+    if (preset.isDefault) {
+      colors[preset.key] = { ...preset.defaults }
+    }
+  })
+  return colors
+}
+
 export const createDefaultParameterSections = () => ({
   fill_engrave: {
     enabled: false,
@@ -11,7 +104,8 @@ export const createDefaultParameterSections = () => ({
   color_print: {
     enabled: false,
     engrave_density: 100,
-    scan_mode: 'bi_directional'
+    scan_mode: 'bi_directional',
+    colors: createDefaultColorPrintColors()
   },
   line_engrave: {
     enabled: false,

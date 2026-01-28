@@ -2,7 +2,7 @@
   <el-dialog
     :title="dialog.isEdit ? $t('materialProcessingProfile.dialog_edit_title') : $t('materialProcessingProfile.dialog_create_title')"
     :visible.sync="dialog.visible"
-    width="840px"
+    width="1340px"
     :close-on-click-modal="false"
     @closed="resetDialog"
   >
@@ -328,6 +328,199 @@
                           />
                         </el-select>
                       </div>
+                    </div>
+                    <div class="color-print-table-wrapper">
+                      <div class="color-print-table-toolbar">
+                        <span class="parameter-field-label color-print-table-title">
+                          {{ $t('materialProcessingProfile.color_print_colors_title') }}
+                        </span>
+                        <el-button
+                          type="primary"
+                          size="mini"
+                          plain
+                          icon="el-icon-plus"
+                          :disabled="!dialog.form.parameterSections.color_print.enabled"
+                          @click="handleColorPrintAddColor"
+                        >
+                          {{ $t('materialProcessingProfile.color_print_add_color') }}
+                        </el-button>
+                      </div>
+                      <el-table
+                        :data="colorPrintColorList"
+                        size="mini"
+                        border
+                        row-key="key"
+                        class="color-print-table"
+                      >
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_key')"
+                          width="180"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-select
+                              :value="row.key"
+                              size="mini"
+                              filterable
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              @change="value => handleColorPrintKeyChange(row.key, value)"
+                            >
+                              <el-option
+                                v-for="preset in colorPrintKeyOptions(row.key)"
+                                :key="preset.key"
+                                :label="`${preset.key} (${preset.label})`"
+                                :value="preset.key"
+                              />
+                            </el-select>
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_label')"
+                          min-width="120"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input
+                              :value="resolveColorPrintLabel(row.key, row.entry.label)"
+                              size="mini"
+                              disabled
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_power_percent')"
+                          min-width="120"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.power_percent"
+                              size="mini"
+                              :min="0"
+                              :step="1"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_fill_distance_mm')"
+                          min-width="140"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.fill_distance_mm"
+                              size="mini"
+                              :min="0"
+                              :step="0.001"
+                              :precision="3"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_frequency_khz')"
+                          min-width="140"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.frequency_khz"
+                              size="mini"
+                              :min="0"
+                              :step="1"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_pulse_width_us')"
+                          min-width="140"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.pulse_width_us"
+                              size="mini"
+                              :min="0"
+                              :step="1"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_speed_mm_per_sec')"
+                          min-width="150"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.speed_mm_per_sec"
+                              size="mini"
+                              :min="0"
+                              :step="1"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_passes')"
+                          min-width="110"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.passes"
+                              size="mini"
+                              :min="0"
+                              :step="1"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_focus_offset_mm')"
+                          min-width="150"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-input-number
+                              v-model="row.entry.focus_offset_mm"
+                              size="mini"
+                              :step="0.1"
+                              :precision="2"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              controls-position="right"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_air_assist')"
+                          min-width="120"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-switch
+                              v-model="row.entry.air_assist"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              active-color="#13ce66"
+                              inactive-color="#dcdfe6"
+                            />
+                          </template>
+                        </el-table-column>
+                        <el-table-column
+                          :label="$t('materialProcessingProfile.color_print_column_actions')"
+                          width="120"
+                          fixed="right"
+                        >
+                          <template slot-scope="{ row }">
+                            <el-button
+                              type="text"
+                              size="mini"
+                              :disabled="!dialog.form.parameterSections.color_print.enabled"
+                              @click="handleColorPrintRemoveColor(row.key)"
+                            >
+                              {{ $t('materialProcessingProfile.color_print_remove_color') }}
+                            </el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
                     </div>
                   </div>
                 </el-card>
@@ -674,7 +867,8 @@ import {
   formatMaterialLabel,
   formatMachineLabel,
   formatModuleLabel,
-  formatProfileTitle
+  formatProfileTitle,
+  COLOR_PRINT_COLOR_PRESETS
 } from '../utils'
 
 const cloneRules = (rules = {}) => JSON.parse(JSON.stringify(rules))
@@ -730,6 +924,7 @@ export default {
       fillEngraveScanModes: ['bi_directional', 'uni_directional'],
       fillMarkScanModes: ['uni_directional', 'bi_directional'],
       colorPrintScanModes: ['bi_directional', 'uni_directional'],
+      colorPrintColorPresets: COLOR_PRINT_COLOR_PRESETS,
       generationRuleOptions: ['by_distance', 'by_number'],
       spacingRuleOptions: ['by_distance', 'by_number']
     }
@@ -743,6 +938,21 @@ export default {
     },
     stepCount() {
       return 3
+    },
+    colorPrintColors() {
+      const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
+      if (!section) {
+        return {}
+      }
+      this.normalizeColorPrintColors(section)
+      return section.colors || {}
+    },
+    colorPrintColorList() {
+      const colors = this.colorPrintColors
+      return Object.keys(colors).map(key => ({
+        key,
+        entry: colors[key]
+      }))
     },
     summaryItems() {
       const form = this.dialog.form || {}
@@ -891,6 +1101,7 @@ export default {
       this.dialog.loading = false
       this.resetPreviewState()
       this.dialog.form = createDefaultForm()
+      this.normalizeColorPrintColors(this.dialog.form.parameterSections.color_print, { forceDefaults: true })
       this.resetRawOverrides()
       this.resetLayoutState()
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
@@ -959,6 +1170,7 @@ export default {
             this.$set(this.dialog.form, key, form[key])
           })
           this.$set(this.dialog.form, 'parameterSections', this.cloneSectionState(mappedSections))
+          this.normalizeColorPrintColors(this.dialog.form.parameterSections.color_print, { forceDefaults: true })
           this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
           if (form.machine_id) {
             this.fetchMachineOptions('')
@@ -1202,6 +1414,141 @@ export default {
         return
       }
       this.$set(sections.line_cut, 'break_spacing_rule', nextRule)
+    },
+    normalizeColorPrintColors(section, { forceDefaults = false } = {}) {
+      if (!section) {
+        return
+      }
+      let colors = section.colors
+      if (!colors || typeof colors !== 'object' || Array.isArray(colors)) {
+        colors = {}
+        this.$set(section, 'colors', colors)
+      }
+      const keys = Object.keys(colors)
+      if (!keys.length && forceDefaults) {
+        this.colorPrintColorPresets
+          .filter(preset => preset.isDefault)
+          .forEach(preset => {
+            this.$set(colors, preset.key, this.createColorPrintEntryTemplate({ defaults: preset.defaults }))
+          })
+        return
+      }
+      keys.forEach(rawKey => {
+        const trimmedKey = typeof rawKey === 'string' ? rawKey.trim() : String(rawKey).trim()
+        if (!trimmedKey) {
+          this.$delete(colors, rawKey)
+          return
+        }
+        if (trimmedKey !== rawKey) {
+          if (colors[trimmedKey]) {
+            this.$delete(colors, rawKey)
+            return
+          }
+          const value = colors[rawKey]
+          this.$set(colors, trimmedKey, value)
+          this.$delete(colors, rawKey)
+        }
+        const entry = colors[trimmedKey]
+        if (!entry || typeof entry !== 'object') {
+          this.$set(colors, trimmedKey, this.createColorPrintEntryTemplate({ defaults: this.resolveColorPrintDefaults(trimmedKey) }))
+          return
+        }
+        const defaults = this.resolveColorPrintDefaults(trimmedKey)
+        const template = this.createColorPrintEntryTemplate({ defaults })
+        Object.keys(template).forEach(field => {
+          if (entry[field] === undefined) {
+            this.$set(entry, field, template[field])
+          }
+        })
+      })
+    },
+    resolveColorPrintDefaults(key) {
+      const preset = this.colorPrintColorPresets.find(item => item.key === key)
+      return preset ? preset.defaults : {}
+    },
+    resolveColorPrintLabel(key, currentLabel = '') {
+      if (currentLabel) {
+        return currentLabel
+      }
+      const preset = this.colorPrintColorPresets.find(item => item.key === key)
+      if (preset) {
+        const defaults = preset.defaults || {}
+        return defaults.label || preset.label || key
+      }
+      return key
+    },
+    colorPrintKeyOptions(currentKey) {
+      const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
+      const colors = section && section.colors && typeof section.colors === 'object' ? section.colors : {}
+      const usedKeys = new Set(Object.keys(colors).filter(key => key !== currentKey))
+      return this.colorPrintColorPresets.filter(preset => !usedKeys.has(preset.key))
+    },
+    createColorPrintEntryTemplate(config = {}) {
+      const { defaults = {}} = config
+      const base = {
+        label: '',
+        passes: 1,
+        fill_distance_mm: null,
+        frequency_khz: null,
+        power_percent: null,
+        pulse_width_us: null,
+        speed_mm_per_sec: null,
+        focus_offset_mm: null,
+        air_assist: false
+      }
+      return { ...base, ...defaults }
+    },
+    handleColorPrintAddColor() {
+      const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
+      if (!section || !section.enabled) {
+        return
+      }
+      this.normalizeColorPrintColors(section)
+      const colors = section.colors || {}
+      const availablePreset = this.colorPrintColorPresets.find(preset => !Object.prototype.hasOwnProperty.call(colors, preset.key))
+      if (!availablePreset) {
+        this.$message.warning(this.$t('materialProcessingProfile.message_color_print_keys_exhausted'))
+        return
+      }
+      this.$set(colors, availablePreset.key, this.createColorPrintEntryTemplate({ defaults: availablePreset.defaults }))
+    },
+    handleColorPrintRemoveColor(key) {
+      const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
+      if (!section || !section.colors || !Object.prototype.hasOwnProperty.call(section.colors, key)) {
+        return
+      }
+      this.$delete(section.colors, key)
+    },
+    handleColorPrintKeyChange(oldKey, nextKey) {
+      const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
+      if (!section || !section.colors || !Object.prototype.hasOwnProperty.call(section.colors, oldKey)) {
+        return
+      }
+      const trimmed = typeof nextKey === 'string' ? nextKey.trim() : ''
+      if (!trimmed) {
+        this.$message.warning(this.$t('materialProcessingProfile.message_color_print_key_required'))
+        return
+      }
+      if (Object.prototype.hasOwnProperty.call(section.colors, trimmed) && trimmed !== oldKey) {
+        this.$message.warning(this.$t('materialProcessingProfile.message_color_print_key_duplicate'))
+        return
+      }
+      let entry = section.colors[oldKey]
+      if (!entry || typeof entry !== 'object') {
+        entry = this.createColorPrintEntryTemplate({ defaults: this.resolveColorPrintDefaults(trimmed) })
+        this.$set(section.colors, oldKey, entry)
+      }
+      const preset = this.colorPrintColorPresets.find(item => item.key === trimmed)
+      if (preset) {
+        this.$set(entry, 'label', this.resolveColorPrintLabel(trimmed, preset.defaults && preset.defaults.label))
+      } else {
+        this.$set(entry, 'label', trimmed)
+      }
+      if (trimmed !== oldKey) {
+        this.$set(section.colors, trimmed, entry)
+        this.$delete(section.colors, oldKey)
+      }
+      this.normalizeColorPrintColors(section)
     },
     // 预拉取基础下拉选项
     prefetchBaseOptions() {
@@ -1536,6 +1883,15 @@ export default {
         if (colorPrint.scan_mode) {
           colorPayload.scan_mode = colorPrint.scan_mode
         }
+        const colors = colorPrint.colors && typeof colorPrint.colors === 'object' ? colorPrint.colors : {}
+        Object.keys(colors).forEach(colorKey => {
+          const entry = colors[colorKey]
+          const defaults = this.resolveColorPrintDefaults(colorKey)
+          const payloadEntry = this.buildColorPrintEntryPayload(entry, defaults)
+          if (payloadEntry) {
+            colorPayload[colorKey] = payloadEntry
+          }
+        })
         if (Object.keys(colorPayload).length) {
           result.color_print = colorPayload
         }
@@ -1650,6 +2006,63 @@ export default {
       return result
     },
     // 将输入转换为数字，非法时返回 null
+    buildColorPrintEntryPayload(entry, defaults = {}) {
+      if (!entry || typeof entry !== 'object') {
+        return null
+      }
+      const payload = {}
+      const rawLabel = entry.label != null ? String(entry.label).trim() : ''
+      const defaultLabel = defaults.label != null ? String(defaults.label).trim() : ''
+      if (rawLabel) {
+        payload.label = rawLabel
+      } else if (defaultLabel) {
+        payload.label = defaultLabel
+      }
+      const passes = this.parseNumberField(entry.passes)
+      if (passes !== null) {
+        payload.passes = Math.round(passes)
+      }
+      const fillDistance = this.parseNumberField(entry.fill_distance_mm)
+      if (fillDistance !== null) {
+        payload.fill_distance_mm = fillDistance
+      }
+      const frequency = this.parseNumberField(entry.frequency_khz)
+      if (frequency !== null) {
+        payload.frequency_khz = frequency
+      }
+      const power = this.parseNumberField(entry.power_percent)
+      if (power !== null) {
+        payload.power_percent = power
+      }
+      const pulseWidth = this.parseNumberField(entry.pulse_width_us)
+      if (pulseWidth !== null) {
+        payload.pulse_width_us = pulseWidth
+      }
+      const speed = this.parseNumberField(entry.speed_mm_per_sec)
+      if (speed !== null) {
+        payload.speed_mm_per_sec = speed
+      }
+      if (entry.focus_offset_mm === null) {
+        payload.focus_offset_mm = null
+      } else {
+        const focusOffset = this.parseNumberField(entry.focus_offset_mm)
+        if (focusOffset !== null) {
+          payload.focus_offset_mm = focusOffset
+        }
+      }
+      if (typeof entry.air_assist === 'boolean') {
+        payload.air_assist = entry.air_assist
+      } else if (typeof entry.air_assist === 'string') {
+        const normalized = entry.air_assist.trim().toLowerCase()
+        if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+          payload.air_assist = true
+        } else if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+          payload.air_assist = false
+        }
+      }
+      return Object.keys(payload).length ? payload : null
+    },
+    // 将输入转换为数字，非法时返回 null
     parseNumberField(value) {
       if (value === '' || value === null || value === undefined) {
         return null
@@ -1707,7 +2120,81 @@ export default {
 
       const colorPrint = sections.color_print
       if (colorPrint && typeof colorPrint === 'object') {
-        result.color_print.enabled = this.hasSectionContent(colorPrint)
+        const targetSection = result.color_print
+        this.$set(targetSection, 'colors', {})
+        const colorsContainer = colorPrint.colors && typeof colorPrint.colors === 'object' ? colorPrint.colors : colorPrint
+        const metaKeys = ['enabled', 'engrave_density', 'scan_mode', 'colors']
+        Object.keys(colorsContainer).forEach(colorKey => {
+          if (metaKeys.includes(colorKey)) {
+            return
+          }
+          const sourceEntry = colorsContainer[colorKey]
+          if (!sourceEntry || typeof sourceEntry !== 'object') {
+            return
+          }
+          const defaults = this.resolveColorPrintDefaults(colorKey)
+          const targetEntry = this.createColorPrintEntryTemplate({ defaults })
+          if (sourceEntry.label !== undefined) {
+            targetEntry.label = String(sourceEntry.label)
+          }
+          if (sourceEntry.passes !== undefined) {
+            const passes = this.parseNumberField(sourceEntry.passes)
+            if (passes !== null) {
+              targetEntry.passes = Math.round(passes)
+            }
+          }
+          if (sourceEntry.fill_distance_mm !== undefined) {
+            const fillDistance = this.parseNumberField(sourceEntry.fill_distance_mm)
+            if (fillDistance !== null) {
+              targetEntry.fill_distance_mm = fillDistance
+            }
+          }
+          if (sourceEntry.frequency_khz !== undefined) {
+            const frequency = this.parseNumberField(sourceEntry.frequency_khz)
+            if (frequency !== null) {
+              targetEntry.frequency_khz = frequency
+            }
+          }
+          if (sourceEntry.power_percent !== undefined) {
+            const power = this.parseNumberField(sourceEntry.power_percent)
+            if (power !== null) {
+              targetEntry.power_percent = power
+            }
+          }
+          if (sourceEntry.pulse_width_us !== undefined) {
+            const pulseWidth = this.parseNumberField(sourceEntry.pulse_width_us)
+            if (pulseWidth !== null) {
+              targetEntry.pulse_width_us = pulseWidth
+            }
+          }
+          if (sourceEntry.speed_mm_per_sec !== undefined) {
+            const speed = this.parseNumberField(sourceEntry.speed_mm_per_sec)
+            if (speed !== null) {
+              targetEntry.speed_mm_per_sec = speed
+            }
+          }
+          if (sourceEntry.focus_offset_mm === null) {
+            targetEntry.focus_offset_mm = null
+          } else if (sourceEntry.focus_offset_mm !== undefined) {
+            const focusOffset = this.parseNumberField(sourceEntry.focus_offset_mm)
+            if (focusOffset !== null) {
+              targetEntry.focus_offset_mm = focusOffset
+            }
+          }
+          if (typeof sourceEntry.air_assist === 'boolean') {
+            targetEntry.air_assist = sourceEntry.air_assist
+          } else if (typeof sourceEntry.air_assist === 'string') {
+            const normalized = sourceEntry.air_assist.trim().toLowerCase()
+            if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+              targetEntry.air_assist = true
+            } else if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+              targetEntry.air_assist = false
+            }
+          }
+          this.$set(targetSection.colors, colorKey, targetEntry)
+        })
+        const hasColorData = Object.keys(targetSection.colors).length > 0
+        this.normalizeColorPrintColors(targetSection, { forceDefaults: true })
         if (colorPrint.engrave_density !== undefined) {
           const density = this.parseNumberField(colorPrint.engrave_density)
           if (density !== null) {
@@ -1716,6 +2203,11 @@ export default {
         }
         if (colorPrint.scan_mode) {
           result.color_print.scan_mode = colorPrint.scan_mode
+        }
+        if (typeof colorPrint.enabled === 'boolean') {
+          result.color_print.enabled = colorPrint.enabled
+        } else if (!result.color_print.enabled) {
+          result.color_print.enabled = hasColorData || colorPrint.engrave_density !== undefined || !!colorPrint.scan_mode
         }
       }
 
@@ -1897,6 +2389,7 @@ export default {
       this.resetRawOverrides()
       this.resetLayoutState()
       this.syncLineCutBreakSpacingRule(this.dialog.form.parameterSections.line_cut.generation_rule, { force: true })
+      this.normalizeColorPrintColors(this.dialog.form.parameterSections.color_print, { forceDefaults: true })
       this.$nextTick(() => {
         this.dialog.rules = cloneRules(this.baseRules)
         if (this.$refs.profileForm) {
@@ -2138,6 +2631,36 @@ export default {
   font-size: 12px;
   color: #606266;
   line-height: 18px;
+}
+.color-print-table-wrapper {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+.color-print-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.color-print-table-title {
+  margin-bottom: 8px;
+}
+.color-print-table {
+  width: 100%;
+  min-width: 960px;
+}
+.color-print-table ::v-deep .el-input,
+.color-print-table ::v-deep .el-input-number {
+  width: 120px;
+}
+.color-print-table ::v-deep .el-switch__core {
+  height: 18px;
+  border-radius: 9px;
+}
+.color-print-table ::v-deep .el-switch.is-checked .el-switch__core {
+  border-color: #13ce66;
+  background-color: #13ce66;
 }
 .form-tip {
   margin-top: 4px;

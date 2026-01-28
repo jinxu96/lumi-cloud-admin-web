@@ -14,6 +14,15 @@
             {{ $t('materialProcessingProfile.action_download_template') }}
           </el-button>
           <el-button
+            v-if="checkPermission(['app-admin.mpp.template-color'])"
+            :loading="colorPrintTemplateLoading"
+            icon="el-icon-download"
+            size="small"
+            @click="downloadColorPrintTemplate"
+          >
+            {{ $t('materialProcessingProfile.action_download_color_print_template') }}
+          </el-button>
+          <el-button
             v-if="checkPermission(['app-admin.material-processing-profiles.export'])"
             :loading="exportLoading"
             icon="el-icon-document"
@@ -39,6 +48,15 @@
             @click="handleImportClick"
           >
             {{ $t('materialProcessingProfile.action_import') }}
+          </el-button>
+          <el-button
+            v-if="checkPermission(['app-admin.mpp.import-color'])"
+            :loading="colorPrintImporting"
+            icon="el-icon-upload2"
+            size="small"
+            @click="handleColorPrintImportClick"
+          >
+            {{ $t('materialProcessingProfile.action_import_color_print') }}
           </el-button>
         </div>
       </div>
@@ -217,51 +235,133 @@
 
         <el-table-column width="110" align="center" :label="$t('materialProcessingProfile.table_power_percent')">
           <template slot-scope="{ row }">
-            <span>{{ row.power_percent != null ? row.power_percent : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'power_percent')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.power_percent) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_speed')">
           <template slot-scope="{ row }">
-            <span>{{ row.speed_mm_per_sec != null ? row.speed_mm_per_sec : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'speed_mm_per_sec')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.speed_mm_per_sec) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="100" align="center" :label="$t('materialProcessingProfile.table_passes')">
           <template slot-scope="{ row }">
-            <span>{{ row.passes != null ? row.passes : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'passes')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.passes) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="150" align="center" :label="$t('materialProcessingProfile.table_focus_offset')">
           <template slot-scope="{ row }">
-            <span>{{ row.focus_offset_mm != null ? row.focus_offset_mm : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'focus_offset_mm')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.focus_offset_mm) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="100" align="center" :label="$t('materialProcessingProfile.table_air_assist')">
           <template slot-scope="{ row }">
-            <span v-if="row.air_assist === true" class="tag tag-success">{{ $t('materialProcessingProfile.option_true') }}</span>
-            <span v-else-if="row.air_assist === false" class="tag tag-info">{{ $t('materialProcessingProfile.option_false') }}</span>
-            <span v-else>-</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'air_assist')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <template v-else>
+              <span v-if="row.air_assist === true" class="tag tag-success">{{ $t('materialProcessingProfile.option_true') }}</span>
+              <span v-else-if="row.air_assist === false" class="tag tag-info">{{ $t('materialProcessingProfile.option_false') }}</span>
+              <span v-else>-</span>
+            </template>
           </template>
         </el-table-column>
 
         <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_fill_distance')">
           <template slot-scope="{ row }">
-            <span>{{ row.fill_distance_mm != null ? row.fill_distance_mm : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'fill_distance_mm')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.fill_distance_mm) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_frequency')">
           <template slot-scope="{ row }">
-            <span>{{ row.frequency_khz != null ? row.frequency_khz : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'frequency_khz')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.frequency_khz) }}</span>
           </template>
         </el-table-column>
 
         <el-table-column width="140" align="center" :label="$t('materialProcessingProfile.table_pulse_width')">
           <template slot-scope="{ row }">
-            <span>{{ row.pulse_width_us != null ? row.pulse_width_us : '-' }}</span>
+            <div v-if="isColorPrintRow(row)" class="color-print-matrix">
+              <div
+                v-for="item in getColorPrintFieldRows(row, 'pulse_width_us')"
+                :key="item.key"
+                class="color-print-matrix__item"
+              >
+                <span v-if="item.label" class="color-print-matrix__label">{{ item.label }}:</span>
+                <span class="color-print-matrix__value">{{ item.value }}</span>
+              </div>
+            </div>
+            <span v-else>{{ formatProfileNumeric(row.pulse_width_us) }}</span>
           </template>
         </el-table-column>
 
@@ -336,6 +436,13 @@
       accept=".csv,.xlsx,.xls"
       @change="handleImportChange"
     >
+    <input
+      ref="colorPrintImportInput"
+      type="file"
+      class="hidden-file-input"
+      accept=".csv,.xlsx,.xls"
+      @change="handleColorPrintImportChange"
+    >
   </div>
 </template>
 
@@ -346,9 +453,11 @@ import checkPermission from '@/utils/permission'
 import {
   getMaterialProcessingProfiles,
   downloadMaterialProcessingProfileTemplate,
+  downloadColorPrintTemplate as downloadColorPrintTemplateApi,
   exportMaterialProcessingProfiles,
   deleteMaterialProcessingProfile,
-  importMaterialLibrary
+  importMaterialLibrary,
+  importColorPrintParameters
 } from '@/api/materialProcessingProfiles'
 import { getMaterials } from '@/api/materials'
 import { getMachines } from '@/api/machines'
@@ -359,7 +468,8 @@ import {
   formatMaterialLabel,
   formatMachineLabel,
   formatModuleLabel,
-  formatProfileTitle
+  formatProfileTitle,
+  COLOR_PRINT_COLOR_PRESETS
 } from './utils'
 import './index.scss'
 
@@ -398,8 +508,10 @@ export default {
       profileOptions: [],
       profileLoading: false,
       templateLoading: false,
+      colorPrintTemplateLoading: false,
       exportLoading: false,
       importing: false,
+      colorPrintImporting: false,
       loading: {
         delete: ''
       }
@@ -430,6 +542,133 @@ export default {
     formatMachineLabel,
     // 组合模块下拉标签
     formatModuleLabel,
+    // 判断是否为彩打工艺
+    isColorPrintRow(row) {
+      if (!row) {
+        return false
+      }
+      const colorSection = this.resolveColorPrintSection(
+        row.parameter_matrix_sections,
+        row.parameter_matrix
+      )
+      if (colorSection && typeof colorSection === 'object') {
+        const container = colorSection.colors && typeof colorSection.colors === 'object'
+          ? colorSection.colors
+          : colorSection
+        if (container && typeof container === 'object') {
+          const metaKeys = ['enabled', 'engrave_density', 'scan_mode', 'colors']
+          const hasEntries = Object.keys(container).some(key => !metaKeys.includes(key))
+          if (hasEntries) {
+            return true
+          }
+        }
+      }
+      const processType = row.machine_module_profile && row.machine_module_profile.process_type
+      if (!processType) {
+        return false
+      }
+      const normalized = String(processType).trim().toLowerCase()
+      if (normalized === 'color_print' || normalized === 'color print') {
+        return true
+      }
+      return normalized === '彩打'
+    },
+    // 将彩打参数展开为按颜色的行
+    getColorPrintFieldRows(row, field) {
+      if (!this.isColorPrintRow(row)) {
+        return []
+      }
+      const entries = this.extractColorPrintColors(row)
+      if (!entries.length) {
+        return [{ key: 'placeholder', label: '', value: '-' }]
+      }
+      return entries.map(entry => ({
+        key: entry.key,
+        label: entry.label,
+        value: this.formatColorPrintFieldValue(field, entry.value[field])
+      }))
+    },
+    // 提取彩打参数中的颜色通道
+    extractColorPrintColors(row) {
+      const sectionsSource = (row && row.parameter_matrix_sections) || {}
+      const matrixSource = (row && row.parameter_matrix) || {}
+      const colorSection = this.resolveColorPrintSection(sectionsSource, matrixSource)
+      const container = colorSection && typeof colorSection === 'object'
+        ? (colorSection.colors && typeof colorSection.colors === 'object' ? colorSection.colors : colorSection)
+        : null
+      if (!container || typeof container !== 'object') {
+        return []
+      }
+      const metaKeys = ['enabled', 'engrave_density', 'scan_mode', 'colors']
+      return Object.keys(container)
+        .filter(key => !metaKeys.includes(key))
+        .map(key => {
+          const entry = container[key]
+          if (!entry || typeof entry !== 'object') {
+            return null
+          }
+          const label = entry.label || this.resolveColorPresetLabel(key)
+          return {
+            key,
+            label,
+            value: entry
+          }
+        })
+        .filter(Boolean)
+    },
+    // 解析彩打配置段
+    resolveColorPrintSection(sectionsSource, matrixSource) {
+      if (sectionsSource && sectionsSource.color_print && typeof sectionsSource.color_print === 'object') {
+        return sectionsSource.color_print
+      }
+      if (matrixSource && matrixSource.color_print && typeof matrixSource.color_print === 'object') {
+        return matrixSource.color_print
+      }
+      return null
+    },
+    // 根据颜色预设回退标签
+    resolveColorPresetLabel(key) {
+      const preset = COLOR_PRINT_COLOR_PRESETS.find(item => item.key === key)
+      if (preset) {
+        if (preset.defaults && preset.defaults.label) {
+          return preset.defaults.label
+        }
+        if (preset.label) {
+          return preset.label
+        }
+      }
+      return key
+    },
+    // 统一格式化彩打参数的展示数值
+    formatColorPrintFieldValue(field, rawValue) {
+      if (field === 'air_assist') {
+        if (rawValue === true) {
+          return this.$t('materialProcessingProfile.option_true')
+        }
+        if (rawValue === false) {
+          return this.$t('materialProcessingProfile.option_false')
+        }
+        if (rawValue === null || rawValue === undefined) {
+          return '-'
+        }
+        const normalized = String(rawValue).trim().toLowerCase()
+        if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
+          return this.$t('materialProcessingProfile.option_true')
+        }
+        if (['false', '0', 'no', 'n', 'off'].includes(normalized)) {
+          return this.$t('materialProcessingProfile.option_false')
+        }
+        return '-'
+      }
+      if (rawValue === null || rawValue === undefined || rawValue === '') {
+        return '-'
+      }
+      return rawValue
+    },
+    // 格式化常规字段数值
+    formatProfileNumeric(value) {
+      return value !== null && value !== undefined && value !== '' ? value : '-'
+    },
     // 打开新增弹窗
     openCreate() {
       if (this.$refs.profileDialog) {
@@ -604,6 +843,16 @@ export default {
         this.$refs.importInput.click()
       }
     },
+    // 触发彩打导入文件选择
+    handleColorPrintImportClick() {
+      if (this.colorPrintImporting) {
+        return
+      }
+      if (this.$refs.colorPrintImportInput) {
+        this.$refs.colorPrintImportInput.value = ''
+        this.$refs.colorPrintImportInput.click()
+      }
+    },
     // 处理导入文件上传
     handleImportChange(event) {
       const file = event && event.target && event.target.files ? event.target.files[0] : null
@@ -639,6 +888,44 @@ export default {
           this.importing = false
           if (this.$refs.importInput) {
             this.$refs.importInput.value = ''
+          }
+        })
+    },
+    // 处理彩打导入文件上传
+    handleColorPrintImportChange(event) {
+      const file = event && event.target && event.target.files ? event.target.files[0] : null
+      if (!file) {
+        return
+      }
+      const formData = new FormData()
+      formData.append('file', file)
+      this.colorPrintImporting = true
+      importColorPrintParameters(formData)
+        .then(res => {
+          const successMessage = res && res.message ? res.message : this.$t('materialProcessingProfile.message_color_print_import_success')
+          const errors = Array.isArray(res && res.data && res.data.errors) ? res.data.errors.filter(Boolean) : []
+          const errorCount = errors.length
+          if (errorCount > 0) {
+            const warningMessage = this.$t('materialProcessingProfile.message_color_print_import_partial', { count: errorCount })
+            this.$message.warning(warningMessage)
+            const errorHtml = this.buildImportErrorHtml(errors)
+            this.$alert(errorHtml, this.$t('materialProcessingProfile.title_color_print_import_errors', { count: errorCount }), {
+              type: 'warning',
+              dangerouslyUseHTMLString: true
+            })
+          } else {
+            this.$message.success(successMessage)
+          }
+          this.getList()
+        })
+        .catch(err => {
+          const message = err && err.message ? err.message : this.$t('materialProcessingProfile.message_color_print_import_error')
+          this.$message.error(message)
+        })
+        .finally(() => {
+          this.colorPrintImporting = false
+          if (this.$refs.colorPrintImportInput) {
+            this.$refs.colorPrintImportInput.value = ''
           }
         })
     },
@@ -810,6 +1097,31 @@ export default {
         })
         .finally(() => {
           this.templateLoading = false
+        })
+    },
+    // 下载彩打模板文件
+    downloadColorPrintTemplate() {
+      if (this.colorPrintTemplateLoading) {
+        return
+      }
+      this.colorPrintTemplateLoading = true
+      downloadColorPrintTemplateApi()
+        .then(response => {
+          this.downloadBlob(response, 'material_processing_color_print_template.csv')
+          this.$message.success(this.$t('materialProcessingProfile.message_color_print_template_success'))
+        })
+        .catch(error => {
+          if (error instanceof Blob) {
+            this.downloadBlob(error, 'material_processing_color_print_template.csv')
+            this.$message.success(this.$t('materialProcessingProfile.message_color_print_template_success'))
+          } else if (error && error.message) {
+            this.$message.error(error.message)
+          } else {
+            this.$message.error(this.$t('materialProcessingProfile.message_color_print_template_error'))
+          }
+        })
+        .finally(() => {
+          this.colorPrintTemplateLoading = false
         })
     },
     // 导出加工配置

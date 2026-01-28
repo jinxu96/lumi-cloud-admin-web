@@ -81,3 +81,21 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.material-processing-profiles .color-print-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.material-processing-profiles .color-print-matrix__item {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.material-processing-profiles .color-print-matrix__label {
+  font-weight: 500;
+  color: #606266;
+}
+.material-processing-profiles .color-print-matrix__value {
+  color: #303133;
+}
