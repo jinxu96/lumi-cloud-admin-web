@@ -1,6 +1,7 @@
-// Shared helpers for material processing profiles view and dialog.
-// Keep pure functions here to avoid cross-component duplication.
+// 材料加工参数相关的共享工具函数
+// 统一放置纯函数，避免组件间重复实现
 
+// 颜色打印基础默认参数
 const baseColorDefaults = {
   passes: 1,
   air_assist: false,
@@ -12,6 +13,7 @@ const baseColorDefaults = {
   speed_mm_per_sec: 500
 }
 
+// 颜色打印的预设参数
 export const COLOR_PRINT_COLOR_PRESETS = [
   {
     key: 'black',
@@ -84,6 +86,7 @@ export const COLOR_PRINT_COLOR_PRESETS = [
   }
 ]
 
+// 生成默认颜色打印配置(仅包含标记为默认的颜色)
 export const createDefaultColorPrintColors = () => {
   const colors = {}
   COLOR_PRINT_COLOR_PRESETS.forEach(preset => {
@@ -94,6 +97,7 @@ export const createDefaultColorPrintColors = () => {
   return colors
 }
 
+// 生成各工艺段的默认参数结构
 export const createDefaultParameterSections = () => ({
   fill_engrave: {
     enabled: false,
@@ -141,6 +145,7 @@ export const createDefaultParameterSections = () => ({
   }
 })
 
+// 生成表单默认值
 export const createDefaultForm = () => ({
   id: null,
   material_id: '',
@@ -164,6 +169,7 @@ export const createDefaultForm = () => ({
   parameter_matrix_raw: ''
 })
 
+// 格式化材料下拉显示文本
 export const formatMaterialLabel = material => {
   if (!material) {
     return '-'
@@ -175,6 +181,7 @@ export const formatMaterialLabel = material => {
   return parts.filter(Boolean).join(' ')
 }
 
+// 格式化设备下拉显示文本
 export const formatMachineLabel = machine => {
   if (!machine) {
     return '-'
@@ -186,6 +193,7 @@ export const formatMachineLabel = machine => {
   return parts.filter(Boolean).join(' ')
 }
 
+// 格式化模块下拉显示文本
 export const formatModuleLabel = module => {
   if (!module) {
     return '-'
@@ -198,6 +206,7 @@ export const formatModuleLabel = module => {
   return parts.filter(Boolean).join(' ')
 }
 
+// 格式化加工配置标题(用于列表展示)
 export const formatProfileTitle = profile => {
   if (!profile) {
     return '-'

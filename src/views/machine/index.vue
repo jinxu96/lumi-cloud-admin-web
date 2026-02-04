@@ -271,6 +271,10 @@ import checkPermission from '@/utils/permission'
 import Pagination from '@/components/Pagination'
 import { getMachines, deleteMachine, createMachine, updateMachine, updateMachineStatus, uploadMachineIcon } from '@/api/machines'
 
+/**
+ * 创建默认表单对象
+ * @returns {Object} 机器表单默认值
+ */
 const createDefaultForm = () => ({
   id: '',
   name: '',
@@ -288,32 +292,32 @@ export default {
   directives: { waves },
   data() {
     return {
-      list: [],
-      total: 0,
-      listLoading: false,
-      listQuery: {
-        keyword: '',
-        is_active: '',
-        order: 'created_at__DESC',
-        limit: 20,
-        page: 1
+      list: [], // 机器列表数据
+      total: 0, // 总记录数
+      listLoading: false, // 列表加载状态
+      listQuery: { // 列表查询参数
+        keyword: '', // 关键词搜索
+        is_active: '', // 启用状态筛选（''全部/true启用/false禁用）
+        order: 'created_at__DESC', // 排序方式
+        limit: 20, // 每页条数
+        page: 1 // 当前页码
       },
-      orderOptions: [],
+      orderOptions: [], // 排序选项列表
       // Element Upload 组件要求提供 action 属性，实际请求由 http-request 接管
       uploadPlaceholderAction: '/noop-upload',
-      loading: {
-        delete: '',
-        status: ''
+      loading: { // 操作中的加载状态
+        delete: '', // 正在删除的机器ID
+        status: '' // 正在切换状态的机器ID
       },
-      dialog: {
-        visible: false,
-        loading: false,
-        isEdit: false,
-        iconUploading: false,
-        iconFile: null,
-        iconPreview: '',
-        form: createDefaultForm(),
-        rules: {
+      dialog: { // 新增/编辑对话框状态
+        visible: false, // 对话框显示状态
+        loading: false, // 提交加载状态
+        isEdit: false, // 是否为编辑模式
+        iconUploading: false, // 图标上传中状态
+        iconFile: null, // 本地选择的图标文件对象
+        iconPreview: '', // 本地图标预览URL
+        form: createDefaultForm(), // 表单数据
+        rules: { // 表单验证规则
           name: [{ required: true, message: this.$t('machine.form_rules_name'), trigger: 'blur' }],
           slug: [{ required: true, message: this.$t('machine.form_rules_slug'), trigger: 'blur' }]
         }
@@ -321,9 +325,15 @@ export default {
     }
   },
   computed: {
+    /**
+     * 图标预览地址（优先本地预览，其次表单URL）
+     */
     iconPreviewUrl() {
       return this.dialog.iconPreview || this.dialog.form.icon_url || ''
     },
+    /**
+     * 是否可以上传图标（根据编辑/新增模式和权限判断）
+     */
     canUploadIcon() {
       if (this.dialog.isEdit) {
         return this.checkPermission(['app-admin.machines.icon'])
@@ -331,7 +341,11 @@ export default {
       return this.checkPermission(['app-admin.machines.store']) || this.checkPermission(['app-admin.machines.icon'])
     }
   },
+  /**
+   * 组件创建时初始化排序选项并加载列表数据
+   */
   created() {
+    // 初始化排序选项
     this.orderOptions = [
       { key: 'id__DESC', label: this.$t('machine.order_id_desc') },
       { key: 'id__ASC', label: this.$t('machine.order_id_asc') },
@@ -342,12 +356,18 @@ export default {
     ]
     this.getList()
   },
+  /**
+   * 组件销毁前清理本地图标文件资源
+   */
   beforeDestroy() {
     this.clearLocalIconFile()
   },
   methods: {
-    checkPermission,
-    // 拉取机器列表
+    checkPermission, // 权限判断工具
+    /**
+     * 拉取机器列表
+     * 根据查询条件获取机器数据并更新列表
+     */
     getList() {
       this.listLoading = true
       const params = {
@@ -371,12 +391,16 @@ export default {
           this.listLoading = false
         })
     },
-    // 应用筛选条件
+    /**
+     * 应用筛选条件并重置到第一页
+     */
     handleFilter() {
       this.listQuery.page = 1
       this.getList()
     },
-    // 重置筛选条件
+    /**
+     * 重置筛选条件到默认状态并重新加载列表
+     */
     resetFilter() {
       const limit = this.listQuery.limit
       this.listQuery = {
@@ -388,7 +412,10 @@ export default {
       }
       this.getList()
     },
-    // 跳转到模块列表
+    /**
+     * 跳转到指定机器的模块列表页面
+     * @param {Object} row - 机器数据行
+     */
     goModules(row) {
       if (!row || !row.id) {
         return
@@ -398,7 +425,11 @@ export default {
         query: { machine_id: row.id }
       })
     },
-    // 删除机器
+    /**
+     * 删除机器
+     * 显示确认对话框后执行删除操作
+     * @param {Object} row - 要删除的机器数据行
+     */
     handleDelete(row) {
       if (!row || !row.id) {
         return
@@ -419,7 +450,10 @@ export default {
           })
       }).catch(() => {})
     },
-    // 打开新增弹窗
+    /**
+     * 打开新增机器对话框
+     * 初始化默认表单并清理临时文件
+     */
     openCreate() {
       this.dialog.visible = true
       this.dialog.isEdit = false
@@ -427,7 +461,11 @@ export default {
       this.clearLocalIconFile()
       this.dialog.form = createDefaultForm()
     },
-    // 打开编辑弹窗
+    /**
+     * 打开编辑机器对话框
+     * 将机器数据填充到表单中
+     * @param {Object} row - 要编辑的机器数据行
+     */
     openEdit(row) {
       if (!row || !row.id) {
         return
@@ -447,7 +485,11 @@ export default {
         sort_order: typeof row.sort_order === 'number' ? row.sort_order : Number(row.sort_order) || 0
       }
     },
-    // 切换机器启用状态
+    /**
+     * 切换机器启用状态（启用/禁用）
+     * 显示确认对话框后执行状态切换
+     * @param {Object} row - 要切换状态的机器数据行
+     */
     toggleStatus(row) {
       if (!row || !row.id) {
         return
@@ -471,7 +513,10 @@ export default {
           })
       }).catch(() => {})
     },
-    // 提交新增或编辑
+    /**
+     * 提交新增或编辑机器表单
+     * 验证表单后构建提交数据并发送请求
+     */
     submitDialog() {
       this.$refs.machineForm.validate(valid => {
         if (!valid) {
@@ -503,7 +548,10 @@ export default {
           })
       })
     },
-    // 重置弹窗状态
+    /**
+     * 重置对话框状态
+     * 清空表单、加载状态和临时文件
+     */
     resetDialog() {
       if (this.$refs.machineForm) {
         this.$refs.machineForm.resetFields()
@@ -513,7 +561,12 @@ export default {
       this.clearLocalIconFile()
       this.dialog.form = createDefaultForm()
     },
-    // 校验上传文件
+    /**
+     * 图标上传前的校验
+     * 验证文件类型和大小
+     * @param {File} file - 待上传的文件对象
+     * @returns {Boolean} 是否通过校验
+     */
     beforeIconUpload(file) {
       const isImage = /^image\//.test(file.type)
       if (!isImage) {
@@ -527,7 +580,11 @@ export default {
       }
       return true
     },
-    // 自定义上传机器展示图
+    /**
+     * 自定义图标上传处理
+     * 新增模式下仅本地预览，编辑模式下直接上传到服务器
+     * @param {Object} uploadOption - Element UI上传组件的选项对象
+     */
     handleIconUpload(uploadOption) {
       const { file, onError, onSuccess } = uploadOption || {}
       if (!file) {
@@ -575,13 +632,19 @@ export default {
           this.dialog.iconUploading = false
         })
     },
-    // 手动输入地址时清除临时文件
+    /**
+     * 手动输入图标地址时清除本地临时文件
+     * 避免本地预览和手动输入冲突
+     */
     handleIconUrlInput() {
       if (this.dialog.iconFile || this.dialog.iconPreview) {
         this.clearLocalIconFile()
       }
     },
-    // 记录本地选择的图片文件
+    /**
+     * 记录本地选择的图标文件并生成预览URL
+     * @param {File} file - 选择的图标文件对象
+     */
     setLocalIconFile(file) {
       this.clearLocalIconFile()
       if (file) {
@@ -593,7 +656,10 @@ export default {
         this.dialog.iconPreview = previewUrl
       }
     },
-    // 清理本地临时文件和预览
+    /**
+     * 清理本地临时图标文件和预览URL
+     * 释放内存资源，避免内存泄漏
+     */
     clearLocalIconFile() {
       if (this.dialog.iconPreview && typeof window !== 'undefined' && window.URL && typeof window.URL.revokeObjectURL === 'function') {
         window.URL.revokeObjectURL(this.dialog.iconPreview)
@@ -601,7 +667,12 @@ export default {
       this.dialog.iconPreview = ''
       this.dialog.iconFile = null
     },
-    // 根据当前表单构建提交数据
+    /**
+     * 根据当前表单构建提交数据
+     * 若存在本地图标文件则构建FormData，否则返回JSON对象
+     * @param {Object} payload - 表单数据对象
+     * @returns {Object|FormData} 提交数据
+     */
     buildMachineSubmitData(payload) {
       if (!this.dialog.iconFile) {
         return payload

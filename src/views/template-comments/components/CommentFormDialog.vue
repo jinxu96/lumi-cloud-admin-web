@@ -36,14 +36,17 @@
 export default {
   name: 'CommentFormDialog',
   props: {
+    // 是否可见
     visible: {
       type: Boolean,
       default: false
     },
+    // 提交加载状态
     loading: {
       type: Boolean,
       default: false
     },
+    // 项目id
     projectId: {
       type: [Number, String],
       default: ''
@@ -64,9 +67,11 @@ export default {
     }
   },
   watch: {
+    // 监听visible变化，同步到innerVisible
     visible(val) {
       this.innerVisible = val
     },
+    // 监听projectId变化，同步到form.project_id
     projectId(val) {
       if (val) {
         this.form.project_id = val
@@ -74,6 +79,7 @@ export default {
     }
   },
   methods: {
+    // 关闭弹窗
     handleClose() {
       this.$emit('update:visible', false)
     },

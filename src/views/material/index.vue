@@ -489,6 +489,7 @@ import Pagination from '@/components/Pagination'
 import { getMaterials, createMaterial, updateMaterial, deleteMaterial, updateMaterialStatus, uploadMaterialCover, detachMaterialModules } from '@/api/materials'
 import { getMaterialCategories } from '@/api/materialCategories'
 
+// 将任意值转换为可输入文本
 const toInputText = (value) => {
   if (value === null || value === undefined) {
     return ''
@@ -506,6 +507,7 @@ const toInputText = (value) => {
   }
 }
 
+// 构建默认的警告项
 const createWarningItem = (data = {}) => ({
   icon: toInputText(data.icon),
   title: toInputText(data.title),
@@ -513,12 +515,14 @@ const createWarningItem = (data = {}) => ({
   detail_url: toInputText(data.detail_url)
 })
 
+// 构建默认包装规格
 const createDefaultPackageContents = () => ({
   sheets: null,
   size_width_mm: null,
   size_height_mm: null
 })
 
+// 规范化包装规格（支持字符串/数组/对象）
 const normalizePackageContents = (input) => {
   const fallback = createDefaultPackageContents()
   if (input === null || input === undefined || input === '') {
@@ -579,6 +583,7 @@ const normalizePackageContents = (input) => {
   return fallback
 }
 
+// 转换为正数（非法返回null）
 const toPositiveNumber = (value) => {
   if (value === null || value === undefined || value === '') {
     return null
@@ -590,6 +595,7 @@ const toPositiveNumber = (value) => {
   return num
 }
 
+// 转换为正整数（非法返回null）
 const toPositiveInteger = (value) => {
   const num = toPositiveNumber(value)
   if (num === null) {
@@ -598,6 +604,7 @@ const toPositiveInteger = (value) => {
   return Math.round(num)
 }
 
+// 构建包装规格提交数据
 const buildPackageContentsPayload = (content) => {
   if (!content) {
     return null
@@ -616,6 +623,7 @@ const buildPackageContentsPayload = (content) => {
   }
 }
 
+// 构建表单默认值
 const createDefaultForm = () => ({
   id: '',
   name: '',
@@ -637,6 +645,7 @@ const createDefaultForm = () => ({
   sort_order: 0
 })
 
+// 规范化字符串数组（兼容JSON/逗号/换行分隔）
 const normalizeStringArray = (input) => {
   if (Array.isArray(input)) {
     return input.map(item => toInputText(item)).filter(item => item !== '')
@@ -655,6 +664,7 @@ const normalizeStringArray = (input) => {
   return []
 }
 
+// 规范化警告列表
 const normalizeWarnings = (input) => {
   if (Array.isArray(input)) {
     return input.map(item => createWarningItem(item))
@@ -672,6 +682,7 @@ const normalizeWarnings = (input) => {
   return []
 }
 
+// 校验URL合法性
 const isValidUrl = (value) => {
   if (!value) {
     return false
@@ -690,9 +701,13 @@ export default {
   directives: { waves },
   data() {
     return {
+      // 列表数据
       list: [],
+      // 总记录数
       total: 0,
+      // 列表加载状态
       listLoading: false,
+      // 查询参数
       listQuery: {
         keyword: '',
         material_category_id: '',
@@ -703,22 +718,29 @@ export default {
         limit: 20,
         page: 1
       },
+      // 排序选项
       orderOptions: [],
+      // 分类选项与加载状态
       categoryOptions: [],
       categoryLoading: false,
+      // 上传占位地址（自定义上传）
       uploadPlaceholderAction: '/noop-upload',
+      // 操作加载状态
       loading: {
         delete: '',
         status: '',
         detach: ''
       },
+      // 弹窗与表单状态
       dialog: {
         visible: false,
         loading: false,
         isEdit: false,
+        // 本地封面文件与预览
         coverFile: null,
         coverPreview: '',
         form: createDefaultForm(),
+        // 表单校验规则
         rules: {
           name: [{ required: true, message: this.$t('material.form_rules_name'), trigger: 'blur' }],
           material_code: [{ required: true, message: this.$t('material.form_rules_material_code'), trigger: 'blur' }],
@@ -728,11 +750,13 @@ export default {
     }
   },
   computed: {
+    // 封面预览地址（本地优先）
     coverPreviewUrl() {
       return this.dialog.coverPreview || this.dialog.form.cover_url || ''
     }
   },
   created() {
+    // 初始化排序选项并加载数据
     this.orderOptions = [
       { key: 'created_at__DESC', label: this.$t('material.order_created_desc') },
       { key: 'created_at__ASC', label: this.$t('material.order_created_asc') },
@@ -745,9 +769,11 @@ export default {
     this.getList()
   },
   beforeDestroy() {
+    // 组件销毁前清理本地封面资源
     this.clearLocalCoverFile()
   },
   methods: {
+    // 权限判断工具
     checkPermission,
     // 拉取材料列表
     getList() {

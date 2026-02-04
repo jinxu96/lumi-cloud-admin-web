@@ -51,23 +51,27 @@
 <script>
 import Pagination from '@/components/Pagination'
 
-// 用户禁言历史弹窗
+// 用户禁言历史弹窗组件
 export default {
   name: 'BanHistoryDialog',
   components: { Pagination },
   props: {
+    // 弹窗可见状态
     visible: {
       type: Boolean,
       default: false
     },
+    // 禁言记录列表
     list: {
       type: Array,
       default: () => []
     },
+    // 表格加载状态
     loading: {
       type: Boolean,
       default: false
     },
+    // 分页信息
     pagination: {
       type: Object,
       default: () => ({ page: 1, limit: 20, total: 0 })
@@ -75,15 +79,20 @@ export default {
   },
   data() {
     return {
+      // 内部可见状态，用于与父组件双向同步
       innerVisible: this.visible,
+      // 内部分页页码
       innerPage: this.pagination.page,
+      // 内部分页每页数量
       innerLimit: this.pagination.limit
     }
   },
   watch: {
+    // 监听外部visible变化，同步到内部状态
     visible(val) {
       this.innerVisible = val
     },
+    // 监听分页变化，同步到内部分页状态
     pagination: {
       deep: true,
       handler(val) {
@@ -93,6 +102,7 @@ export default {
     }
   },
   methods: {
+    // 关闭弹窗
     handleClose() {
       this.$emit('update:visible', false)
     },

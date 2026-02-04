@@ -97,6 +97,10 @@ export default {
   name: 'Login',
   components: { LangSelect },
   data() {
+    /**
+     * 用户名验证
+     * 检查用户名是否符合验证策略
+     */
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
         callback(new Error(this.$t('login.rules_username_required')))
@@ -104,6 +108,10 @@ export default {
         callback()
       }
     }
+    /**
+     * 密码验证
+     * 检查密码长度是否至少6位
+     */
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
         callback(new Error(this.$t('login.rules_password_required')))
@@ -111,6 +119,10 @@ export default {
         callback()
       }
     }
+    /**
+     * 验证码验证
+     * 检查验证码是否正好为4位
+     */
     const validateCaptcha = (rule, value, callback) => {
       if (value.length !== 4) {
         callback(new Error(this.$t('login.rules_captcha_required')))
@@ -119,31 +131,35 @@ export default {
       }
     }
     return {
-      captchaImg: require('@/assets/larke/captcha.png'),
-      pubkey: '',
-      loginForm: {
-        username: '',
-        password: '',
-        captcha: '',
-        captchaKey: '',
+      captchaImg: require('@/assets/larke/captcha.png'), // 验证码图片URL
+      pubkey: '', // 公钥（保留字段）
+      loginForm: { // 登录表单数据
+        username: '', // 用户名
+        password: '', // 密码
+        captcha: '', // 验证码
+        captchaKey: '', // 验证码ID（服务器返回）
 
-        passkeyId: '',
-        passkey: ''
+        passkeyId: '', // 次级秘钥ID（保留字段）
+        passkey: '' // 次级秘钥值（保留字段）
       },
-      loginRules: {
+      loginRules: { // 登录表单验证规则
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         captcha: [{ required: true, trigger: 'blur', validator: validateCaptcha }]
       },
-      passwordType: 'password',
-      capsTooltip: false,
-      loading: false,
-      showDialog: false,
-      redirect: undefined,
-      otherQuery: {}
+      passwordType: 'password', // 密码输入框类型（password/text）
+      capsTooltip: false, // 是否显示色包锻锁警告提示
+      loading: false, // 登录按钮加载状态
+      showDialog: false, // 对话框显示状态
+      redirect: undefined, // 登录后重定向位置
+      otherQuery: {} // 其他路由参数
     }
   },
   watch: {
+    /**
+     * 监听路由変化
+     * 提取路由参数中的redirect和otherQuery参数
+     */
     $route: {
       handler: function(route) {
         const query = route.query
@@ -155,6 +171,10 @@ export default {
       immediate: true
     }
   },
+  /**
+   * 组件创建时初始化
+   * 加载次级秘钥和验证码
+   */
   created() {
     // window.addEventListener('storage', this.afterQRScan)
 
@@ -162,6 +182,10 @@ export default {
 
     this.refreshCaptcha()
   },
+  /**
+   * 组件挂载后
+   * 根据表单字段是否为空自动设置焦点
+   */
   mounted() {
     if (this.loginForm.username === '') {
       this.$refs.username.focus()
@@ -171,14 +195,26 @@ export default {
       this.$refs.captcha.focus()
     }
   },
+  /**
+   * 组件销毁前
+   * 不可逆的清理操作存在但不需执行
+   */
   destroyed() {
     // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
+    /**
+     * 检查是否按下Caps Lock键
+     * @param {KeyboardEvent} e - 键上事件对象
+     */
     checkCapslock(e) {
       const { key } = e
       this.capsTooltip = key && key.length === 1 && (key >= 'A' && key <= 'Z')
     },
+    /**
+     * 切换密码显示/隐藏状态
+     * 修改密码输入框的type并焦点
+     */
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -189,6 +225,10 @@ export default {
         this.$refs.password.focus()
       })
     },
+    /**
+     * 获取次级秘钥
+     * 从服务器获取用于登录的次级秘钥信息
+     */
     getPasskey() {
       this.$store.dispatch('user/passkey')
         .then(response => {
@@ -203,6 +243,10 @@ export default {
           return false
         })
     },
+    /**
+     * 刷新验证码
+     * 从服务器获取新的验证码图片和ID
+     */
     refreshCaptcha() {
       this.$store.dispatch('user/captcha')
         .then(response => {
@@ -220,6 +264,10 @@ export default {
           return false
         })
     },
+    /**
+     * 处理登录操作
+     * 验证表单、发送登录请求、处理程序跳转
+     */
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
@@ -246,6 +294,11 @@ export default {
         }
       })
     },
+    /**
+     * 提取redirect之外的其他路由参数
+     * @param {Object} query - 路由查询参数对象
+     * @returns {Object} 筛选后的其他参数
+     */
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
         if (cur !== 'redirect') {

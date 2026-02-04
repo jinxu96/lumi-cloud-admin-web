@@ -871,32 +871,40 @@ import {
   COLOR_PRINT_COLOR_PRESETS
 } from '../utils'
 
+// 深拷贝校验规则，避免引用污染
 const cloneRules = (rules = {}) => JSON.parse(JSON.stringify(rules))
 
+// 材料加工参数弹窗组件
 export default {
   name: 'MaterialProcessingProfileDialog',
   data() {
+    // 基础表单校验规则
     const baseRules = {
       material_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_material'), trigger: 'change' }],
       machine_module_profile_id: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_profile'), trigger: 'change' }],
       power_percent: [{ required: true, message: this.$t('materialProcessingProfile.form_rules_power'), trigger: 'change' }]
     }
     return {
+      // 权限判断方法（用于控制上传按钮等）
       checkPermission,
+      // 弹窗及表单状态
       dialog: {
         visible: false,
         loading: false,
         isEdit: false,
         currentStep: 0,
+        // 是否使用原始 JSON 覆盖（高级模式）
         rawOverrides: {
           sections: false,
           matrix: false
         },
         form: createDefaultForm(),
+        // 预览图本地临时文件与状态
         previewFile: null,
         previewPreview: '',
         previewPendingUpload: false,
         previewUploading: false,
+        // 分段卡片折叠状态
         sectionCollapsed: {
           fill_engrave: false,
           color_print: false,
@@ -905,40 +913,54 @@ export default {
           line_mark: false,
           fill_mark: false
         },
+        // 高级配置折叠状态
         advancedCollapsed: {
           sections: false,
           matrix: false
         },
+        // 当前表单校验规则
         rules: cloneRules(baseRules)
       },
+      // 保存基础规则，便于重置
       baseRules,
+      // 材料下拉选项与加载状态
       materialOptions: [],
       materialLoading: false,
+      // 机器下拉选项与加载状态
       machineOptions: [],
       machineLoading: false,
+      // 模块下拉选项与加载状态
       moduleOptions: [],
       moduleLoading: false,
+      // 加工方案下拉选项与加载状态
       profileOptions: [],
       profileLoading: false,
+      // 上传占位地址（自定义上传）
       uploadPlaceholderAction: '/noop-upload',
+      // 扫描模式选项
       fillEngraveScanModes: ['bi_directional', 'uni_directional'],
       fillMarkScanModes: ['uni_directional', 'bi_directional'],
       colorPrintScanModes: ['bi_directional', 'uni_directional'],
+      // 颜色打印预设
       colorPrintColorPresets: COLOR_PRINT_COLOR_PRESETS,
+      // 断点生成/间距规则选项
       generationRuleOptions: ['by_distance', 'by_number'],
       spacingRuleOptions: ['by_distance', 'by_number']
     }
   },
   computed: {
+    // 预览图显示地址（本地预览优先）
     previewDisplayUrl() {
       if (this.dialog.previewPreview) {
         return this.dialog.previewPreview
       }
       return this.dialog.form.preview_image_url
     },
+    // 步骤总数
     stepCount() {
       return 3
     },
+    // 颜色打印配置（返回规范化后的对象）
     colorPrintColors() {
       const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
       if (!section) {
@@ -947,6 +969,7 @@ export default {
       this.normalizeColorPrintColors(section)
       return section.colors || {}
     },
+    // 颜色打印列表（便于表格渲染）
     colorPrintColorList() {
       const colors = this.colorPrintColors
       return Object.keys(colors).map(key => ({
@@ -954,6 +977,7 @@ export default {
         entry: colors[key]
       }))
     },
+    // 右侧汇总信息
     summaryItems() {
       const form = this.dialog.form || {}
       return [
@@ -1004,6 +1028,7 @@ export default {
     }
   },
   methods: {
+    // 根据选项列表解析展示文本
     resolveOptionLabel(options = [], value) {
       if (value === undefined || value === null || value === '') {
         return '-'
@@ -1012,6 +1037,7 @@ export default {
       const match = Array.isArray(options) ? options.find(item => String(item.value) === stringValue) : null
       return match && match.label ? match.label : '-'
     },
+    // 下一步（含第一步校验）
     handleNextStep() {
       if (this.dialog.currentStep >= this.stepCount - 1) {
         return
@@ -1028,6 +1054,7 @@ export default {
       this.dialog.currentStep += 1
       this.scrollToFormTop()
     },
+    // 上一步
     handlePrevStep() {
       if (this.dialog.currentStep <= 0) {
         return
@@ -1035,6 +1062,7 @@ export default {
       this.dialog.currentStep -= 1
       this.scrollToFormTop()
     },
+    // 校验指定字段（用于分步校验）
     validateStepFields(fields = []) {
       if (!this.$refs.profileForm || !fields.length) {
         return Promise.resolve(true)
@@ -1059,6 +1087,7 @@ export default {
         })
       })
     },
+    // 切换步骤时滚动到表单顶部
     scrollToFormTop() {
       this.$nextTick(() => {
         const container = this.$refs.profileMain
@@ -1067,6 +1096,7 @@ export default {
         }
       })
     },
+    // 折叠/展开参数分段卡片
     toggleParameterSection(section) {
       if (!section || !this.dialog.sectionCollapsed) {
         return
@@ -1074,6 +1104,7 @@ export default {
       const next = !this.dialog.sectionCollapsed[section]
       this.$set(this.dialog.sectionCollapsed, section, next)
     },
+    // 折叠/展开高级配置面板
     toggleAdvancedSection(section) {
       if (!section || !this.dialog.advancedCollapsed) {
         return
@@ -1081,6 +1112,7 @@ export default {
       const next = !this.dialog.advancedCollapsed[section]
       this.$set(this.dialog.advancedCollapsed, section, next)
     },
+    // 重置步骤及折叠状态
     resetLayoutState() {
       this.dialog.currentStep = 0
       if (this.dialog.sectionCollapsed) {
@@ -1274,6 +1306,7 @@ export default {
         this.profileOptions = []
       }
     },
+    // 选择模块时重置加工方案并刷新下拉选项
     handleDialogModuleChange(value) {
       this.dialog.form.machine_module_id = value || ''
       this.dialog.form.machine_module_profile_id = ''
@@ -1415,6 +1448,7 @@ export default {
       }
       this.$set(sections.line_cut, 'break_spacing_rule', nextRule)
     },
+    // 规范化颜色打印颜色配置（补齐默认字段/清理非法key）
     normalizeColorPrintColors(section, { forceDefaults = false } = {}) {
       if (!section) {
         return
@@ -1462,10 +1496,12 @@ export default {
         })
       })
     },
+    // 获取指定颜色的预设默认值
     resolveColorPrintDefaults(key) {
       const preset = this.colorPrintColorPresets.find(item => item.key === key)
       return preset ? preset.defaults : {}
     },
+    // 获取颜色展示名称（优先使用当前值，其次取预设）
     resolveColorPrintLabel(key, currentLabel = '') {
       if (currentLabel) {
         return currentLabel
@@ -1477,12 +1513,14 @@ export default {
       }
       return key
     },
+    // 获取可用的颜色key选项（排除已使用）
     colorPrintKeyOptions(currentKey) {
       const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
       const colors = section && section.colors && typeof section.colors === 'object' ? section.colors : {}
       const usedKeys = new Set(Object.keys(colors).filter(key => key !== currentKey))
       return this.colorPrintColorPresets.filter(preset => !usedKeys.has(preset.key))
     },
+    // 生成颜色打印条目模板
     createColorPrintEntryTemplate(config = {}) {
       const { defaults = {}} = config
       const base = {
@@ -1498,6 +1536,7 @@ export default {
       }
       return { ...base, ...defaults }
     },
+    // 追加颜色打印条目
     handleColorPrintAddColor() {
       const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
       if (!section || !section.enabled) {
@@ -1512,6 +1551,7 @@ export default {
       }
       this.$set(colors, availablePreset.key, this.createColorPrintEntryTemplate({ defaults: availablePreset.defaults }))
     },
+    // 删除颜色打印条目
     handleColorPrintRemoveColor(key) {
       const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
       if (!section || !section.colors || !Object.prototype.hasOwnProperty.call(section.colors, key)) {
@@ -1519,6 +1559,7 @@ export default {
       }
       this.$delete(section.colors, key)
     },
+    // 切换颜色打印条目的key
     handleColorPrintKeyChange(oldKey, nextKey) {
       const section = this.dialog.form.parameterSections && this.dialog.form.parameterSections.color_print
       if (!section || !section.colors || !Object.prototype.hasOwnProperty.call(section.colors, oldKey)) {

@@ -236,6 +236,7 @@
 <script>
 import Tinymce from '@/components/Tinymce'
 
+// 模板编辑-指令步骤标签页
 export default {
   name: 'TemplateEditInstructionTab',
   components: {
@@ -243,53 +244,69 @@ export default {
   },
   inject: ['templateEditDialogContext'],
   computed: {
+    // 获取注入的模板编辑对话框上下文
     context() {
       return this.templateEditDialogContext
     },
+    // 获取本地表单数据
     form() {
       return this.context.localForm
     },
+    // 是否有上传权限
     canUpload() {
       return this.context.canUpload
     },
+    // 媒体类型选项
     instructionMediaTypeOptions() {
       return this.context.instructionMediaTypeOptions
     },
+    // 指令描述富文本编辑器工具栏配置
     instructionDescriptionToolbar() {
       return this.context.instructionDescriptionToolbar
     }
   },
   methods: {
+    // 新增指令步骤
     addInstructionStep() {
       this.context.addInstructionStep()
     },
+    // 移动指令步骤
     moveInstructionStep(index, offset) {
       this.context.moveInstructionStep(index, offset)
     },
+    // 移除指令步骤
     removeInstructionStep(index) {
       this.context.removeInstructionStep(index)
     },
+    // 指令设置操作方法
     addInstructionSetting(stepIndex) {
       this.context.addInstructionSetting(stepIndex)
     },
+    // 移除指令设置
     removeInstructionSetting(stepIndex, settingIndex) {
       this.context.removeInstructionSetting(stepIndex, settingIndex)
     },
+    // 新增指令媒体
     addInstructionMedia(stepIndex) {
       this.context.addInstructionMedia(stepIndex)
     },
+    // 移除指令媒体
     removeInstructionMedia(stepIndex, mediaIndex) {
       this.context.removeInstructionMedia(stepIndex, mediaIndex)
     },
+    // 处理指令媒体类型变更
     handleInstructionMediaTypeChange(stepIndex, mediaIndex) {
       this.context.handleInstructionMediaTypeChange(stepIndex, mediaIndex)
     },
+    // 处理指令媒体上传
     handleInstructionMediaUpload(options, stepIndex, mediaIndex) {
       return this.context.handleInstructionMediaUpload(options, stepIndex, mediaIndex)
     },
+    // 获取媒体上传文件类型
     getInstructionMediaAccept(media) {
       return this.context.getMediaAcceptValue(media)
     },
+    // 获取媒体上传提示信息
     getInstructionMediaUploadHint(media) {
       return this.context.getInstructionMediaUploadHint(media)
     }

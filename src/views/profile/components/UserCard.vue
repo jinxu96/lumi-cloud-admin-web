@@ -24,15 +24,14 @@
         <div class="user-bio-section-body">
           <div class="text-muted">
             <template v-if="user.groups && user.groups.length > 0">
-              <template v-for="item in user.groups">
-                <el-tag
-                  :key="item.id"
-                  type="success"
-                  style="margin-right: 10px;padding-left: 10px;"
-                >
-                  {{ item.title }}
-                </el-tag>
-              </template>
+              <el-tag
+                v-for="item in user.groups"
+                :key="item.id"
+                type="success"
+                style="margin-right: 10px;padding-left: 10px;"
+              >
+                {{ item.title }}
+              </el-tag>
             </template>
 
             <template v-else>

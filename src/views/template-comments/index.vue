@@ -89,7 +89,10 @@ import CommentsTable from './components/CommentsTable.vue'
 import CommentDetailDrawer from './components/CommentDetailDrawer.vue'
 import CommentFormDialog from './components/CommentFormDialog.vue'
 
-// 构造默认筛选条件，便于重置
+/**
+ * 构造默认筛选条件对象
+ * @returns {Object} 包含所有筛选字段的默认值
+ */
 const createDefaultFilters = () => ({
   project_id: '',
   user_id: '',
@@ -101,6 +104,11 @@ const createDefaultFilters = () => ({
   order: 'created_at__DESC'
 })
 
+/**
+ * 模板评论列表页面组件
+ * 用于管理项目模板的评论，支持查看、创建、删除、恢复、置顶等操作
+ * 可通过路由参数 project_id 进行筛选
+ */
 export default {
   name: 'TemplateCommentsList',
   components: {
@@ -113,10 +121,15 @@ export default {
   directives: { waves },
   data() {
     return {
+      // 评论列表数据
       list: [],
+      // 列表加载状态
       listLoading: false,
+      // 筛选条件
       filters: createDefaultFilters(),
+      // 排序选项列表
       orderOptions: [],
+      // 分页配置
       pagination: {
         page: 1,
         limit: 20,
@@ -124,36 +137,44 @@ export default {
       },
       // 记录最近一次从路由初始化得到的 project_id，用于激活时判断是否需要刷新
       lastRouteProjectId: undefined,
+      // 详情抽屉状态
       detail: {
-        visible: false,
-        loading: false,
-        record: null
+        visible: false, // 抽屉是否可见
+        loading: false, // 详情加载状态
+        record: null // 详情数据
       },
+      // 创建评论对话框状态
       createDialog: {
-        visible: false,
-        loading: false,
-        projectId: ''
+        visible: false, // 对话框是否可见
+        loading: false, // 提交加载状态
+        projectId: '' // 预设的项目ID
       }
     }
   },
   computed: {
+    // 是否有查看评论详情的权限
     canView() {
       return this.checkPermission(['app-admin.project-template-comments.show'])
     },
+    // 是否有删除评论的权限
     canDelete() {
       return this.checkPermission(['app-admin.project-template-comments.destroy'])
     },
+    // 是否有恢复评论的权限
     canRestore() {
       return this.checkPermission(['app-admin.project-template-comments.restore'])
     },
+    // 是否有置顶/取消置顶评论的权限
     canPin() {
       return this.checkPermission(['app-admin.project-template-comments.pin'])
     },
+    // 是否有创建评论的权限
     canCreate() {
       return this.checkPermission(['app-admin.project-template-comments.store'])
     }
   },
   watch: {
+    // 监听语言切换，重新构建排序选项
     '$i18n.locale'() {
       this.buildOrderOptions()
     },
@@ -164,19 +185,30 @@ export default {
       this.fetchList()
     }
   },
+  /**
+   * 组件创建时初始化
+   * 构建排序选项、从路由读取参数、加载列表数据
+   */
   created() {
     this.buildOrderOptions()
     this.initFromRoute()
     this.fetchList()
   },
+  /**
+   * keep-alive组件激活时的钩子
+   * 重新激活时，根据当前路由参数决定是否刷新列表
+   */
   activated() {
-    // keep-alive 重新激活时，根据当前路由参数决定是否刷新
     const changed = this.initFromRoute()
     if (changed) {
       this.pagination.page = 1
       this.fetchList()
     }
   },
+  /**
+   * 路由更新前的守卫
+   * 在当前路由改变但组件被复用时调用
+   */
   beforeRouteUpdate(to, from, next) {
     const changed = this.initFromRoute(to)
     if (changed) {
@@ -186,9 +218,15 @@ export default {
     next()
   },
   methods: {
-    // 暴露权限判断工具
+    /**
+     * 权限判断工具方法
+     * 从utils中导入，用于检查当前用户是否拥有指定权限
+     */
     checkPermission,
-    // 构建排序选项
+    /**
+     * 构建排序选项列表
+     * 根据当前语言生成国际化的排序选项
+     */
     buildOrderOptions() {
       this.orderOptions = [
         { value: 'created_at__DESC', label: this.$t('templateComments.order_created_desc') },
@@ -200,7 +238,12 @@ export default {
         { value: 'id__DESC', label: this.$t('templateComments.order_id_desc') }
       ]
     },
-    // 读取路由 query 的 project_id 作为初始/变更过滤
+    /**
+     * 从路由参数中初始化筛选条件
+     * 读取路由 query 中的 project_id 并更新到筛选条件中
+     * @param {Object} route - Vue Router路由对象，默认使用当前路由
+     * @returns {boolean} 返回筛选条件是否发生变化
+     */
     initFromRoute(route = this.$route) {
       const projectId = route && route.query && route.query.project_id
       let changed = false
@@ -214,11 +257,15 @@ export default {
       }
       return changed
     },
-    // 生成查询参数
+    /**
+     * 构建API查询参数
+     * 将筛选条件和分页信息转换为API所需的参数格式
+     * @returns {Object} API查询参数对象
+     */
     buildQueryParams() {
       const params = {
-        start: (this.pagination.page - 1) * this.pagination.limit,
-        limit: this.pagination.limit,
+        start: (this.pagination.page - 1) * this.pagination.limit, // 分页起始位置
+        limit: this.pagination.limit, // 每页数量
         parent_id: 0 // 仅拉取顶级评论，后端约定 parent_id=0
       }
       if (this.filters.order) params.order = this.filters.order
@@ -240,6 +287,10 @@ export default {
       }
       return params
     },
+    /**
+     * 获取评论列表数据
+     * 根据当前筛选条件和分页信息从API获取评论列表
+     */
     async fetchList() {
       this.listLoading = true
       try {
@@ -253,21 +304,37 @@ export default {
         this.listLoading = false
       }
     },
+    /**
+     * 处理搜索操作
+     * @param {Object} payload - 新的筛选条件
+     */
     handleSearch(payload) {
       this.filters = { ...payload }
       this.pagination.page = 1
       this.fetchList()
     },
+    /**
+     * 重置筛选条件
+     * 将所有筛选条件恢复为默认值并重新加载列表
+     */
     handleReset() {
       this.filters = createDefaultFilters()
       this.pagination.page = 1
       this.fetchList()
     },
+    /**
+     * 处理分页变化
+     * @param {Object} params - 分页参数 {page, limit}
+     */
     handlePagination({ page, limit }) {
       this.pagination.page = page
       this.pagination.limit = limit
       this.fetchList()
     },
+    /**
+     * 查看评论详情
+     * @param {Object} row - 评论行数据
+     */
     async handleView(row) {
       this.detail.visible = true
       this.detail.loading = true
@@ -281,6 +348,10 @@ export default {
         this.detail.loading = false
       }
     },
+    /**
+     * 删除评论
+     * @param {Object} row - 评论行数据
+     */
     async handleDelete(row) {
       try {
         await this.$confirm(this.$t('templateComments.confirm_delete'), this.$t('common.tips'))
@@ -293,6 +364,10 @@ export default {
         }
       }
     },
+    /**
+     * 恢复已删除的评论
+     * @param {Object} row - 评论行数据
+     */
     async handleRestore(row) {
       try {
         await this.$confirm(this.$t('templateComments.confirm_restore'), this.$t('common.tips'))
@@ -305,8 +380,12 @@ export default {
         }
       }
     },
+    /**
+     * 切换评论置顶状态
+     * @param {Object} row - 评论行数据
+     */
     async handlePin(row) {
-      const targetStatus = !row.is_pinned
+      const targetStatus = !row.is_pinned // 目标置顶状态
       try {
         await this.$confirm(
           targetStatus ? this.$t('templateComments.confirm_pin') : this.$t('templateComments.confirm_unpin'),
@@ -321,10 +400,18 @@ export default {
         }
       }
     },
+    /**
+     * 打开创建评论对话框
+     * @param {string|number} projectId - 预设的项目ID
+     */
     openCreateDialog(projectId = '') {
       this.createDialog.projectId = projectId
       this.createDialog.visible = true
     },
+    /**
+     * 提交创建评论
+     * @param {Object} payload - 评论数据
+     */
     async submitCreateComment(payload) {
       this.createDialog.loading = true
       try {
@@ -338,7 +425,12 @@ export default {
         this.createDialog.loading = false
       }
     },
-    // 处理详情抽屉操作菜单
+    /**
+     * 处理详情抽屉中的操作菜单
+     * @param {Object} params - 操作参数
+     * @param {string} params.command - 操作命令（delete/restore/pin/unpin）
+     * @param {Object} params.record - 评论记录数据
+     */
     handleDetailAction({ command, record }) {
       if (!record) return
       switch (command) {
@@ -354,7 +446,11 @@ export default {
           break
       }
     },
-    // 处理快速回复
+    /**
+     * 处理快速回复操作
+     * 在详情抽屉中直接回复评论，回复后刷新详情以显示新回复
+     * @param {Object} payload - 回复数据
+     */
     async handleQuickReply(payload) {
       await createProjectTemplateComment(payload)
       // 刷新详情以更新回复列表

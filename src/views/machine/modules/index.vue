@@ -436,6 +436,10 @@ import {
 } from '@/api/machineModuleProfiles'
 import ProfileSchemeDialog from './components/ProfileSchemeDialog.vue'
 
+/**
+ * 创建默认模块表单对象
+ * @returns {Object} 模块表单默认值
+ */
 const createDefaultModuleForm = () => ({
   id: '',
   machine_id: '',
@@ -453,51 +457,56 @@ export default {
   directives: { waves },
   data() {
     return {
-      list: [],
-      total: 0,
-      listLoading: false,
-      listQuery: {
-        keyword: '',
-        machine_id: '',
-        is_active: '',
-        order: 'created_at__DESC',
-        limit: 20,
-        page: 1
+      list: [], // 模块列表数据
+      total: 0, // 总记录数
+      listLoading: false, // 列表加载状态
+      listQuery: { // 列表查询参数
+        keyword: '', // 关键词搜索
+        machine_id: '', // 所属机器ID筛选
+        is_active: '', // 启用状态筛选（''全部/true启用/false禁用）
+        order: 'created_at__DESC', // 排序方式
+        limit: 20, // 每页条数
+        page: 1 // 当前页码
       },
-      orderOptions: [],
-      machineOptions: [],
-      machineOptionsLoading: false,
-      loading: {
-        delete: '',
-        status: '',
-        profileDelete: ''
+      orderOptions: [], // 排序选项列表
+      machineOptions: [], // 机器下拉选项列表
+      machineOptionsLoading: false, // 机器选项加载状态
+      loading: { // 各操作的加载状态
+        delete: '', // 正在删除的模块ID
+        status: '', // 正在切换状态的模块ID
+        profileDelete: '' // 正在删除的加工方案ID
       },
-      importing: false,
-      exporting: false,
-      templateLoading: false,
-      dialog: {
-        visible: false,
-        loading: false,
-        isEdit: false,
-        form: createDefaultModuleForm(),
-        rules: {
+      importing: false, // 导入中状态
+      exporting: false, // 导出中状态
+      templateLoading: false, // 模板下载中状态
+      dialog: { // 新增/编辑对话框状态
+        visible: false, // 对话框显示状态
+        loading: false, // 提交加载状态
+        isEdit: false, // 是否为编辑模式
+        form: createDefaultModuleForm(), // 表单数据
+        rules: { // 表单验证规则
           machine_id: [{ required: true, message: this.$t('machineModule.form_rules_machine'), trigger: 'change' }],
           name: [{ required: true, message: this.$t('machineModule.form_rules_name'), trigger: 'blur' }]
         }
       },
-      detail: {
-        visible: false,
-        loading: false,
-        currentId: '',
-        data: {},
-        profiles: [],
+      detail: { // 详情抽屉状态
+        visible: false, // 抽屉显示状态
+        loading: false, // 详情加载状态
+        currentId: '', // 当前查看的模块ID
+        data: {}, // 模块详情数据
+        profiles: [], // 模块关联的加工方案列表
         profileDialogVisible: false, // 控制新增加工方案弹窗
         profileDialogMode: 'create', // 弹窗当前模式（新增/编辑）
         activeProfile: null // 当前正在编辑的加工方案
       }
     }
   },
+  /**
+   * 组件创建时初始化排序选项并加载列表数据
+   * 如果URL中带有machine_id参数，则自动筛选该机器的模块
+   */
   created() {
+    // 初始化排序选项
     this.orderOptions = [
       { key: 'id__DESC', label: this.$t('machineModule.order_id_desc') },
       { key: 'id__ASC', label: this.$t('machineModule.order_id_asc') },
@@ -506,6 +515,7 @@ export default {
       { key: 'created_at__DESC', label: this.$t('machineModule.order_created_desc') },
       { key: 'created_at__ASC', label: this.$t('machineModule.order_created_asc') }
     ]
+    // 从路由参数获取机器ID并预加载机器选项
     const { machine_id: machineId } = this.$route.query || {}
     if (machineId) {
       this.listQuery.machine_id = String(machineId)
@@ -514,8 +524,11 @@ export default {
     this.getList()
   },
   methods: {
-    checkPermission,
-    // 获取模块列表
+    checkPermission, // 权限判断工具
+    /**
+     * 获取模块列表
+     * 根据查询条件获取机器模块数据并更新列表
+     */
     getList() {
       this.listLoading = true
       const params = {
@@ -543,7 +556,10 @@ export default {
           this.listLoading = false
         })
     },
-    // 加载机器筛选项
+    /**
+     * 加载机器下拉筛选项
+     * 从API获取机器列表用于筛选和表单选择
+     */
     loadMachineOptions() {
       if (this.machineOptions.length || this.machineOptionsLoading) {
         return
@@ -563,7 +579,10 @@ export default {
           this.machineOptionsLoading = false
         })
     },
-    // 确保当前选中机器存在于选项中
+    /**
+     * 确保当前选中的机器存在于选项列表中
+     * 如果不存在则从列表数据中提取并添加到选项
+     */
     ensureMachineOption() {
       if (!this.listQuery.machine_id) {
         return
@@ -579,18 +598,25 @@ export default {
         }
       }
     },
-    // 打开机器下拉时触发加载
+    /**
+     * 打开机器下拉选择器时触发加载选项
+     * @param {Boolean} visible - 下拉框是否可见
+     */
     handleMachineSelectVisible(visible) {
       if (visible) {
         this.loadMachineOptions()
       }
     },
-    // 应用筛选条件
+    /**
+     * 应用筛选条件并重置到第一页
+     */
     handleFilter() {
       this.listQuery.page = 1
       this.getList()
     },
-    // 重置筛选条件
+    /**
+     * 重置筛选条件到默认状态并重新加载列表
+     */
     resetFilter() {
       const limit = this.listQuery.limit
       this.listQuery = {
@@ -603,7 +629,11 @@ export default {
       }
       this.getList()
     },
-    // 删除模块
+    /**
+     * 删除机器模块
+     * 显示确认对话框后执行删除操作
+     * @param {Object} row - 要删除的模块数据行
+     */
     handleDelete(row) {
       if (!row || !row.id) {
         return
@@ -624,7 +654,10 @@ export default {
           })
       }).catch(() => {})
     },
-    // 打开新增弹窗
+    /**
+     * 打开新增模块对话框
+     * 初始化默认表单，如果当前有筛选机器则预填充
+     */
     openCreate() {
       this.dialog.visible = true
       this.dialog.isEdit = false
@@ -634,7 +667,11 @@ export default {
       }
       this.loadMachineOptions()
     },
-    // 打开编辑弹窗
+    /**
+     * 打开编辑模块对话框
+     * 将模块数据填充到表单中
+     * @param {Object} row - 要编辑的模块数据行
+     */
     openEdit(row) {
       if (!row || !row.id) {
         return
@@ -653,7 +690,11 @@ export default {
       }
       this.loadMachineOptions()
     },
-    // 切换模块启用状态
+    /**
+     * 切换模块启用状态（启用/禁用）
+     * 显示确认对话框后执行状态切换
+     * @param {Object} row - 要切换状态的模块数据行
+     */
     toggleStatus(row) {
       if (!row || !row.id) {
         return
@@ -677,7 +718,10 @@ export default {
           })
       }).catch(() => {})
     },
-    // 提交新增或编辑
+    /**
+     * 提交新增或编辑模块表单
+     * 验证表单后构建提交数据并发送请求
+     */
     submitDialog() {
       this.$refs.moduleForm.validate(valid => {
         if (!valid) {
@@ -714,7 +758,10 @@ export default {
           })
       })
     },
-    // 重置弹窗状态
+    /**
+     * 重置对话框状态
+     * 清空表单和加载状态
+     */
     resetDialog() {
       if (this.$refs.moduleForm) {
         this.$refs.moduleForm.resetFields()
@@ -722,7 +769,12 @@ export default {
       this.dialog.loading = false
       this.dialog.form = createDefaultModuleForm()
     },
-    // 规范颜色值
+    /**
+     * 规范化颜色值格式
+     * 确保颜色值以#开头并转为大写
+     * @param {String} value - 输入的颜色值
+     * @returns {String} 规范化后的颜色值
+     */
     normalizeColor(value) {
       if (!value) {
         return ''
@@ -734,7 +786,9 @@ export default {
       const upper = trimmed.startsWith('#') ? trimmed.toUpperCase() : `#${trimmed.toUpperCase()}`
       return upper.length === 7 ? upper : upper
     },
-    // 触发隐藏的导入选择框
+    /**
+     * 触发隐藏的文件输入框以选择导入文件
+     */
     handleImportClick() {
       if (this.importing) {
         return
@@ -744,7 +798,11 @@ export default {
         this.$refs.importInput.click()
       }
     },
-    // 导入模块配置
+    /**
+     * 处理导入文件变更
+     * 上传选中的文件并导入模块配置
+     * @param {Event} event - 文件选择事件
+     */
     handleImportChange(event) {
       const file = event && event.target && event.target.files ? event.target.files[0] : null
       if (!file) {
@@ -770,7 +828,10 @@ export default {
           }
         })
     },
-    // 导出模块配置
+    /**
+     * 导出模块配置到Excel文件
+     * 根据当前筛选条件导出数据
+     */
     handleExport() {
       if (this.exporting) {
         return
@@ -799,7 +860,9 @@ export default {
           this.exporting = false
         })
     },
-    // 下载导入模板
+    /**
+     * 下载模块导入模板文件
+     */
     handleDownloadTemplate() {
       if (this.templateLoading) {
         return
@@ -823,7 +886,12 @@ export default {
           this.templateLoading = false
         })
     },
-    // 执行 Blob 下载
+    /**
+     * 执行 Blob 文件下载
+     * 从响应中提取文件名并触发浏览器下载
+     * @param {Object} response - HTTP响应对象
+     * @param {String} fallbackName - 默认文件名
+     */
     downloadBlob(response, fallbackName = 'machine_modules_export.xlsx') {
       if (!response) {
         return
@@ -846,6 +914,14 @@ export default {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
     },
+    /**
+     * 加载模块详情数据
+     * @param {String|Number} moduleId - 模块ID
+     * @param {Object} options - 加载选项
+     * @param {Boolean} options.reset - 是否重置详情数据
+     * @param {Boolean} options.showLoading - 是否显示加载状态
+     * @returns {Promise} API请求Promise
+     */
     loadModuleDetail(moduleId, { reset = false, showLoading = true } = {}) {
       if (!moduleId) {
         return
@@ -869,7 +945,11 @@ export default {
           }
         })
     },
-    // 打开详情抽屉
+    /**
+     * 打开模块详情抽屉
+     * 加载模块详细信息和关联的加工方案列表
+     * @param {Object} row - 模块数据行
+     */
     openDetail(row) {
       if (!row || !row.id) {
         return
@@ -879,6 +959,9 @@ export default {
       this.detail.currentId = row.id
       this.loadModuleDetail(row.id, { reset: true, showLoading: true })
     },
+    /**
+     * 打开新增加工方案对话框
+     */
     openProfileDialog() {
       if (!this.detail.currentId) {
         return
@@ -887,6 +970,10 @@ export default {
       this.detail.activeProfile = null
       this.detail.profileDialogVisible = true
     },
+    /**
+     * 打开编辑加工方案对话框
+     * @param {Object} row - 加工方案数据行
+     */
     openProfileEdit(row) {
       if (!row || !row.id) {
         return
@@ -895,6 +982,12 @@ export default {
       this.detail.activeProfile = { ...row }
       this.detail.profileDialogVisible = true
     },
+    /**
+     * 处理加工方案提交
+     * 根据模式（新增/编辑）调用对应API并刷新详情
+     * @param {Object} context - 提交上下文
+     * @param {Function} done - 完成回调函数
+     */
     handleProfileSubmit(context, done) {
       const mode = context && context.mode ? context.mode : 'create'
       const payload = context && context.payload ? context.payload : null
@@ -927,6 +1020,11 @@ export default {
           done(false)
         })
     },
+    /**
+     * 删除加工方案
+     * 显示确认对话框后执行删除操作并刷新详情
+     * @param {Object} row - 要删除的加工方案数据行
+     */
     handleProfileDelete(row) {
       if (!row || !row.id) {
         return
@@ -951,10 +1049,16 @@ export default {
           })
       }).catch(() => {})
     },
+    /**
+     * 加工方案对话框关闭时重置状态
+     */
     handleProfileDialogClosed() {
       this.detail.profileDialogMode = 'create'
       this.detail.activeProfile = null
     },
+    /**
+     * 详情抽屉关闭时清理所有详情相关状态
+     */
     handleDetailClosed() {
       this.detail.profileDialogVisible = false
       this.detail.currentId = ''

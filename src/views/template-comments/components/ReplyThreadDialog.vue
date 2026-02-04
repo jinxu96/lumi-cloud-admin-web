@@ -175,18 +175,22 @@ export default {
     }
   },
   computed: {
+    // 弹窗标题
     dialogTitle() {
       if (!this.parentReply) return this.$t('templateComments.thread_title')
       return `${this.$t('templateComments.thread_title')} · #${this.parentReply.id}`
     },
+    // 是否有权限回复评论
     canReply() {
       return checkPermission(['app-admin.project-template-comments.store'])
     },
+    // 是否还有更多回复可加载
     hasMore() {
       return this.threadReplies.length < this.threadTotal
     }
   },
   watch: {
+    // 监听弹窗显示状态
     visible(val) {
       this.innerVisible = val
     },

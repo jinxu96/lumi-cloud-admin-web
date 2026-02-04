@@ -35,6 +35,7 @@ import Password from './components/Password'
 import Avatar from './components/Avatar'
 import { getInfo } from '@/api/user'
 
+// 个人资料页面组件
 export default {
   name: 'Profile',
   components: {
@@ -45,12 +46,14 @@ export default {
   },
   data() {
     return {
+      // 用户基础信息
       user: {
         name: '',
         email: '',
         avatar: require('@/assets/larke/avatar-default.jpg'),
         introduce: ''
       },
+      // 当前激活的标签页
       activeTab: 'account'
     }
   },
@@ -58,13 +61,16 @@ export default {
 
   },
   created() {
+    // 页面创建时加载用户信息
     this.getUser()
   },
   methods: {
+    // 获取用户信息
     getUser() {
       getInfo().then(response => {
         const { nickname, email, avatar, introduce, groups } = response.data
 
+        // 组装用户信息用于展示
         this.user = {
           name: nickname,
           email: email,
