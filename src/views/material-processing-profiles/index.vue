@@ -513,6 +513,7 @@ export default {
       importing: false,
       colorPrintImporting: false,
       loading: {
+        // 记录删除按钮的加载状态
         delete: ''
       }
     }
@@ -641,6 +642,7 @@ export default {
     },
     // 统一格式化彩打参数的展示数值
     formatColorPrintFieldValue(field, rawValue) {
+      // air_assist 为布尔类型，需转换为多语言文案
       if (field === 'air_assist') {
         if (rawValue === true) {
           return this.$t('materialProcessingProfile.option_true')
@@ -651,6 +653,7 @@ export default {
         if (rawValue === null || rawValue === undefined) {
           return '-'
         }
+        // 兼容字符串形式的布尔值
         const normalized = String(rawValue).trim().toLowerCase()
         if (['true', '1', 'yes', 'y', 'on'].includes(normalized)) {
           return this.$t('materialProcessingProfile.option_true')
@@ -660,6 +663,7 @@ export default {
         }
         return '-'
       }
+      // 非 air_assist 字段：空值统一显示占位符
       if (rawValue === null || rawValue === undefined || rawValue === '') {
         return '-'
       }
@@ -722,6 +726,7 @@ export default {
     // 拉取加工配置列表数据
     getList() {
       this.listLoading = true
+      // 组装查询参数并请求接口
       const params = this.buildQueryParams(true)
       getMaterialProcessingProfiles(params)
         .then(res => {
@@ -855,6 +860,7 @@ export default {
     },
     // 处理导入文件上传
     handleImportChange(event) {
+      // 读取用户选择的文件
       const file = event && event.target && event.target.files ? event.target.files[0] : null
       if (!file) {
         return
@@ -893,6 +899,7 @@ export default {
     },
     // 处理彩打导入文件上传
     handleColorPrintImportChange(event) {
+      // 读取用户选择的文件
       const file = event && event.target && event.target.files ? event.target.files[0] : null
       if (!file) {
         return
@@ -1080,6 +1087,7 @@ export default {
         return
       }
       this.templateLoading = true
+      // 下载标准加工配置模板
       downloadMaterialProcessingProfileTemplate()
         .then(response => {
           this.downloadBlob(response, 'material_processing_profiles_template.csv')
@@ -1105,6 +1113,7 @@ export default {
         return
       }
       this.colorPrintTemplateLoading = true
+      // 下载彩打专用模板
       downloadColorPrintTemplateApi()
         .then(response => {
           this.downloadBlob(response, 'material_processing_color_print_template.csv')
@@ -1129,6 +1138,7 @@ export default {
       if (this.exportLoading) {
         return
       }
+      // 导出前弹出提示，确认使用当前筛选条件
       this.$confirm(
         this.$t('materialProcessingProfile.confirm_export_filter_tip'),
         this.$t('common.tips'),
