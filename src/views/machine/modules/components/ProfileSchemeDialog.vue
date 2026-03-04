@@ -114,8 +114,8 @@ const PROCESSING_MODE_OPTION_VALUES = {
  * 用于构建加工类型下拉列表选项
  */
 const PROCESS_TYPE_OPTION_VALUES = {
-  profile_dialog_type_option_cut_fill_line: '切割/填充雕刻/线条雕刻',
-  profile_dialog_type_option_cut: '切割',
+  profile_dialog_type_option_cut_fill_line: '线条切割/填充雕刻/线条雕刻',
+  profile_dialog_type_option_cut: '线条切割',
   profile_dialog_type_option_fill: '填充雕刻',
   profile_dialog_type_option_line: '线条雕刻',
   profile_dialog_type_option_color_print: '彩打',
