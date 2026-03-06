@@ -163,7 +163,7 @@ export default {
     profile_dialog_type_option_cut: '线条切割',
     profile_dialog_type_option_fill: '填充雕刻',
     profile_dialog_type_option_line: '线条雕刻',
-    profile_dialog_type_option_color_print: '彩打',
+    profile_dialog_type_option_color_print: '彩雕',
     profile_dialog_type_option_marking: '标记',
     profile_dialog_type_option_engrave: '雕刻',
     profile_dialog_power: '功率 (W)',

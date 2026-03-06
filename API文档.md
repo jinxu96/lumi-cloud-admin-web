@@ -1957,23 +1957,23 @@ curl -X GET "https://example.com/admin-api/material-library/template" \
 
 - **响应**：下载 `material_processing_profiles_YYYYMMDDHHMMSS.csv` 文件，内容带 UTF-8 BOM，首行为 `# 导出时间: {timestamp}` 注释，其余行与导入模板列头完全一致。
 
-## 下载彩打模板
+## 下载彩雕模板
 - **权限标识**：`app-admin.mpp.template-color`
 - **接口**：`GET /admin-api/material-processing-profiles/template-color-print`
-- **说明**：下载彩打参数专用导入模板，列头与彩打导入接口一致。
+- **说明**：下载彩雕参数专用导入模板，列头与彩雕导入接口一致。
 - **响应**：返回 [material_processing_color_print_template.csv]，默认包含 UTF-8 BOM。
 - **提示**：模板前两行同样为注释，第三行开始才是表头；请仅填写允许的颜色键。
 
-## 导入彩打参数
+## 导入彩雕参数
 - **权限标识**：`app-admin.mpp.import-color`
 - **接口**：`POST /admin-api/material-processing-profiles/import-color-print`
-- **说明**：批量导入彩打加工参数，按材料与加工方案合并颜色配置，未填写的颜色保持原有矩阵数值。
+- **说明**：批量导入彩雕加工参数，按材料与加工方案合并颜色配置，未填写的颜色保持原有矩阵数值。
 - **请求方式**：`multipart/form-data`
 - **请求体字段**：
 
 | 字段 | 类型 | 是否必填 | 说明 |
 | -- | -- | -- | -- |
-| `file` | file | 是 | 彩打参数 CSV，最大 20 MB |
+| `file` | file | 是 | 彩雕参数 CSV，最大 20 MB |
 
 - **模板要求**：
   - 使用 `resources/templates/material_processing_color_print_template.csv`（同样可经由配置模板页面下载）。

@@ -68,7 +68,7 @@ export function downloadMaterialProcessingProfileTemplate() {
 }
 
 export function downloadColorPrintTemplate() {
-  // 下载彩打参数导入模板
+  // 下载彩雕参数导入模板
   const timestamp = Date.now()
   return request({
     url: 'material-processing-profiles/template-color-print',
@@ -139,7 +139,7 @@ export function importMaterialLibrary(data) {
 }
 
 export function importColorPrintParameters(data) {
-  // 批量导入彩打加工参数
+  // 批量导入彩雕加工参数
   return request({
     url: 'material-processing-profiles/import-color-print',
     method: 'post',

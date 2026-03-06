@@ -543,7 +543,7 @@ export default {
     formatMachineLabel,
     // 组合模块下拉标签
     formatModuleLabel,
-    // 判断是否为彩打工艺
+    // 判断是否为彩雕工艺
     isColorPrintRow(row) {
       if (!row) {
         return false
@@ -572,9 +572,9 @@ export default {
       if (normalized === 'color_print' || normalized === 'color print') {
         return true
       }
-      return normalized === '彩打'
+      return normalized === '彩雕'
     },
-    // 将彩打参数展开为按颜色的行
+    // 将彩雕参数展开为按颜色的行
     getColorPrintFieldRows(row, field) {
       if (!this.isColorPrintRow(row)) {
         return []
@@ -589,7 +589,7 @@ export default {
         value: this.formatColorPrintFieldValue(field, entry.value[field])
       }))
     },
-    // 提取彩打参数中的颜色通道
+    // 提取彩雕参数中的颜色通道
     extractColorPrintColors(row) {
       const sectionsSource = (row && row.parameter_matrix_sections) || {}
       const matrixSource = (row && row.parameter_matrix) || {}
@@ -617,7 +617,7 @@ export default {
         })
         .filter(Boolean)
     },
-    // 解析彩打配置段
+    // 解析彩雕配置段
     resolveColorPrintSection(sectionsSource, matrixSource) {
       if (sectionsSource && sectionsSource.color_print && typeof sectionsSource.color_print === 'object') {
         return sectionsSource.color_print
@@ -640,7 +640,7 @@ export default {
       }
       return key
     },
-    // 统一格式化彩打参数的展示数值
+    // 统一格式化彩雕参数的展示数值
     formatColorPrintFieldValue(field, rawValue) {
       // air_assist 为布尔类型，需转换为多语言文案
       if (field === 'air_assist') {
@@ -848,7 +848,7 @@ export default {
         this.$refs.importInput.click()
       }
     },
-    // 触发彩打导入文件选择
+    // 触发彩雕导入文件选择
     handleColorPrintImportClick() {
       if (this.colorPrintImporting) {
         return
@@ -897,7 +897,7 @@ export default {
           }
         })
     },
-    // 处理彩打导入文件上传
+    // 处理彩雕导入文件上传
     handleColorPrintImportChange(event) {
       // 读取用户选择的文件
       const file = event && event.target && event.target.files ? event.target.files[0] : null
@@ -1107,13 +1107,13 @@ export default {
           this.templateLoading = false
         })
     },
-    // 下载彩打模板文件
+    // 下载彩雕模板文件
     downloadColorPrintTemplate() {
       if (this.colorPrintTemplateLoading) {
         return
       }
       this.colorPrintTemplateLoading = true
-      // 下载彩打专用模板
+      // 下载彩雕专用模板
       downloadColorPrintTemplateApi()
         .then(response => {
           this.downloadBlob(response, 'material_processing_color_print_template.csv')
