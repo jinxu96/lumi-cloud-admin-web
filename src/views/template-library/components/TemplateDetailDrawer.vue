@@ -60,10 +60,10 @@
         <div class="detail-rich" v-html="detailData.description" />
       </section>
 
-      <section v-if="detailData.tags && detailData.tags.length" class="detail-section detail-section--list">
+      <section v-if="detailTags.length" class="detail-section detail-section--list">
         <h4>{{ $t('templateLibrary.table_tags') }}</h4>
         <el-tag
-          v-for="tag in detailData.tags"
+          v-for="tag in detailTags"
           :key="tag"
           class="tag-chip"
           type="info"
@@ -297,6 +297,10 @@ export default {
     imagePreviewList() {
       return this.imageMediaList.map(item => item.url)
     },
+    // 规范化标签列表，兼容字符串或对象结构
+    detailTags() {
+      return this.normalizeTags(this.detailData ? this.detailData.tags : [])
+    },
     // 操作说明步骤
     instructionSteps() {
       if (!this.detailData || !Array.isArray(this.detailData.instruction_steps)) {
@@ -332,6 +336,24 @@ export default {
       return status === 'published'
         ? this.$t('templateLibrary.status_published')
         : this.$t('templateLibrary.status_draft')
+    },
+    // 规范化标签列表，兼容字符串或对象结构
+    normalizeTags(tags) {
+      if (!Array.isArray(tags)) {
+        return []
+      }
+      return tags
+        .map(tag => {
+          if (typeof tag === 'string') {
+            return tag
+          }
+          if (tag && typeof tag === 'object') {
+            return tag.name || tag.title || tag.label || ''
+          }
+          return ''
+        })
+        .map(tag => (tag || '').trim())
+        .filter(Boolean)
     },
     // 根据推荐状态输出权重信息
     formatFeatured(detail) {

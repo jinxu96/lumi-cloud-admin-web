@@ -26,7 +26,7 @@
         style="width: 100%;"
       >
         <el-option
-          v-for="tag in form.tags"
+          v-for="tag in normalizedTags"
           :key="tag"
           :label="tag"
           :value="tag"
@@ -100,6 +100,22 @@ export default {
     },
     instructionDescriptionToolbar() {
       return this.templateEditDialogContext.instructionDescriptionToolbar
+    },
+    // 规范化标签列表，确保下拉渲染 string
+    normalizedTags() {
+      const tags = this.form && Array.isArray(this.form.tags) ? this.form.tags : []
+      return tags
+        .map(tag => {
+          if (typeof tag === 'string') {
+            return tag
+          }
+          if (tag && typeof tag === 'object') {
+            return tag.name || tag.title || tag.label || ''
+          }
+          return ''
+        })
+        .map(tag => (tag || '').trim())
+        .filter(Boolean)
     }
   }
 }

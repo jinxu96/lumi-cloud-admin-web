@@ -465,7 +465,7 @@ export default {
       return {
         title: source.title || '',
         description: source.description || '',
-        tags: Array.isArray(source.tags) ? [...source.tags] : [],
+        tags: this.normalizeTags(source.tags),
         machineModuleIds,
         materialIds,
         scenarioIds,
@@ -527,6 +527,24 @@ export default {
         unitIndex += 1
       }
       return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+    },
+    // 规范化标签列表，兼容字符串或对象结构
+    normalizeTags(tags) {
+      if (!Array.isArray(tags)) {
+        return []
+      }
+      return tags
+        .map(tag => {
+          if (typeof tag === 'string') {
+            return tag
+          }
+          if (tag && typeof tag === 'object') {
+            return tag.name || tag.title || tag.label || ''
+          }
+          return ''
+        })
+        .map(tag => (tag || '').trim())
+        .filter(Boolean)
     },
     // 校验文件的扩展名与大小
     validateSelectedFile(file, allowedExtensions, maxSize) {
@@ -722,7 +740,7 @@ export default {
         const payload = {
           title: this.localForm.title,
           description: this.localForm.description,
-          tags: this.localForm.tags.filter(tag => !!tag && tag.trim()).map(tag => tag.trim()),
+          tags: this.normalizeTags(this.localForm.tags),
           machine_module_ids: [...this.localForm.machineModuleIds],
           material_ids: [...this.localForm.materialIds],
           scenario_ids: [...this.localForm.scenarioIds]

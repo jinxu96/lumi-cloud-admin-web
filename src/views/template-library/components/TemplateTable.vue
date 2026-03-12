@@ -31,8 +31,8 @@
           <div class="template-title">
             <div class="template-title__text">{{ row.title }}</div>
             <div class="template-title__meta">
-              <span v-if="row.tags && row.tags.length" class="tag-meta">
-                {{ $t('templateLibrary.table_tags') }}: {{ row.tags.join(', ') }}
+              <span v-if="formatTags(row.tags)" class="tag-meta">
+                {{ $t('templateLibrary.table_tags') }}: {{ formatTags(row.tags) }}
               </span>
               <span v-if="row.user" class="author-meta">
                 {{ $t('templateLibrary.table_author') }}: {{ row.user.name || '-' }}
@@ -264,6 +264,29 @@ export default {
       this.$emit('update:page', page)
       this.$emit('update:limit', limit)
       this.$emit('pagination', { page, limit })
+    },
+    // 规范化标签列表，兼容字符串或对象结构
+    normalizeTags(tags) {
+      if (!Array.isArray(tags)) {
+        return []
+      }
+      return tags
+        .map(tag => {
+          if (typeof tag === 'string') {
+            return tag
+          }
+          if (tag && typeof tag === 'object') {
+            return tag.name || tag.title || tag.label || ''
+          }
+          return ''
+        })
+        .map(tag => (tag || '').trim())
+        .filter(Boolean)
+    },
+    // 将标签格式化为展示文本
+    formatTags(tags) {
+      const names = this.normalizeTags(tags)
+      return names.length ? names.join(', ') : ''
     },
     // 解析封面地址，兼容多种返回结构
     getCoverUrl(row) {
