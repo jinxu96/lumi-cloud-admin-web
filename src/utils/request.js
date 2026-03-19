@@ -49,7 +49,49 @@ service.interceptors.request.use(
 )
 
 const subscribers = []
-let isRefreshing = true
+let isRefreshing = false
+
+const subscribeTokenRefresh = (config, resolve, reject) => {
+  subscribers.push({ config, resolve, reject })
+}
+
+const onRefreshed = () => {
+  subscribers.forEach(({ config, resolve }) => {
+    resolve(service(config))
+  })
+  subscribers.length = 0
+}
+
+const onRefreshFailed = (error) => {
+  subscribers.forEach(({ reject }) => {
+    reject(error)
+  })
+  subscribers.length = 0
+}
+
+const clearGlobalOverlay = () => {
+  try {
+    MessageBox.close()
+  } catch (error) {
+    // ignore
+  }
+  try {
+    const masks = document.querySelectorAll('.el-loading-mask, .v-modal')
+    masks.forEach((node) => {
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node)
+      }
+    })
+    const body = document.body
+    if (body) {
+      body.classList.remove('el-loading-parent--relative')
+      body.classList.remove('el-loading-parent--hidden')
+      body.style.removeProperty('overflow')
+    }
+  } catch (error) {
+    // ignore
+  }
+}
 
 // response interceptor
 service.interceptors.response.use(
@@ -69,23 +111,27 @@ service.interceptors.response.use(
     if (res.code !== 0) {
       // ACCESS TOKEN TIMEOUT
       if (res.code === 106) {
-        if (isRefreshing) {
+        if (!isRefreshing) {
+          isRefreshing = true
           store.dispatch('user/refreshToken').then(() => {
-            subscribers.forEach((callback) => {
-              callback()
+            isRefreshing = false
+            onRefreshed()
+          }).catch((refreshError) => {
+            isRefreshing = false
+            onRefreshFailed(refreshError)
+            clearGlobalOverlay()
+            store.dispatch('user/resetToken').then(() => {
+              location.reload()
             })
-            isRefreshing = true
           })
         }
-        isRefreshing = false
 
-        return new Promise((resolve) => {
-          subscribers.push(() => {
-            resolve(service(response.config))
-          })
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh(response.config, resolve, reject)
         })
       } else if (res.code === 104 || res.code === 107) {
         // Token expires; to re-login
+        clearGlobalOverlay()
         MessageBox.confirm('登陆已过期，是否重新登陆？', '系统提示', {
           confirmButtonText: '重登',
           cancelButtonText: '取消',
@@ -95,7 +141,8 @@ service.interceptors.response.use(
             location.reload()
           })
         }).catch(() => {
-          isRefreshing = true
+          isRefreshing = false
+          clearGlobalOverlay()
         })
 
         return Promise.reject('登陆已过期')
@@ -137,6 +184,9 @@ service.interceptors.response.use(
       } else if (typeof data === 'string') {
         message = data
       }
+    }
+    if (response && response.status === 401) {
+      clearGlobalOverlay()
     }
     error.message = message
     Message({
